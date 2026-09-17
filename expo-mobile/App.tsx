@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StatusBar, Modal, Alert } from 'react-native';
-// NativeWind allows standard Tailwind classes on React Native components (className="...")
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, Modal, Alert, StyleSheet, Animated, Dimensions } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 interface Connector {
   id: number;
@@ -20,21 +21,19 @@ interface Station {
   connectors: Connector[];
 }
 
-export default function App() {
+function AppContent() {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'map' | 'telemetry' | 'wallet' | 'fleet'>('map');
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [isCharging, setIsCharging] = useState<boolean>(false);
   const [isFleetMode, setIsFleetMode] = useState<boolean>(false);
-  
-  // Real-time ticking telemetry state
   const [kwhConsumed, setKwhConsumed] = useState<number>(0.0);
-  const [currentKw, setCurrentKw] = useState<number>(120.0);
+  const [currentKw] = useState<number>(120.0);
   const [batterySoc, setBatterySoc] = useState<number>(34);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [walletBalance, setWalletBalance] = useState<number>(45.50);
   const [heldBalance, setHeldBalance] = useState<number>(0.00);
 
-  // Ticking Telemetry Loop
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isCharging) {
@@ -50,23 +49,17 @@ export default function App() {
   const handleStartCharging = (station: Station, connector: Connector) => {
     const PREAUTH_HOLD = 20.00;
     if (!isFleetMode && walletBalance < PREAUTH_HOLD) {
-      Alert.alert(
-        'Insufficient Balance',
-        `XCharge requires a $${PREAUTH_HOLD.toFixed(2)} pre-authorization credit check/hold before firing the OCPP unlock request. Please top up your Mobile Money wallet.`,
-        [{ text: 'Top Up Wallet', onPress: () => setActiveTab('wallet') }]
-      );
+      Alert.alert('Insufficient Balance', `XCharge requires a $${PREAUTH_HOLD.toFixed(2)} pre-authorization hold. Please top up.`, [{ text: 'Top Up', onPress: () => setActiveTab('wallet') }]);
       return;
     }
-
     if (!isFleetMode) {
       setWalletBalance((prev) => +(prev - PREAUTH_HOLD).toFixed(2));
       setHeldBalance(PREAUTH_HOLD);
     }
-
     setIsCharging(true);
     setSelectedStation(null);
     setActiveTab('telemetry');
-    Alert.alert('Connector Unlocked', `CitrineOS CSMS fired RemoteStartTransaction to ${station.stationId} Connector #${connector.connectorId}.`);
+    Alert.alert('Connector Unlocked', `OCPP RemoteStart → ${station.stationId} #${connector.connectorId}`);
   };
 
   const handleStopCharging = () => {
@@ -77,7 +70,7 @@ export default function App() {
       setHeldBalance(0);
     }
     setIsCharging(false);
-    Alert.alert('Session Completed', `Charging stopped. Total delivered: ${kwhConsumed} kWh ($${finalCost.toFixed(2)} settled). Connector relocked.`);
+    Alert.alert('Session Complete', `${kwhConsumed} kWh delivered • $${finalCost.toFixed(2)} settled`);
   };
 
   const formatTime = (secs: number) => {
@@ -86,85 +79,75 @@ export default function App() {
     return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const stations: Station[] = [
+    {
+      id: 'st-01', stationId: 'XC-AFR-001', name: 'XCharge Superhub – Airport City',
+      address: 'Liberation Rd, Terminal District', distanceKm: 1.2,
+      connectors: [
+        { id: 1, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 0.32 },
+        { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Charging', tariffPerKwh: 0.32 },
+      ],
+    },
+    {
+      id: 'st-02', stationId: 'XC-CBD-002', name: 'XCharge Express – Financial Plaza',
+      address: 'High Street Commercial Core', distanceKm: 3.8,
+      connectors: [{ id: 3, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 0.35 }],
+    },
+  ];
+
+  const tabs = [
+    { key: 'map', label: 'Map' },
+    { key: 'telemetry', label: 'Charge HUD' },
+    { key: 'wallet', label: 'MoMo Wallet' },
+    { key: 'fleet', label: 'Fleet VIN' },
+  ];
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-950">
+    <View style={[s.root, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
-      
-      {/* Top Header Bar */}
-      <View className="px-5 py-3 border-b border-slate-800 flex-row justify-between items-center bg-slate-900">
+
+      {/* Header */}
+      <View style={s.header}>
         <View>
-          <Text className="text-xl font-bold text-sky-400">XCharge EV</Text>
-          <Text className="text-xs text-slate-400">
-            {isFleetMode ? 'Commercial Fleet: APEX-LOGISTICS' : 'Personal Driver Account'}
-          </Text>
+          <Text style={s.headerTitle}>XCharge EV</Text>
+          <Text style={s.headerSub}>{isFleetMode ? 'Fleet: APEX-LOGISTICS' : 'Personal Driver Account'}</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setIsFleetMode(!isFleetMode)}
-          className={`px-3 py-1.5 rounded-full border ${isFleetMode ? 'bg-amber-500/20 border-amber-500' : 'bg-sky-500/20 border-sky-500'}`}
-        >
-          <Text className={`text-xs font-semibold ${isFleetMode ? 'text-amber-400' : 'text-sky-400'}`}>
+        <TouchableOpacity onPress={() => setIsFleetMode(!isFleetMode)} style={[s.badge, isFleetMode ? s.badgeFleet : s.badgePersonal]}>
+          <Text style={[s.badgeText, isFleetMode ? s.badgeFleetText : s.badgePersonalText]}>
             {isFleetMode ? 'FLEET: VIN MODE' : 'PERSONAL'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Main Content Areas */}
-      <View className="flex-1">
+      {/* Map Tab */}
+      <View style={s.content}>
         {activeTab === 'map' && (
-          <View className="flex-1 px-4 py-3">
-            <View className="h-48 bg-slate-900 rounded-2xl border border-slate-800 p-4 justify-center items-center mb-4">
-              <Text className="text-slate-300 font-semibold mb-1">XCharge Heavy Map Canvas</Text>
-              <Text className="text-xs text-slate-500 text-center">
-                React-Native-Maps / OpenStreetMap with PostGIS clustering & live connector indicators
-              </Text>
-              <View className="mt-3 flex-row space-x-2">
-                <View className="px-2 py-1 bg-emerald-500/20 rounded border border-emerald-500">
-                  <Text className="text-emerald-400 text-xs">● 8 Available</Text>
+          <View style={s.pad}>
+            <View style={s.mapPlaceholder}>
+              <Text style={s.mapTitle}>XCharge Station Map</Text>
+              <Text style={s.mapSub}>PostGIS + React Native Maps with live connector indicators</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+                <View style={[s.statusBadge, { backgroundColor: '#065f46', borderColor: '#10b981' }]}>
+                  <Text style={{ color: '#34d399', fontSize: 12 }}>● 8 Available</Text>
                 </View>
-                <View className="px-2 py-1 bg-blue-500/20 rounded border border-blue-500">
-                  <Text className="text-blue-400 text-xs">● 3 Charging</Text>
+                <View style={[s.statusBadge, { backgroundColor: '#1e3a5f', borderColor: '#3b82f6' }]}>
+                  <Text style={{ color: '#60a5fa', fontSize: 12 }}>● 3 Charging</Text>
                 </View>
               </View>
             </View>
 
-            <Text className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2">Nearby Fast Chargers</Text>
-            <ScrollView className="flex-1">
-              {[
-                {
-                  id: 'st-01',
-                  stationId: 'XC-AFR-001',
-                  name: 'XCharge Superhub - Airport City',
-                  address: 'Liberation Rd, Terminal District',
-                  distanceKm: 1.2,
-                  connectors: [
-                    { id: 1, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 0.32 },
-                    { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Charging', tariffPerKwh: 0.32 }
-                  ]
-                },
-                {
-                  id: 'st-02',
-                  stationId: 'XC-CBD-002',
-                  name: 'XCharge Express - Financial Plaza',
-                  address: 'High Street Commercial Core',
-                  distanceKm: 3.8,
-                  connectors: [
-                    { id: 3, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 0.35 }
-                  ]
-                }
-              ].map((station: any) => (
-                <TouchableOpacity
-                  key={station.id}
-                  onPress={() => setSelectedStation(station)}
-                  className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-3"
-                >
-                  <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-base font-bold text-slate-100">{station.name}</Text>
-                    <Text className="text-xs text-sky-400 font-semibold">{station.distanceKm} km</Text>
+            <Text style={s.sectionTitle}>NEARBY FAST CHARGERS</Text>
+            <ScrollView>
+              {stations.map((station) => (
+                <TouchableOpacity key={station.id} onPress={() => setSelectedStation(station)} style={s.card}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={s.cardTitle}>{station.name}</Text>
+                    <Text style={s.distText}>{station.distanceKm} km</Text>
                   </View>
-                  <Text className="text-xs text-slate-400 mb-2">{station.address}</Text>
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-xs text-emerald-400">160 kW CCS2 Ultra-Fast</Text>
-                    <Text className="text-xs text-slate-400">$0.32 / kWh</Text>
+                  <Text style={s.cardSub}>{station.address}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                    <Text style={{ color: '#34d399', fontSize: 12 }}>160 kW CCS2 Ultra-Fast</Text>
+                    <Text style={s.cardSub}>$0.32 / kWh</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -172,108 +155,86 @@ export default function App() {
           </View>
         )}
 
+        {/* Telemetry Tab */}
         {activeTab === 'telemetry' && (
-          <View className="flex-1 p-5 justify-between">
+          <View style={[s.pad, { justifyContent: 'space-between' }]}>
             <View>
-              <View className="items-center py-6">
-                <Text className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">Live Battery Telemetry</Text>
-                <Text className="text-6xl font-extrabold text-sky-400">{batterySoc}%</Text>
-                <Text className="text-xs text-slate-500 mt-1">Target SoC: 80% • 398.2V • 142A</Text>
+              <View style={{ alignItems: 'center', paddingVertical: 24 }}>
+                <Text style={s.sectionTitle}>LIVE BATTERY TELEMETRY</Text>
+                <Text style={s.bigSoc}>{batterySoc}%</Text>
+                <Text style={s.cardSub}>Target SoC: 80% • 398.2V • 142A</Text>
               </View>
-
-              <View className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4">
-                <View className="flex-row justify-between py-2 border-b border-slate-800">
-                  <Text className="text-slate-400 text-sm">Active Charge Speed</Text>
-                  <Text className="text-slate-100 font-bold text-sm">{currentKw.toFixed(1)} kW</Text>
-                </View>
-                <View className="flex-row justify-between py-2 border-b border-slate-800">
-                  <Text className="text-slate-400 text-sm">Energy Consumed</Text>
-                  <Text className="text-emerald-400 font-bold text-sm">{kwhConsumed.toFixed(3)} kWh</Text>
-                </View>
-                <View className="flex-row justify-between py-2 border-b border-slate-800">
-                  <Text className="text-slate-400 text-sm">Elapsed Session Duration</Text>
-                  <Text className="text-slate-100 font-bold text-sm">{formatTime(elapsedSeconds)}</Text>
-                </View>
-                <View className="flex-row justify-between py-2">
-                  <Text className="text-slate-400 text-sm">Accrued Cost</Text>
-                  <Text className="text-amber-400 font-bold text-sm">${(kwhConsumed * 0.32).toFixed(2)}</Text>
-                </View>
+              <View style={s.card}>
+                {[
+                  { label: 'Active Charge Speed', value: `${currentKw.toFixed(1)} kW`, color: '#f1f5f9' },
+                  { label: 'Energy Consumed', value: `${kwhConsumed.toFixed(3)} kWh`, color: '#34d399' },
+                  { label: 'Elapsed Duration', value: formatTime(elapsedSeconds), color: '#f1f5f9' },
+                  { label: 'Accrued Cost', value: `$${(kwhConsumed * 0.32).toFixed(2)}`, color: '#fbbf24' },
+                ].map((row, i, arr) => (
+                  <View key={row.label} style={[s.row, i < arr.length - 1 && s.rowBorder]}>
+                    <Text style={s.cardSub}>{row.label}</Text>
+                    <Text style={{ color: row.color, fontWeight: 'bold', fontSize: 14 }}>{row.value}</Text>
+                  </View>
+                ))}
               </View>
-
               {!isFleetMode && (
-                <View className="bg-sky-950/40 border border-sky-800/40 rounded-xl p-3">
-                  <Text className="text-xs text-sky-300">
-                    💳 Pre-Auth Hold: ${heldBalance.toFixed(2)} active. Surplus funds will automatically unlock upon charging completion.
-                  </Text>
+                <View style={s.preAuthBox}>
+                  <Text style={{ color: '#7dd3fc', fontSize: 12 }}>💳 Pre-Auth Hold: ${heldBalance.toFixed(2)} active. Surplus unlocks on completion.</Text>
                 </View>
               )}
             </View>
-
             {isCharging ? (
-              <TouchableOpacity
-                onPress={handleStopCharging}
-                className="bg-rose-600 rounded-xl py-4 items-center mb-4"
-              >
-                <Text className="text-white font-bold text-base">Stop Charging & Release Connector</Text>
+              <TouchableOpacity onPress={handleStopCharging} style={[s.btn, { backgroundColor: '#e11d48' }]}>
+                <Text style={s.btnText}>Stop Charging & Release Connector</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity
-                onPress={() => setActiveTab('map')}
-                className="bg-sky-600 rounded-xl py-4 items-center mb-4"
-              >
-                <Text className="text-white font-bold text-base">Select Charger on Map</Text>
+              <TouchableOpacity onPress={() => setActiveTab('map')} style={[s.btn, { backgroundColor: '#0284c7' }]}>
+                <Text style={s.btnText}>Select Charger on Map</Text>
               </TouchableOpacity>
             )}
           </View>
         )}
 
+        {/* Wallet Tab */}
         {activeTab === 'wallet' && (
-          <ScrollView className="flex-1 p-5">
-            <View className="bg-gradient-to-r from-sky-900 to-slate-900 border border-slate-800 rounded-2xl p-5 mb-5">
-              <Text className="text-xs text-slate-400 uppercase font-bold">XCharge Driver Wallet</Text>
-              <Text className="text-4xl font-extrabold text-white mt-1">${walletBalance.toFixed(2)}</Text>
-              <Text className="text-xs text-amber-400 mt-2">Held for Pre-Authorization: ${heldBalance.toFixed(2)}</Text>
+          <ScrollView style={s.pad}>
+            <View style={[s.card, { backgroundColor: '#0c1a2e', padding: 20, marginBottom: 20 }]}>
+              <Text style={[s.sectionTitle, { marginBottom: 4 }]}>XCHARGE DRIVER WALLET</Text>
+              <Text style={{ fontSize: 40, fontWeight: '900', color: '#fff' }}>${walletBalance.toFixed(2)}</Text>
+              <Text style={{ color: '#fbbf24', fontSize: 12, marginTop: 6 }}>Held for Pre-Auth: ${heldBalance.toFixed(2)}</Text>
             </View>
-
-            <Text className="text-sm font-bold text-slate-200 mb-3">Top Up via Mobile Money</Text>
-            <View className="flex-row space-x-2 mb-4">
+            <Text style={[s.cardTitle, { marginBottom: 12 }]}>Top Up via Mobile Money</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
               {['MTN MoMo', 'Vodafone Cash', 'M-Pesa'].map((momo) => (
-                <TouchableOpacity
-                  key={momo}
-                  onPress={() => {
-                    setWalletBalance((prev) => +(prev + 25).toFixed(2));
-                    Alert.alert('MoMo Top-up', `Successfully loaded $25.00 via ${momo}.`);
-                  }}
-                  className="flex-1 bg-slate-900 border border-slate-800 py-3 rounded-xl items-center"
-                >
-                  <Text className="text-xs text-slate-200 font-semibold">{momo}</Text>
-                  <Text className="text-xs text-emerald-400 mt-1">+$25</Text>
+                <TouchableOpacity key={momo} onPress={() => { setWalletBalance((prev) => +(prev + 25).toFixed(2)); Alert.alert('Top-up Success', `$25.00 loaded via ${momo}`); }} style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 14 }]}>
+                  <Text style={s.cardSub}>{momo}</Text>
+                  <Text style={{ color: '#34d399', fontSize: 12, marginTop: 4 }}>+$25</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
         )}
 
+        {/* Fleet Tab */}
         {activeTab === 'fleet' && (
-          <ScrollView className="flex-1 p-5">
-            <View className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4">
-              <Text className="text-xs text-amber-400 font-bold uppercase">Commercial Fleet Management</Text>
-              <Text className="text-lg font-bold text-white mt-1">Apex Logistics EV Fleet</Text>
-              <Text className="text-xs text-slate-400 mt-1">Corporate Billing Account: CORP-XC-88402</Text>
+          <ScrollView style={s.pad}>
+            <View style={[s.card, { marginBottom: 20 }]}>
+              <Text style={{ color: '#fbbf24', fontSize: 11, fontWeight: 'bold' }}>COMMERCIAL FLEET MANAGEMENT</Text>
+              <Text style={s.cardTitle}>Apex Logistics EV Fleet</Text>
+              <Text style={s.cardSub}>Corporate Billing: CORP-XC-88402</Text>
             </View>
-
-            <Text className="text-sm font-bold text-slate-200 mb-3">Assigned Vehicle Identification (VIN)</Text>
+            <Text style={[s.sectionTitle, { marginBottom: 12 }]}>ASSIGNED VEHICLES (VIN)</Text>
             {[
               { vin: '1FTFW1ED8NFA02941', model: 'Ford E-Transit 350', plate: 'GT-4491-24', driver: 'Kwame Mensah' },
-              { vin: '7SAYGDEE4PF889120', model: 'Tesla Model Y Long Range', plate: 'GW-8920-23', driver: 'Ama Osei' },
-              { vin: 'LGX1C23D8M1093847', model: 'BYD T3 Cargo Van', plate: 'GN-1002-24', driver: 'Kofi Boateng' }
+              { vin: '7SAYGDEE4PF889120', model: 'Tesla Model Y LR', plate: 'GW-8920-23', driver: 'Ama Osei' },
+              { vin: 'LGX1C23D8M1093847', model: 'BYD T3 Cargo Van', plate: 'GN-1002-24', driver: 'Kofi Boateng' },
             ].map((v) => (
-              <View key={v.vin} className="bg-slate-900 border border-slate-800 rounded-xl p-3 mb-3">
-                <Text className="text-sm font-bold text-slate-100">{v.model}</Text>
-                <Text className="text-xs text-sky-400 font-mono mt-0.5">VIN: {v.vin}</Text>
-                <View className="flex-row justify-between mt-2 pt-2 border-t border-slate-800">
-                  <Text className="text-xs text-slate-400">Plate: {v.plate}</Text>
-                  <Text className="text-xs text-slate-400">Driver: {v.driver}</Text>
+              <View key={v.vin} style={[s.card, { marginBottom: 12 }]}>
+                <Text style={s.cardTitle}>{v.model}</Text>
+                <Text style={{ color: '#38bdf8', fontFamily: 'monospace', fontSize: 11, marginTop: 2 }}>VIN: {v.vin}</Text>
+                <View style={[s.row, s.rowBorder, { marginTop: 8, paddingTop: 8 }]}>
+                  <Text style={s.cardSub}>Plate: {v.plate}</Text>
+                  <Text style={s.cardSub}>Driver: {v.driver}</Text>
                 </View>
               </View>
             ))}
@@ -281,51 +242,36 @@ export default function App() {
         )}
       </View>
 
-      {/* Bottom Navigation Bar */}
-      <View className="flex-row bg-slate-900 border-t border-slate-800 py-2 px-3 justify-around">
-        {[
-          { key: 'map', label: 'Map' },
-          { key: 'telemetry', label: 'Charge HUD' },
-          { key: 'wallet', label: 'MoMo Wallet' },
-          { key: 'fleet', label: 'Fleet VIN' }
-        ].map((tab: any) => (
-          <TouchableOpacity
-            key={tab.key}
-            onPress={() => setActiveTab(tab.key)}
-            className={`px-3 py-1.5 rounded-lg items-center ${activeTab === tab.key ? 'bg-sky-500/20' : ''}`}
-          >
-            <Text className={`text-xs font-semibold ${activeTab === tab.key ? 'text-sky-400' : 'text-slate-400'}`}>
-              {tab.label}
-            </Text>
+      {/* Bottom Nav */}
+      <View style={[s.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        {tabs.map((tab) => (
+          <TouchableOpacity key={tab.key} onPress={() => setActiveTab(tab.key as any)} style={[s.navItem, activeTab === tab.key && s.navItemActive]}>
+            <Text style={[s.navLabel, activeTab === tab.key && s.navLabelActive]}>{tab.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Selected Station Bottom Sheet Modal */}
+      {/* Station Modal */}
       {selectedStation && (
-        <Modal visible={true} transparent={true} animationType="slide">
-          <View className="flex-1 justify-end bg-black/70">
-            <View className="bg-slate-900 rounded-t-3xl p-5 border-t border-slate-800">
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-lg font-bold text-white">{selectedStation.name}</Text>
+        <Modal visible transparent animationType="slide">
+          <View style={s.modalOverlay}>
+            <View style={s.modalSheet}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text style={s.cardTitle}>{selectedStation.name}</Text>
                 <TouchableOpacity onPress={() => setSelectedStation(null)}>
-                  <Text className="text-slate-400 font-bold">✕</Text>
+                  <Text style={{ color: '#94a3b8', fontSize: 18 }}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <Text className="text-xs text-slate-400 mb-4">{selectedStation.address}</Text>
-
-              <Text className="text-xs font-bold text-slate-300 uppercase mb-2">Available Connectors</Text>
+              <Text style={[s.cardSub, { marginBottom: 16 }]}>{selectedStation.address}</Text>
+              <Text style={[s.sectionTitle, { marginBottom: 8 }]}>AVAILABLE CONNECTORS</Text>
               {selectedStation.connectors.map((c) => (
-                <View key={c.id} className="flex-row justify-between items-center bg-slate-950 p-3 rounded-xl mb-2 border border-slate-800">
+                <View key={c.id} style={[s.card, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, backgroundColor: '#020817' }]}>
                   <View>
-                    <Text className="text-white font-bold">{c.type} • {c.maxPowerKw} kW</Text>
-                    <Text className="text-xs text-slate-400">${c.tariffPerKwh} / kWh</Text>
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>{c.type} • {c.maxPowerKw} kW</Text>
+                    <Text style={s.cardSub}>${c.tariffPerKwh} / kWh</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleStartCharging(selectedStation, c)}
-                    className="bg-emerald-600 px-4 py-2 rounded-lg"
-                  >
-                    <Text className="text-white text-xs font-bold">Unlock & Charge</Text>
+                  <TouchableOpacity onPress={() => handleStartCharging(selectedStation, c)} style={[s.btn, { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: '#059669', marginBottom: 0 }]}>
+                    <Text style={[s.btnText, { fontSize: 12 }]}>Unlock & Charge</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -333,6 +279,255 @@ export default function App() {
           </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
+
+const SPLASH_VIDEO = require('./assets/splash-video.mp4');
+
+function SplashScreen({ onFinish }: { onFinish: () => void }) {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [dotText, setDotText] = useState('');
+  const { width, height } = Dimensions.get('window');
+  const hasFinished = useRef(false);
+
+  const player = useVideoPlayer(SPLASH_VIDEO, (p) => {
+    p.loop = false;
+    p.muted = false;
+    p.play();
+  });
+
+  const finish = () => {
+    if (hasFinished.current) return;
+    hasFinished.current = true;
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
+    }).start(() => onFinish());
+  };
+
+  useEffect(() => {
+    // Progress bar animates for up to 10s (safety max)
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: 10000,
+      useNativeDriver: false,
+    }).start();
+
+    // Dots cycling text
+    let dotCount = 0;
+    const dotInterval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4;
+      setDotText('.'.repeat(dotCount));
+    }, 400);
+
+    // Safety timeout: transition after 10s even if video hasn't ended
+    const safetyTimer = setTimeout(finish, 10000);
+
+    // Listen for video end
+    const sub = player.addListener('playingChange', (event) => {
+      if (!event.isPlaying && hasFinished.current === false) {
+        // small delay so last frame stays visible briefly
+        setTimeout(finish, 300);
+      }
+    });
+
+    return () => {
+      clearInterval(dotInterval);
+      clearTimeout(safetyTimer);
+      sub.remove();
+    };
+  }, []);
+
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <Animated.View style={[ss.splashRoot, { opacity: fadeAnim, width, height }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
+
+      {/* Fullscreen video */}
+      <VideoView
+        player={player}
+        style={ss.splashVideo}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={false}
+      />
+
+      {/* Dark gradient overlay at bottom */}
+      <View style={ss.splashOverlay}>
+        {/* XCharge branding */}
+        <View style={ss.splashBrand}>
+          <Text style={ss.splashBrandSymbol}>⚡</Text>
+          <Text style={ss.splashBrandName}>XCharge</Text>
+        </View>
+
+        {/* Loading bar + text */}
+        <View style={ss.loadingSection}>
+          <View style={ss.progressTrack}>
+            <Animated.View style={[ss.progressBar, { width: progressWidth }]} />
+          </View>
+          <View style={ss.loadingTextRow}>
+            <View style={ss.dot} />
+            <Text style={ss.loadingText}>Loading</Text>
+            <Text style={ss.loadingDots}>{dotText}</Text>
+          </View>
+        </View>
+
+        <Text style={ss.versionText}>v1.0.0</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+export default function App() {
+  const [isSplashDone, setIsSplashDone] = useState(false);
+
+  return (
+    <SafeAreaProvider>
+      {!isSplashDone ? (
+        <SplashScreen onFinish={() => setIsSplashDone(true)} />
+      ) : (
+        <AppContent />
+      )}
+    </SafeAreaProvider>
+  );
+}
+
+const ss = StyleSheet.create({
+  splashRoot: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: '#000',
+  },
+  splashVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  splashOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 32,
+    paddingBottom: 56,
+    paddingTop: 80,
+    backgroundColor: 'rgba(2,8,23,0.72)',
+    alignItems: 'center',
+  },
+  splashBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 28,
+  },
+  splashBrandSymbol: {
+    fontSize: 28,
+  },
+  splashBrandName: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#38bdf8',
+    letterSpacing: 1.5,
+  },
+  loadingSection: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  progressTrack: {
+    width: '100%',
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 2,
+
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#38bdf8',
+    borderRadius: 2,
+  },
+  loadingTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#38bdf8',
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#94a3b8',
+    letterSpacing: 0.5,
+  },
+  loadingDots: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#38bdf8',
+    width: 20,
+  },
+  loadingSubtext: {
+    fontSize: 11,
+    color: '#334155',
+    marginTop: 6,
+    letterSpacing: 0.5,
+  },
+  versionText: {
+    position: 'absolute',
+    bottom: 48,
+    fontSize: 11,
+    color: '#1e293b',
+    letterSpacing: 1,
+  },
+});
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#020817' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#1e293b', backgroundColor: '#0f172a' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#38bdf8' },
+  headerSub: { fontSize: 11, color: '#64748b', marginTop: 1 },
+  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
+  badgeFleet: { backgroundColor: 'rgba(245,158,11,0.15)', borderColor: '#f59e0b' },
+  badgePersonal: { backgroundColor: 'rgba(14,165,233,0.15)', borderColor: '#0ea5e9' },
+  badgeText: { fontSize: 11, fontWeight: '700' },
+  badgeFleetText: { color: '#fbbf24' },
+  badgePersonalText: { color: '#38bdf8' },
+  content: { flex: 1 },
+  pad: { flex: 1, padding: 16 },
+  mapPlaceholder: { height: 180, backgroundColor: '#0f172a', borderRadius: 16, borderWidth: 1, borderColor: '#1e293b', padding: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  mapTitle: { color: '#cbd5e1', fontWeight: '600', fontSize: 14 },
+  mapSub: { color: '#475569', fontSize: 11, textAlign: 'center', marginTop: 6 },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1 },
+  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  card: { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#1e293b', borderRadius: 14, padding: 14, marginBottom: 10 },
+  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#f1f5f9' },
+  cardSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  distText: { fontSize: 12, color: '#38bdf8', fontWeight: '600' },
+  bigSoc: { fontSize: 64, fontWeight: '900', color: '#38bdf8' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10 },
+  rowBorder: { borderTopWidth: 1, borderTopColor: '#1e293b' },
+  preAuthBox: { backgroundColor: 'rgba(14,165,233,0.1)', borderWidth: 1, borderColor: 'rgba(56,189,248,0.2)', borderRadius: 10, padding: 12, marginTop: 12 },
+  btn: { borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 16 },
+  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  bottomNav: { flexDirection: 'row', backgroundColor: '#0f172a', borderTopWidth: 1, borderTopColor: '#1e293b', paddingVertical: 8, paddingHorizontal: 8 },
+  navItem: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10, minHeight: 48, justifyContent: 'center' },
+  navItemActive: { backgroundColor: 'rgba(14,165,233,0.15)' },
+  navLabel: { fontSize: 11, fontWeight: '600', color: '#475569' },
+  navLabelActive: { color: '#38bdf8' },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.75)' },
+  modalSheet: { backgroundColor: '#0f172a', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, borderTopWidth: 1, borderColor: '#1e293b' },
+});
