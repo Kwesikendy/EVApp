@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import {
   Zap,
   MapPin,
@@ -488,7 +488,7 @@ function AppContent() {
               >
                 <Zap size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
                 <Text style={[s.filterChipText, mapFilter === 'ultra' && s.filterChipTextActive]}>
-                  ⚡ 200+ kW Ultra
+                  200+ kW Ultra
                 </Text>
               </TouchableOpacity>
 
@@ -505,7 +505,7 @@ function AppContent() {
 
             {/* Native Map Component */}
             <MapView
-              style={StyleSheet.absoluteFillObject}
+              style={{ width: '100%', height: '100%' }}
               provider={PROVIDER_DEFAULT}
               initialRegion={{
                 latitude: 5.5850,
@@ -740,8 +740,9 @@ function AppContent() {
               </Text>
               {!isFleetMode && (
                 <View style={s.preAuthNoticeRow}>
-                  <Text style={{ color: '#7dd3fc', fontSize: 11 }}>
-                    💳 Pre-auth hold of GH₵ {heldBalance.toFixed(2)} active. Remaining balance unlocks upon stop.
+                  <CreditCard size={12} color="#7dd3fc" style={{ marginRight: 6 }} />
+                  <Text style={{ color: '#7dd3fc', fontSize: 11, flex: 1 }}>
+                    Pre-auth hold of GH₵ {heldBalance.toFixed(2)} active. Remaining balance unlocks upon stop.
                   </Text>
                 </View>
               )}
@@ -1164,7 +1165,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
       {/* Dark gradient overlay at bottom */}
       <View style={ss.splashOverlay}>
         <View style={ss.splashBrand}>
-          <Text style={ss.splashBrandSymbol}>⚡</Text>
+          <Zap size={28} color="#38bdf8" />
           <Text style={ss.splashBrandName}>XCharge</Text>
         </View>
 
