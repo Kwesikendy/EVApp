@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "XCharge",
+    "slug": "xcharge-mobile-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "xcharge",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#070b10"
+    },
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "android": {
+      "package": "com.kwesii.xchargemobileapp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#070b10"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.kwesii.xchargemobileapp",
+      "supportsTablet": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "cf022c9c-25fc-4642-9441-919f9fb2b92f"
+      }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}
