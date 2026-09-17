@@ -356,7 +356,6 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
         style={ss.splashVideo}
         contentFit="cover"
         nativeControls={false}
-        allowsFullscreen={false}
       />
 
       {/* Dark gradient overlay at bottom */}
