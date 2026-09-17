@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0a0e14;
+    color: #f1f5f9;
+  }
+}
+
+/* Custom glow and automotive styling */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), 0 0 40px rgba(0, 240, 255, 0.1);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 15px rgba(0, 230, 153, 0.25);
+}
+
+.border-subtle {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Hide scrollbars for clean mobile presentation */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

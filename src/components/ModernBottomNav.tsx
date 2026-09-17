@@ -1,0 +1,72 @@
+import React from 'react';
+import { Compass, Zap, Wallet, Truck } from 'lucide-react';
+
+export type TabKey = 'map' | 'charge' | 'wallet' | 'fleet';
+
+interface ModernBottomNavProps {
+  activeTab: TabKey;
+  onSelectTab: (tab: TabKey) => void;
+  isCharging?: boolean;
+}
+
+export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
+  activeTab,
+  onSelectTab,
+  isCharging = false,
+}) => {
+  const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { key: 'map', label: 'Map', icon: Compass },
+    { key: 'charge', label: 'Charge', icon: Zap },
+    { key: 'wallet', label: 'Wallet', icon: Wallet },
+    { key: 'fleet', label: 'Fleet', icon: Truck },
+  ];
+
+  return (
+    <nav
+      id="xcharge-bottom-nav"
+      className="h-16 bg-[#10141a] border-t border-white/[0.08] grid grid-cols-4 px-2 shrink-0 z-30 select-none"
+    >
+      {tabs.map(tab => {
+        const isActive = activeTab === tab.key;
+        const Icon = tab.icon;
+
+        return (
+          <button
+            key={tab.key}
+            id={`nav-tab-${tab.key}`}
+            onClick={() => onSelectTab(tab.key)}
+            className="flex flex-col items-center justify-center min-h-[44px] py-1 transition-all relative group"
+          >
+            <div className="relative flex items-center justify-center">
+              <Icon
+                className={`w-5 h-5 transition-colors ${
+                  isActive
+                    ? 'text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]'
+                    : 'text-[#64748b] group-hover:text-slate-300'
+                }`}
+              />
+
+              {/* Pulse indicator for live charging session */}
+              {tab.key === 'charge' && isCharging && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#00f0ff] animate-ping" />
+              )}
+            </div>
+
+            <span
+              className={`text-[11px] font-medium tracking-wide mt-1 transition-colors ${
+                isActive ? 'text-[#00f0ff] font-semibold' : 'text-[#64748b] group-hover:text-slate-300'
+              }`}
+            >
+              {tab.label}
+            </span>
+
+            {/* Glowing accent dot beneath active tab */}
+            {isActive && (
+              <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />
+            )}
+          </button>
+        );
+      })}
+    </nav>
+  );
+};

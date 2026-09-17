@@ -1,12 +1,44 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
-import type { ChargingStation, ActiveTelemetrySession, UserWallet, FleetAccount, OcppMessage } from './src/types';
+import type { ChargingStation, Connector, ActiveTelemetrySession, UserWallet, FleetAccount, OcppMessage } from './src/types';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3040;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+
+// Serve static assets from /public folder with full MIME type and byte-range support
+const publicDir = path.join(process.cwd(), 'public');
+app.use(express.static(publicDir));
+
+// Explicit high-performance video streaming handler
+app.get(['/electric_vehicle_charging.mp4', '/electric%20vehical%20charging.mp4', '/electric vehical charging.mp4'], (req, res) => {
+  const candidateFiles = [
+    path.join(publicDir, 'electric_vehicle_charging.mp4'),
+    path.join(publicDir, 'electric vehical charging.mp4'),
+  ];
+  for (const file of candidateFiles) {
+    if (fs.existsSync(file)) {
+      return res.sendFile(file);
+    }
+  }
+  res.status(404).json({ error: 'Video file not found on server' });
+});
+
+// Video upload endpoint allowing client to replace/upload custom splash video directly
+app.post('/api/upload-video', express.raw({ type: '*/*', limit: '100mb' }), (req, res) => {
+  try {
+    const target1 = path.join(publicDir, 'electric_vehicle_charging.mp4');
+    const target2 = path.join(publicDir, 'electric vehical charging.mp4');
+    fs.writeFileSync(target1, req.body);
+    fs.writeFileSync(target2, req.body);
+    res.json({ success: true, url: '/electric_vehicle_charging.mp4' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // In-memory persistent state representing PostgreSQL / PostGIS database & CitrineOS CSMS state
 const STATIONS: ChargingStation[] = [
@@ -411,6 +443,106 @@ app.get('/api/stations/:id', (req, res) => {
     return;
   }
   res.json(station);
+});
+
+// Admin: Create new charging station
+app.post('/api/stations', (req, res) => {
+  const { name, stationId, operator, address, latitude, longitude, connectors, amenities } = req.body;
+  if (!name || !latitude || !longitude) {
+    res.status(400).json({ error: 'Name, latitude, and longitude are required.' });
+    return;
+  }
+
+  const newId = `st-${Date.now()}`;
+  const generatedStationId = stationId || `EV-ST-${Math.floor(100 + Math.random() * 900)}`;
+
+  const formattedConnectors: Connector[] = (connectors && connectors.length > 0)
+    ? connectors.map((c: any, index: number) => ({
+        id: Date.now() + index,
+        connectorId: c.connectorId || index + 1,
+        type: c.type || 'CCS2',
+        maxPowerKw: Number(c.maxPowerKw) || 150,
+        currentPowerKw: 0,
+        status: (c.status || 'Available') as any,
+        tariffPerKwh: Number(c.tariffPerKwh) || 0.30,
+        tariffCurrency: c.tariffCurrency || 'USD'
+      }))
+    : [
+        {
+          id: Date.now(),
+          connectorId: 1,
+          type: 'CCS2',
+          maxPowerKw: 150,
+          currentPowerKw: 0,
+          status: 'Available',
+          tariffPerKwh: 0.30,
+          tariffCurrency: 'USD'
+        },
+        {
+          id: Date.now() + 1,
+          connectorId: 2,
+          type: 'CCS2',
+          maxPowerKw: 150,
+          currentPowerKw: 0,
+          status: 'Available',
+          tariffPerKwh: 0.30,
+          tariffCurrency: 'USD'
+        }
+      ];
+
+  const newStation: ChargingStation = {
+    id: newId,
+    stationId: generatedStationId,
+    name,
+    operator: operator || 'EnergyGrid Network',
+    address: address || 'Main Highway Plaza',
+    latitude: parseFloat(latitude),
+    longitude: parseFloat(longitude),
+    isOnline: true,
+    rating: 5.0,
+    amenities: amenities && amenities.length > 0 ? amenities : ['Restrooms', '24/7 Security', 'Convenience Store'],
+    connectors: formattedConnectors
+  };
+
+  STATIONS.unshift(newStation);
+  res.status(201).json({ success: true, station: newStation });
+});
+
+// Admin: Update station
+app.put('/api/stations/:id', (req, res) => {
+  const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
+  if (index === -1) {
+    res.status(404).json({ error: 'Station not found' });
+    return;
+  }
+
+  const existing = STATIONS[index];
+  const { name, operator, address, latitude, longitude, isOnline, amenities, connectors } = req.body;
+
+  STATIONS[index] = {
+    ...existing,
+    name: name ?? existing.name,
+    operator: operator ?? existing.operator,
+    address: address ?? existing.address,
+    latitude: latitude ? parseFloat(latitude) : existing.latitude,
+    longitude: longitude ? parseFloat(longitude) : existing.longitude,
+    isOnline: isOnline !== undefined ? Boolean(isOnline) : existing.isOnline,
+    amenities: amenities ?? existing.amenities,
+    connectors: connectors ?? existing.connectors
+  };
+
+  res.json({ success: true, station: STATIONS[index] });
+});
+
+// Admin: Delete station
+app.delete('/api/stations/:id', (req, res) => {
+  const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
+  if (index === -1) {
+    res.status(404).json({ error: 'Station not found' });
+    return;
+  }
+  const deleted = STATIONS.splice(index, 1)[0];
+  res.json({ success: true, deletedStationId: deleted.id });
 });
 
 // Get Wallet

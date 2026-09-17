@@ -1,465 +1,226 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import type { ChargingStation, ActiveTelemetrySession, UserWallet, FleetAccount, OcppMessage } from './types';
-import { MapView } from './components/MapView';
-import { ActiveChargingHUD } from './components/ActiveChargingHUD';
-import { StationDetailModal } from './components/StationDetailModal';
-import { WalletModal } from './components/WalletModal';
-import { FleetVINProfile } from './components/FleetVINProfile';
-import { OcppHardwareSimulator } from './components/OcppHardwareSimulator';
-import { DevSetupDocs } from './components/DevSetupDocs';
-import { ExpoMobileFrame } from './components/ExpoMobileFrame';
-import {
-  MapPin,
-  Zap,
-  Wallet,
-  Truck,
-  Terminal,
-  Layers,
-  Smartphone,
-  Monitor,
-  Activity,
-  Radio,
-  ArrowRight
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { SplashScreen } from './components/SplashScreen';
+import { ModernHeader } from './components/ModernHeader';
+import { ModernBottomNav, TabKey } from './components/ModernBottomNav';
+import { LiveChargeScreen } from './components/LiveChargeScreen';
+import { StationMapScreen } from './components/StationMapScreen';
+import { WalletScreen } from './components/WalletScreen';
+import { FleetScreen } from './components/FleetScreen';
+import { AdminStationManager } from './components/AdminStationManager';
+import { X, Building2, ShieldCheck, Car } from 'lucide-react';
+import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
-  const [stations, setStations] = useState<ChargingStation[]>([]);
-  const [wallet, setWallet] = useState<UserWallet | null>(null);
-  const [fleet, setFleet] = useState<FleetAccount | null>(null);
-  const [activeSession, setActiveSession] = useState<ActiveTelemetrySession | null>(null);
-  const [ocppLogs, setOcppLogs] = useState<OcppMessage[]>([]);
-  
-  const [selectedStation, setSelectedStation] = useState<ChargingStation | null>(null);
-  const [activeRouteStationId, setActiveRouteStationId] = useState<string | null>(null);
-  const [isFleetMode, setIsFleetMode] = useState<boolean>(false);
-  const [activeVin, setActiveVin] = useState<string>('1FTFW1ED8NFA02941');
-  
-  const [activeTab, setActiveTab] = useState<'map' | 'hud' | 'wallet' | 'fleet' | 'ocpp' | 'workbench'>('map');
+  // Splash screen state
+  const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
+  const [activeTab, setActiveTab] = useState<TabKey>('charge');
+
+  // Viewport mode: 'phone' shell (~390px) or 'fluid' fullscreen
   const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('phone');
-  
-  const [isStartingCharge, setIsStartingCharge] = useState(false);
-  const [isStoppingCharge, setIsStoppingCharge] = useState(false);
-  const [appNotice, setAppNotice] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
 
-  const showNotice = (text: string, type: 'success' | 'info' | 'error' = 'info') => {
-    setAppNotice({ text, type });
-    setTimeout(() => setAppNotice(null), 5000);
-  };
+  // Backend state for real telemetry & admin
+  const [stations, setStations] = useState<ChargingStation[]>([]);
+  const [activeSession, setActiveSession] = useState<ActiveTelemetrySession | null>(null);
+  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState<boolean>(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('FL-08 Nordic');
 
-  // 1. Initial Data Fetching
-  const loadInitialData = useCallback(async () => {
+  // Load live data from server
+  const loadData = async () => {
     try {
-      const [stRes, wRes, flRes, sesRes, logRes] = await Promise.all([
+      const [stRes, sesRes] = await Promise.all([
         fetch('/api/stations?lat=5.5900&lng=-0.1850'),
-        fetch('/api/wallet'),
-        fetch('/api/fleet'),
         fetch('/api/session/active'),
-        fetch('/api/ocpp/logs')
       ]);
-
       if (stRes.ok) setStations(await stRes.json());
-      if (wRes.ok) setWallet(await wRes.json());
-      if (flRes.ok) setFleet(await flRes.json());
       if (sesRes.ok) {
         const sesData = await sesRes.json();
-        setActiveSession(sesData.session);
+        setActiveSession(sesData.activeSession || null);
       }
-      if (logRes.ok) setOcppLogs(await logRes.json());
-    } catch (err) {
-      console.error('Failed to load initial EV platform data:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
-
-  // 2. Telemetry Polling (every 1.5 seconds for live ticking updates)
-  useEffect(() => {
-    const timer = setInterval(async () => {
-      try {
-        const [sesRes, logRes] = await Promise.all([
-          fetch('/api/session/active'),
-          fetch('/api/ocpp/logs')
-        ]);
-        if (sesRes.ok) {
-          const sesData = await sesRes.json();
-          setActiveSession(sesData.session);
-        }
-        if (logRes.ok) {
-          setOcppLogs(await logRes.json());
-        }
-      } catch {
-        // silent catch during polling
-      }
-    }, 1500);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // 3. Actions
-  const handleStartCharging = async (
-    stationId: string,
-    connectorId: number,
-    isFleet: boolean,
-    vin?: string
-  ) => {
-    setIsStartingCharge(true);
-    try {
-      const res = await fetch('/api/ocpp/remote-start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stationId,
-          connectorId,
-          isFleet,
-          vin: isFleet ? vin || activeVin : undefined,
-          preauthHoldAmount: 20.00
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'OCPP unlock request failed');
-      }
-
-      setActiveSession(data.session);
-      if (data.wallet) setWallet(data.wallet);
-      setSelectedStation(null);
-      setActiveTab('hud'); // Switch straight to live ticking telemetry HUD!
-
-      // Refresh stations
-      const stRes = await fetch('/api/stations?lat=5.5900&lng=-0.1850');
-      if (stRes.ok) setStations(await stRes.json());
-
-      showNotice('⚡ RemoteStartTransaction accepted by CitrineOS. Charging underway!', 'success');
-    } finally {
-      setIsStartingCharge(false);
+    } catch {
+      // Offline / initial fallback
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleStopCharging = async () => {
-    setIsStoppingCharge(true);
     try {
-      const res = await fetch('/api/ocpp/remote-stop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to stop session');
-      }
-
+      await fetch('/api/charge/stop', { method: 'POST' });
       setActiveSession(null);
-      if (data.wallet) setWallet(data.wallet);
-
-      // Refresh stations
-      const stRes = await fetch('/api/stations?lat=5.5900&lng=-0.1850');
-      if (stRes.ok) setStations(await stRes.json());
-
-      showNotice(
-        `Session terminated. Delivered ${data.completedSession.kwhDelivered.toFixed(2)} kWh. Held funds reconciled.`,
-        'success'
-      );
-    } catch (err: any) {
-      showNotice(err.message || 'Error stopping session', 'error');
-    } finally {
-      setIsStoppingCharge(false);
-    }
-  };
-
-  const handleTopUp = async (amount: number, provider: string, phone: string) => {
-    const res = await fetch('/api/wallet/topup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, provider, phone })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Top-up failed');
-    setWallet(data.wallet);
-    showNotice(`Successfully deposited $${amount.toFixed(2)} via ${provider} Mobile Money.`, 'success');
-  };
-
-  const handleInjectOcppEvent = async (
-    action: string,
-    payload: Record<string, unknown>,
-    direction: 'INCOMING' | 'OUTGOING' = 'INCOMING'
-  ) => {
-    const res = await fetch('/api/ocpp/inject-event', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, payload, direction })
-    });
-    if (res.ok) {
-      const logRes = await fetch('/api/ocpp/logs');
-      if (logRes.ok) setOcppLogs(await logRes.json());
-      showNotice(`Simulated OCPP [${action}] packet broadcasted.`, 'info');
+      alert('Session ramped down safely. Cable unlatched.');
+    } catch {
+      alert('Charge stopped locally.');
     }
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
-      {/* Top Global Command Bar */}
-      <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-emerald-500 flex items-center justify-center text-white shadow-md shadow-sky-600/20">
-              <Zap className="w-4 h-4 fill-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm font-black tracking-tight text-white uppercase">XCharge EV</h1>
-                <span className="text-[10px] bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.2 rounded font-bold font-mono">
-                  OCPP 1.6-J / 2.0.1
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 leading-none">Driver & Commercial Fleet Architecture</p>
-            </div>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 ml-4 pl-4 border-l border-slate-800">
-            <span className="text-xs text-slate-400">CSMS:</span>
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>CitrineOS Core (Local:8080)</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Header Right Actions */}
-        <div className="flex items-center gap-2.5">
-          {/* Active Charging session indicator button */}
-          {activeSession && (
-            <button
-              id="header-active-session-indicator"
-              onClick={() => setActiveTab('hud')}
-              className="bg-emerald-500/20 border border-emerald-500 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse"
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Charging: {activeSession.kwhDelivered.toFixed(2)} kWh</span>
-            </button>
-          )}
-
-          {/* Wallet Balance Pill */}
-          {wallet && (
-            <button
-              id="header-wallet-btn"
-              onClick={() => setActiveTab('wallet')}
-              className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 px-2.5 py-1 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-colors"
-            >
-              <Wallet className="w-3.5 h-3.5 text-sky-400" />
-              <span>${wallet.availableBalance.toFixed(2)}</span>
-            </button>
-          )}
-
-          {/* Phone / Desktop Viewport Switcher */}
-          <button
-            id="btn-toggle-viewport"
-            onClick={() => setDeviceMode(deviceMode === 'phone' ? 'fluid' : 'phone')}
-            className="hidden sm:flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-xl border border-slate-700 transition-colors"
-            title="Toggle between Native Phone Shell and Fullscreen Web"
-          >
-            {deviceMode === 'phone' ? (
-              <>
-                <Monitor className="w-3.5 h-3.5 text-sky-400" />
-                <span>Fullscreen</span>
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Phone Shell</span>
-              </>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Floating Notice / Toast */}
-      {appNotice && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-semibold shadow-2xl transition-all border animate-in fade-in duration-200 flex items-center gap-2 bg-slate-900 border-sky-500/50 text-sky-200">
-          <Radio className="w-3.5 h-3.5 text-sky-400 animate-pulse" />
-          <span>{appNotice.text}</span>
-        </div>
+    <div className="w-screen h-screen bg-[#0a0e14] text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans select-none">
+      {/* 1. Launch Splash Screen with Video and Cinematic Animation */}
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
       )}
 
-      {/* Main Workspace with Phone Shell or Fullscreen */}
-      <main className="flex-1 flex overflow-hidden relative">
-        <ExpoMobileFrame
+      {/* 2. Main Mobile Frame / Responsive Container */}
+      <div
+        id="xcharge-app-container"
+        className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 relative ${
+          deviceMode === 'phone'
+            ? 'max-w-[430px] max-h-[920px] rounded-none sm:rounded-[40px] sm:border sm:border-white/10 sm:shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:ring-8 sm:ring-[#141820]'
+            : 'max-w-none max-h-none'
+        }`}
+      >
+        {/* Device Notch on phone shell */}
+        {deviceMode === 'phone' && (
+          <div className="hidden sm:flex justify-center bg-[#10141a] pt-2 shrink-0">
+            <div className="w-28 h-4 bg-[#0a0e14] rounded-full border border-white/5" />
+          </div>
+        )}
+
+        {/* Persistent Header */}
+        <ModernHeader
+          vehicleBadge={selectedVehicle}
           deviceMode={deviceMode}
           onToggleDeviceMode={() => setDeviceMode(deviceMode === 'phone' ? 'fluid' : 'phone')}
-          activeTabTitle={activeTab}
-        >
-          {/* Subheader bar inside mobile frame */}
-          <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-sky-400">XCharge</span>
-              <span className="text-[10px] text-slate-400">
-                {isFleetMode ? 'Commercial Fleet: APEX-LOGISTICS' : 'Personal EV Driver'}
-              </span>
-            </div>
-            <button
-              id="mobile-fleet-toggle-btn"
-              onClick={() => setIsFleetMode(!isFleetMode)}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                isFleetMode
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                  : 'bg-slate-800 border-slate-700 text-slate-400'
-              }`}
-            >
-              {isFleetMode ? 'FLEET: VIN MODE' : 'PERSONAL'}
-            </button>
-          </div>
+          onReplaySplash={() => setShowSplash(true)}
+          onOpenVehicleSelect={() => setIsVehicleModalOpen(true)}
+          onOpenAdmin={() => setIsAdminOpen(true)}
+        />
 
-          {/* Active Tab Screen */}
-          <div className="flex-1 flex flex-col overflow-hidden relative">
-            {activeTab === 'map' && (
-              <MapView
-                stations={stations}
-                selectedStation={selectedStation}
-                onSelectStation={st => setSelectedStation(st)}
-                activeRouteStationId={activeRouteStationId}
-                onToggleRoute={stId => setActiveRouteStationId(activeRouteStationId === stId ? null : stId)}
-              />
-            )}
-
-            {activeTab === 'hud' && (
-              <ActiveChargingHUD
-                session={activeSession}
-                onStopSession={handleStopCharging}
-                isStopping={isStoppingCharge}
-                onSwitchToMap={() => setActiveTab('map')}
-              />
-            )}
-
-            {activeTab === 'wallet' && wallet && (
-              <WalletModal
-                wallet={wallet}
-                onTopUp={handleTopUp}
-                onClose={() => setActiveTab('map')}
-              />
-            )}
-
-            {activeTab === 'fleet' && fleet && (
-              <FleetVINProfile
-                fleet={fleet}
-                isFleetMode={isFleetMode}
-                onToggleFleetMode={setIsFleetMode}
-                activeVin={activeVin}
-                onSelectVin={setActiveVin}
-              />
-            )}
-
-            {activeTab === 'ocpp' && (
-              <OcppHardwareSimulator
-                logs={ocppLogs}
-                onInjectEvent={handleInjectOcppEvent}
-                onRefreshLogs={async () => {
-                  const res = await fetch('/api/ocpp/logs');
-                  if (res.ok) setOcppLogs(await res.json());
-                }}
-              />
-            )}
-
-            {activeTab === 'workbench' && <DevSetupDocs />}
-          </div>
-
-          {/* Station Details Drawer / Sheet Modal */}
-          {selectedStation && wallet && fleet && (
-            <StationDetailModal
-              station={selectedStation}
-              wallet={wallet}
-              fleet={fleet}
-              isFleetMode={isFleetMode}
-              onClose={() => setSelectedStation(null)}
-              onStartCharging={handleStartCharging}
-              onNavigate={stId => {
-                setActiveRouteStationId(stId);
-                setSelectedStation(null);
-                showNotice('Navigation route plotted to ' + selectedStation.name, 'info');
-              }}
-              isStarting={isStartingCharge}
-              onOpenWallet={() => {
-                setSelectedStation(null);
-                setActiveTab('wallet');
-              }}
+        {/* Main Content Area (4 Modernized Screens) */}
+        <main className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
+          {activeTab === 'map' && (
+            <StationMapScreen
+              onNavigateToCharge={() => setActiveTab('charge')}
             />
           )}
 
-          {/* Bottom Native Navigation Tabs */}
-          <nav className="h-14 bg-slate-900 border-t border-slate-800 flex items-center justify-around px-2 shrink-0 z-20">
-            <button
-              id="tab-btn-map"
-              onClick={() => setActiveTab('map')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
-                activeTab === 'map' ? 'text-sky-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <MapPin className="w-4 h-4 mb-0.5" />
-              <span className="text-[10px]">Map</span>
-            </button>
+          {activeTab === 'charge' && (
+            <LiveChargeScreen
+              session={activeSession}
+              onStopCharging={handleStopCharging}
+            />
+          )}
 
-            <button
-              id="tab-btn-hud"
-              onClick={() => setActiveTab('hud')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 relative transition-colors ${
-                activeTab === 'hud' ? 'text-sky-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <div className="relative">
-                <Zap className="w-4 h-4 mb-0.5" />
-                {activeSession && (
-                  <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                )}
+          {activeTab === 'wallet' && (
+            <WalletScreen />
+          )}
+
+          {activeTab === 'fleet' && (
+            <FleetScreen
+              onLocateVehicle={(vin) => {
+                setActiveTab('map');
+              }}
+            />
+          )}
+        </main>
+
+        {/* Persistent Bottom Navigation (4 Tabs) */}
+        <ModernBottomNav
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab)}
+          isCharging={true}
+        />
+
+        {/* Floating Quick Admin Trigger Pill (Subtle for Client Testing) */}
+        <div className="absolute top-16 right-3 z-30">
+          <button
+            id="btn-quick-admin-toggle"
+            onClick={() => setIsAdminOpen(true)}
+            className="px-2 py-0.5 rounded-full bg-[#181c24]/90 hover:bg-[#1f2632] border border-white/10 text-[10px] font-mono text-slate-400 hover:text-[#00f0ff] transition-all flex items-center gap-1 shadow-lg"
+            title="Open Admin Station Manager"
+          >
+            <Building2 className="w-3 h-3" />
+            <span>Admin</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Vehicle Selector Modal */}
+      {isVehicleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#10141a] border border-white/[0.08] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Car className="w-5 h-5 text-[#00f0ff]" />
+                <h3 className="text-sm font-bold text-white">Select Active Vehicle Profile</h3>
               </div>
-              <span className="text-[10px]">Charge HUD</span>
-            </button>
+              <button
+                onClick={() => setIsVehicleModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-            <button
-              id="tab-btn-wallet"
-              onClick={() => setActiveTab('wallet')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
-                activeTab === 'wallet' ? 'text-sky-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Wallet className="w-4 h-4 mb-0.5" />
-              <span className="text-[10px]">MoMo Wallet</span>
-            </button>
+            <div className="space-y-2">
+              {[
+                { name: 'FL-08 Nordic', model: 'Polestar 3 Performance', soc: '68%', status: 'Charging' },
+                { name: 'HV-04 Nordic', model: 'Volvo FH Electric Truck', soc: '92%', status: 'Ready' },
+                { name: 'VN-12 Nordic', model: 'Ford E-Transit Cargo', soc: '41%', status: 'On Route' },
+              ].map(veh => (
+                <button
+                  key={veh.name}
+                  onClick={() => {
+                    setSelectedVehicle(veh.name);
+                    setIsVehicleModalOpen(false);
+                  }}
+                  className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                    selectedVehicle === veh.name
+                      ? 'bg-[#181c24] border-[#00f0ff] glow-cyan-sm'
+                      : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
+                  }`}
+                >
+                  <div>
+                    <span className="text-xs font-bold text-white font-mono">{veh.name}</span>
+                    <p className="text-[11px] text-[#94a3b8]">{veh.model}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-mono font-bold text-[#00f0ff]">{veh.soc}</span>
+                    <p className="text-[10px] text-[#00e699] font-mono">{veh.status}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-            <button
-              id="tab-btn-fleet"
-              onClick={() => setActiveTab('fleet')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
-                activeTab === 'fleet' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Truck className="w-4 h-4 mb-0.5" />
-              <span className="text-[10px]">Fleet VIN</span>
-            </button>
+      {/* Admin Station Management Sheet / Drawer */}
+      {isAdminOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
+          <div className="w-full max-w-2xl h-[90vh] bg-[#10141a] border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 bg-[#141820] border-b border-white/[0.08] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-[#00f0ff]" />
+                <h3 className="text-sm font-bold text-white">XCharge Operator & Station Admin</h3>
+              </div>
+              <button
+                id="btn-close-admin-modal"
+                onClick={() => setIsAdminOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-            <button
-              id="tab-btn-ocpp"
-              onClick={() => setActiveTab('ocpp')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
-                activeTab === 'ocpp' ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Terminal className="w-4 h-4 mb-0.5" />
-              <span className="text-[10px]">OCPP CSMS</span>
-            </button>
-
-            <button
-              id="tab-btn-workbench"
-              onClick={() => setActiveTab('workbench')}
-              className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors ${
-                activeTab === 'workbench' ? 'text-purple-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Layers className="w-4 h-4 mb-0.5" />
-              <span className="text-[10px]">Tasks 1-4</span>
-            </button>
-          </nav>
-        </ExpoMobileFrame>
-      </main>
+            <div className="flex-1 overflow-y-auto">
+              <AdminStationManager
+                stations={stations}
+                onRefreshStations={loadData}
+                onSwitchToMap={() => {
+                  setIsAdminOpen(false);
+                  setActiveTab('map');
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
