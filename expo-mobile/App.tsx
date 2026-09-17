@@ -279,9 +279,7 @@ function AppContent() {
   const activateImmersive = async () => {
     if (Platform.OS === 'android') {
       try {
-        await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBehaviorAsync('overlay-swipe');
-        await NavigationBar.setBackgroundColorAsync('#020817');
+        NavigationBar.setVisibilityAsync('hidden').catch(() => {});
       } catch (_e) {
         // Safe catch
       }
@@ -1436,9 +1434,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setVisibilityAsync('hidden').catch(() => {});
-      NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
-      NavigationBar.setBackgroundColorAsync('#000000').catch(() => {});
+      try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) {}
     }
     StatusBar.setHidden(true, 'none');
 
@@ -1511,9 +1507,7 @@ export default function App() {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setVisibilityAsync('hidden').catch(() => {});
-      NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
-      NavigationBar.setBackgroundColorAsync('#020817').catch(() => {});
+      try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) {}
     }
     StatusBar.setHidden(true, 'none');
   }, []);
