@@ -1,0 +1,222 @@
+// ==============================================================================
+// XCharge EV Ecosystem - Prisma ORM Schema
+// Maps directly to CitrineOS & XCharge Map, Wallet, and Telemetry Engine
+// ==============================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserType {
+  INDIVIDUAL
+  FLEET_DRIVER
+  OPERATOR
+}
+
+enum ConnectorType {
+  CCS2
+  CHAdeMO
+  Type2
+  GBT
+}
+
+enum ConnectorStatus {
+  Available
+  Preparing
+  Charging
+  SuspendedEV
+  Finishing
+  Faulted
+  Unavailable
+}
+
+enum TransactionType {
+  TOPUP
+  PREAUTH_HOLD
+  PREAUTH_RELEASE
+  CHARGE_SETTLEMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  RELEASED
+}
+
+model FleetAccount {
+  id                 String            @id @default(uuid())
+  companyName        String            @map("company_name")
+  fleetCode          String            @unique @map("fleet_code")
+  billingAccountNo   String            @unique @map("billing_account_no")
+  creditLimit        Decimal           @default(5000.00) @map("credit_limit") @db.Decimal(12, 2)
+  currentUtilization Decimal           @default(0.00) @map("current_utilization") @db.Decimal(12, 2)
+  isActive           Boolean           @default(true) @map("is_active")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  users              User[]
+  vehicles           Vehicle[]
+  chargingSessions   ChargingSession[]
+
+  @@map("fleet_accounts")
+}
+
+model User {
+  id                String            @id @default(uuid())
+  fullName          String            @map("full_name")
+  email             String            @unique
+  phoneNumber       String            @unique @map("phone_number")
+  isPhoneVerified   Boolean           @default(false) @map("is_phone_verified")
+  userType          UserType          @default(INDIVIDUAL) @map("user_type")
+  fleetAccountId    String?           @map("fleet_account_id")
+  employeeBadgeId   String?           @map("employee_badge_id")
+  preferredCurrency String            @default("USD") @map("preferred_currency")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  fleetAccount      FleetAccount?     @relation(fields: [fleetAccountId], references: [id])
+  wallet            Wallet?
+  vehicles          Vehicle[]
+  chargingSessions  ChargingSession[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id                 String            @id @default(uuid())
+  vin                String            @unique
+  licensePlate       String            @map("license_plate")
+  make               String
+  model              String
+  year               Int
+  batteryCapacityKwh Decimal           @map("battery_capacity_kwh") @db.Decimal(6, 2)
+  maxChargeRateKw    Decimal           @default(150.00) @map("max_charge_rate_kw") @db.Decimal(6, 2)
+  connectorStandard  ConnectorType     @default(CCS2) @map("connector_standard")
+  ownerUserId        String?           @map("owner_user_id")
+  fleetAccountId     String?           @map("fleet_account_id")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  ownerUser          User?             @relation(fields: [ownerUserId], references: [id])
+  fleetAccount       FleetAccount?     @relation(fields: [fleetAccountId], references: [id])
+  chargingSessions   ChargingSession[]
+
+  @@map("vehicles")
+}
+
+model Wallet {
+  id               String              @id @default(uuid())
+  userId           String              @unique @map("user_id")
+  currency         String              @default("USD")
+  availableBalance Decimal             @default(0.00) @map("available_balance") @db.Decimal(12, 2)
+  heldBalance      Decimal             @default(0.00) @map("held_balance") @db.Decimal(12, 2)
+  momoProvider     String?             @map("momo_provider")
+  momoPhoneNumber  String?             @map("momo_phone_number")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String            @id @default(uuid())
+  walletId    String            @map("wallet_id")
+  amount      Decimal           @db.Decimal(12, 2)
+  type        TransactionType
+  status      TransactionStatus
+  provider    String
+  reference   String            @unique
+  description String?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_transactions")
+}
+
+model ChargingStation {
+  id               String            @id @default(uuid())
+  stationId        String            @unique @map("station_id")
+  name             String
+  operator         String            @default("XCharge Grid Network")
+  address          String
+  latitude         Decimal           @db.Decimal(10, 7)
+  longitude        Decimal           @db.Decimal(10, 7)
+  isOnline         Boolean           @default(true) @map("is_online")
+  rating           Decimal?          @default(5.0) @db.Decimal(2, 1)
+  amenities        String[]          @default([])
+  createdAt        DateTime          @default(now()) @map("created_at")
+  connectors       Connector[]
+  chargingSessions ChargingSession[]
+
+  @@map("charging_stations")
+}
+
+model Connector {
+  id               String            @id @default(uuid())
+  stationId        String            @map("station_id")
+  connectorIdNum   Int               @map("connector_id_num")
+  type             ConnectorType
+  maxPowerKw       Decimal           @map("max_power_kw") @db.Decimal(6, 2)
+  currentPowerKw   Decimal?          @default(0.00) @map("current_power_kw") @db.Decimal(6, 2)
+  status           ConnectorStatus   @default(Available)
+  tariffPerKwh     Decimal           @default(0.3200) @map("tariff_per_kwh") @db.Decimal(8, 4)
+  tariffCurrency   String            @default("USD") @map("tariff_currency")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  station          ChargingStation   @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  chargingSessions ChargingSession[]
+
+  @@unique([stationId, connectorIdNum])
+  @@map("connectors")
+}
+
+model ChargingSession {
+  id                 String                 @id @default(uuid())
+  sessionId          String                 @unique @map("session_id")
+  stationId          String                 @map("station_id")
+  connectorId        String                 @map("connector_id")
+  userId             String                 @map("user_id")
+  vehicleId          String?                @map("vehicle_id")
+  isFleetSession     Boolean                @default(false) @map("is_fleet_session")
+  fleetAccountId     String?                @map("fleet_account_id")
+  ocppTransactionId  Int?                   @map("ocpp_transaction_id")
+  startTime          DateTime               @default(now()) @map("start_time")
+  endTime            DateTime?              @map("end_time")
+  status             String                 @default("Charging")
+  preauthHoldAmount  Decimal?               @default(20.00) @map("preauth_hold_amount") @db.Decimal(10, 2)
+  initialSocPercent  Decimal?               @map("initial_soc_percent") @db.Decimal(5, 2)
+  currentSocPercent  Decimal?               @map("current_soc_percent") @db.Decimal(5, 2)
+  targetSocPercent   Decimal?               @default(80.00) @map("target_soc_percent") @db.Decimal(5, 2)
+  currentPowerKw     Decimal                @default(0.00) @map("current_power_kw") @db.Decimal(6, 2)
+  voltageV           Decimal?               @default(400.00) @map("voltage_v") @db.Decimal(6, 2)
+  currentA           Decimal?               @default(0.00) @map("current_a") @db.Decimal(6, 2)
+  totalKwhDelivered  Decimal                @default(0.000) @map("total_kwh_delivered") @db.Decimal(8, 3)
+  accruedCost        Decimal                @default(0.00) @map("accrued_cost") @db.Decimal(10, 2)
+  currency           String                 @default("USD")
+  station            ChargingStation        @relation(fields: [stationId], references: [id])
+  connector          Connector              @relation(fields: [connectorId], references: [id])
+  user               User                   @relation(fields: [userId], references: [id])
+  vehicle            Vehicle?               @relation(fields: [vehicleId], references: [id])
+  fleetAccount       FleetAccount?          @relation(fields: [fleetAccountId], references: [id])
+  meterValues        TelemetryMeterValue[]
+
+  @@map("charging_sessions")
+}
+
+model TelemetryMeterValue {
+  id         String          @id @default(uuid())
+  sessionId  String          @map("session_id")
+  recordedAt DateTime        @default(now()) @map("recorded_at")
+  socPercent Decimal?        @map("soc_percent") @db.Decimal(5, 2)
+  powerKw    Decimal?        @map("power_kw") @db.Decimal(6, 2)
+  kwhTotal   Decimal?        @map("kwh_total") @db.Decimal(8, 3)
+  voltageV   Decimal?        @map("voltage_v") @db.Decimal(6, 2)
+  currentA   Decimal?        @map("current_a") @db.Decimal(6, 2)
+  session    ChargingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, recordedAt])
+  @@map("telemetry_meter_values")
+}

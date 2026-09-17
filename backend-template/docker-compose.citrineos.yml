@@ -1,0 +1,69 @@
+# ==============================================================================
+# XCharge Local Ecosystem - CitrineOS CSMS & Infrastructure Docker Compose
+# Mimics exact local network routing for OCPP 1.6J/2.0.1 charge points & API server
+# ==============================================================================
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS for geospatial station queries & CitrineOS
+  postgres:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: xcharge_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: xcharge_admin
+      POSTGRES_PASSWORD: xcharge_local_password123
+      POSTGRES_DB: xcharge_ev_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - xcharge_net
+
+  # MQTT Broker for CitrineOS microservices inter-process communication
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: xcharge_mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - xcharge_net
+
+  # CitrineOS Core Server (OCPP 1.6-J and 2.0.1 CSMS Server)
+  citrineos-server:
+    image: citrineos/citrineos-core:latest
+    container_name: xcharge_citrineos_csms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - mqtt-broker
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: xcharge_ev_db
+      DB_USER: xcharge_admin
+      DB_PASSWORD: xcharge_local_password123
+      MQTT_HOST: mqtt-broker
+      MQTT_PORT: 1883
+      # CitrineOS Central System WebSocket endpoint:
+      # Hardware simulators connect to: ws://localhost:8080/ocpp/{chargePointId}
+      CENTRAL_SYSTEM_PORT: 8080
+      API_PORT: 8081
+    ports:
+      - "8080:8080" # OCPP WebSocket endpoint (Charger/Simulator connection)
+      - "8081:8081" # CitrineOS REST API (Node.js backend control plane)
+    networks:
+      - xcharge_net
+
+networks:
+  xcharge_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

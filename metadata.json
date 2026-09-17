@@ -1,0 +1,6 @@
+{
+  "name": "XCharge EV Platform",
+  "description": "Map-centric EV driver and commercial fleet charging application with real-time OCPP telemetry, mobile money split-wallets, and VIN profiling.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
