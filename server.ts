@@ -5,7 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import type { ChargingStation, Connector, ActiveTelemetrySession, UserWallet, FleetAccount, OcppMessage } from './src/types';
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3040;
+const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 
