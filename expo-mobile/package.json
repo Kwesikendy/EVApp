@@ -18,6 +18,7 @@
     "expo-font": "~57.0.4",
     "expo-location": "~57.0.18",
     "expo-modules-core": "~57.0.18",
+    "expo-navigation-bar": "^57.0.2",
     "expo-status-bar": "~57.0.1",
     "expo-video": "~57.0.4",
     "lucide-react-native": "^0.469.0",
@@ -26,7 +27,8 @@
     "react-native-maps": "1.27.2",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "^15.15.4",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "react-native-webview": "^14.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

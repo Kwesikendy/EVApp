@@ -11,27 +11,24 @@ import {
   Animated,
   Dimensions,
   TextInput,
-  Switch,
+  Platform,
+  AppState,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import * as NavigationBar from 'expo-navigation-bar';
 import {
   Zap,
   MapPin,
   CreditCard,
   Truck,
   Car,
-  Clock,
-  ShieldCheck,
   CheckCircle2,
   Navigation,
   RefreshCw,
   Plus,
   Battery,
   Flame,
-  ArrowUpRight,
-  Sliders,
   X,
   Lock,
   Unlock,
@@ -40,14 +37,26 @@ import {
   Sparkles,
   PhoneCall,
   Check,
+  List,
+  Map as MapIcon,
+  Server,
+  Wifi,
+  WifiOff,
+  Settings,
+  ShieldCheck,
+  Clock,
+  ArrowUpRight,
 } from 'lucide-react-native';
+
+import StationMap, { MapStation } from './StationMap';
+import { api, ApiFleetAccount, BACKEND_URL, setBackendUrl } from './api';
 
 export interface Connector {
   id: number;
   connectorId: number;
-  type: 'CCS2' | 'CHAdeMO' | 'Type2' | 'GB/T';
+  type: string;
   maxPowerKw: number;
-  status: 'Available' | 'Preparing' | 'Charging' | 'Faulted';
+  status: string;
   tariffPerKwh: number;
 }
 
@@ -84,9 +93,10 @@ export interface WalletTransaction {
   amount: number;
   isCredit: boolean;
   kwh?: number;
+  type?: string;
 }
 
-const ACCRA_STATIONS: Station[] = [
+const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-01',
     stationId: 'XC-ACC-001',
@@ -100,8 +110,9 @@ const ACCRA_STATIONS: Station[] = [
       { id: 1, connectorId: 1, type: 'CCS2', maxPowerKw: 350, status: 'Available', tariffPerKwh: 3.80 },
       { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 3.50 },
       { id: 3, connectorId: 3, type: 'CCS2', maxPowerKw: 160, status: 'Charging', tariffPerKwh: 3.50 },
+      { id: 4, connectorId: 4, type: 'CHAdeMO', maxPowerKw: 60, status: 'Available', tariffPerKwh: 3.20 },
     ],
-    amenities: ['24/7 Security', 'Coffee Lounge', 'Free Wi-Fi', 'Restrooms'],
+    amenities: ['24/7 Security', 'Coffee Lounge', 'Free Wi-Fi', 'Restrooms', 'EV Detailing'],
   },
   {
     id: 'st-02',
@@ -113,8 +124,8 @@ const ACCRA_STATIONS: Station[] = [
     latitude: 5.5520,
     longitude: -0.1980,
     connectors: [
-      { id: 4, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 4.20 },
-      { id: 5, connectorId: 2, type: 'CCS2', maxPowerKw: 200, status: 'Charging', tariffPerKwh: 4.20 },
+      { id: 5, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 4.20 },
+      { id: 6, connectorId: 2, type: 'CCS2', maxPowerKw: 200, status: 'Charging', tariffPerKwh: 4.20 },
     ],
     amenities: ['Covered Canopy', 'ATM Banking', '24/7 Lighting'],
   },
@@ -128,15 +139,31 @@ const ACCRA_STATIONS: Station[] = [
     latitude: 5.5780,
     longitude: -0.1910,
     connectors: [
-      { id: 6, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 3.60 },
-      { id: 7, connectorId: 2, type: 'CHAdeMO', maxPowerKw: 50, status: 'Available', tariffPerKwh: 3.20 },
-      { id: 8, connectorId: 3, type: 'Type2', maxPowerKw: 22, status: 'Available', tariffPerKwh: 2.80 },
+      { id: 7, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 3.60 },
+      { id: 8, connectorId: 2, type: 'CHAdeMO', maxPowerKw: 50, status: 'Available', tariffPerKwh: 3.20 },
+      { id: 9, connectorId: 3, type: 'Type2', maxPowerKw: 22, status: 'Available', tariffPerKwh: 2.80 },
     ],
     amenities: ['Solar Canopy', 'EV Care Workshop', 'Café'],
   },
+  {
+    id: 'st-04',
+    stationId: 'XC-ACC-004',
+    name: 'XCharge Fleet Depot – Heavy Logistics Hub',
+    address: 'Industrial Ring Rd West, Heavy Transport Corridor',
+    distanceKm: 5.1,
+    etaMins: 12,
+    latitude: 5.5890,
+    longitude: -0.2450,
+    connectors: [
+      { id: 10, connectorId: 1, type: 'CCS2', maxPowerKw: 350, status: 'Available', tariffPerKwh: 3.20 },
+      { id: 11, connectorId: 2, type: 'CCS2', maxPowerKw: 350, status: 'Charging', tariffPerKwh: 3.20 },
+      { id: 12, connectorId: 3, type: 'GB/T', maxPowerKw: 120, status: 'Available', tariffPerKwh: 3.00 },
+    ],
+    amenities: ['Commercial Truck Bay', 'Driver Rest Lounge', 'High Clearance Canopy'],
+  },
 ];
 
-const INITIAL_FLEET: FleetVehicle[] = [
+const DEFAULT_FLEET: FleetVehicle[] = [
   {
     vin: '1FTFW1ED8NFA02941',
     model: 'Ford E-Transit 350',
@@ -172,7 +199,7 @@ const INITIAL_FLEET: FleetVehicle[] = [
   },
 ];
 
-const INITIAL_TRANSACTIONS: WalletTransaction[] = [
+const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   {
     id: 'tx-01',
     title: 'XCharge Superhub – Airport City',
@@ -209,27 +236,24 @@ const INITIAL_TRANSACTIONS: WalletTransaction[] = [
   },
 ];
 
-const DARK_MAP_STYLE = [
-  { elementType: 'geometry', stylers: [{ color: '#0b1324' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#020817' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0d1f2d' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0f172a' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2563eb' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1e3a8a' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#172554' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#020817' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#38bdf8' }] },
-];
-
 function AppContent() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'map' | 'telemetry' | 'wallet' | 'fleet'>('map');
+  const [mapViewMode, setMapViewMode] = useState<'map' | 'list'>('map');
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [mapFilter, setMapFilter] = useState<'all' | 'ultra' | 'available'>('all');
+
+  // Backend connection & CitrineOS state
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [citrineInfo, setCitrineInfo] = useState<string>('CitrineOS CSMS Connected');
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+  const [customBackendInput, setCustomBackendInput] = useState<string>(BACKEND_URL);
+
+  // Stations & Fleet
+  const [stations, setStations] = useState<Station[]>(DEFAULT_STATIONS);
+  const [fleetVehicles, setFleetVehicles] = useState<FleetVehicle[]>(DEFAULT_FLEET);
+  const [fleetAccount, setFleetAccount] = useState<ApiFleetAccount | null>(null);
 
   // Charging session state
   const [isCharging, setIsCharging] = useState<boolean>(false);
@@ -238,7 +262,7 @@ function AppContent() {
   const [kwhConsumed, setKwhConsumed] = useState<number>(18.42);
   const [batterySoc, setBatterySoc] = useState<number>(68);
   const [targetSoc, setTargetSoc] = useState<number>(80);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(872); // ~14m 32s
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(872);
   const [packVoltage, setPackVoltage] = useState<number>(412.8);
   const [packCurrent, setPackCurrent] = useState<number>(335.2);
   const [activeStationName, setActiveStationName] = useState<string>('XCharge Superhub – Airport City');
@@ -249,10 +273,132 @@ function AppContent() {
   const [heldBalance, setHeldBalance] = useState<number>(25.00);
   const [selectedMomoProvider, setSelectedMomoProvider] = useState<'mtn' | 'telecel' | 'at'>('mtn');
   const [customTopupAmount, setCustomTopupAmount] = useState<string>('');
-  const [transactions, setTransactions] = useState<WalletTransaction[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>(DEFAULT_TRANSACTIONS);
 
-  // Fleet state
-  const [fleetVehicles, setFleetVehicles] = useState<FleetVehicle[]>(INITIAL_FLEET);
+  // Activate Android Immersive Mode (hide navigation bar and status bar completely)
+  const activateImmersive = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        await NavigationBar.setBackgroundColorAsync('#020817');
+      } catch (_e) {
+        // Safe catch
+      }
+    }
+    StatusBar.setHidden(true, 'none');
+  };
+
+  useEffect(() => {
+    activateImmersive();
+    const appStateSub = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        activateImmersive();
+      }
+    });
+    return () => appStateSub.remove();
+  }, []);
+
+  // Sync data with live backend
+  const syncBackendData = async () => {
+    setIsSyncing(true);
+    try {
+      const health = await api.getHealth();
+      setIsBackendOnline(!!health);
+      if (health) {
+        setCitrineInfo(`CitrineOS ${health.citrineOsBridge} · ${health.ocppVersion}`);
+      }
+
+      const [stationsData, walletData, fleetData, sessionData] = await Promise.all([
+        api.getStations(),
+        api.getWallet(),
+        api.getFleet(),
+        api.getActiveSession(),
+      ]);
+
+      if (stationsData && stationsData.length > 0) {
+        setStations(
+          stationsData.map((st) => ({
+            id: st.id,
+            stationId: st.stationId,
+            name: st.name,
+            address: st.address,
+            distanceKm: st.distanceKm || 1.8,
+            etaMins: Math.max(3, Math.round((st.distanceKm || 1.8) * 2.5)),
+            latitude: st.latitude,
+            longitude: st.longitude,
+            connectors: st.connectors.map((c) => ({
+              id: c.id,
+              connectorId: c.connectorId,
+              type: c.type,
+              maxPowerKw: c.maxPowerKw,
+              status: c.status,
+              tariffPerKwh: c.tariffPerKwh,
+            })),
+            amenities: st.amenities,
+          }))
+        );
+      }
+
+      if (walletData) {
+        setWalletBalance(walletData.availableBalance);
+        setHeldBalance(walletData.heldBalance);
+        if (walletData.transactions && walletData.transactions.length > 0) {
+          setTransactions(
+            walletData.transactions.map((tx) => ({
+              id: tx.id,
+              title: tx.description.split('(')[0] || tx.description,
+              subtitle: `Ref: ${tx.reference} · ${tx.provider}`,
+              timestamp: new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              amount: tx.amount,
+              isCredit: tx.type === 'TOPUP' || tx.type === 'PREAUTH_RELEASE',
+              type: tx.type,
+            }))
+          );
+        }
+      }
+
+      if (fleetData) {
+        setFleetAccount(fleetData);
+        if (fleetData.vehicles && fleetData.vehicles.length > 0) {
+          setFleetVehicles(
+            fleetData.vehicles.map((v, i) => ({
+              vin: v.vin,
+              model: `${v.make} ${v.model}`,
+              plate: v.licensePlate,
+              driver: v.assignedDriver,
+              soc: i === 0 ? 74 : i === 1 ? 42 : 89,
+              isPlugAndChargeEnabled: true,
+              maxKw: i === 0 ? 115 : i === 1 ? 50 : 250,
+              batteryCapacityKwh: v.batteryCapacityKwh,
+              lastCharged: 'Today, 08:30 AM',
+            }))
+          );
+        }
+      }
+
+      if (sessionData && sessionData.status === 'Charging') {
+        setIsCharging(true);
+        setCurrentKw(sessionData.currentPowerKw);
+        setKwhConsumed(sessionData.kwhDelivered);
+        setBatterySoc(sessionData.currentSocPercent);
+        setTargetSoc(sessionData.targetSocPercent);
+        setElapsedSeconds(sessionData.elapsedSeconds);
+        setPackVoltage(sessionData.voltageV);
+        setPackCurrent(sessionData.currentA);
+      }
+    } catch (err) {
+      console.warn('Backend sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    syncBackendData();
+    const interval = setInterval(syncBackendData, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Live charging ticker loop
   useEffect(() => {
@@ -265,7 +411,6 @@ function AppContent() {
           if (prev >= targetSoc) return prev;
           return +(prev + 0.04).toFixed(1);
         });
-        // Slight fluctuation for real automotive telemetry realism
         setCurrentKw(+(138.4 + (Math.random() * 2 - 1)).toFixed(1));
         setPackVoltage(+(412.8 + (Math.random() * 1.5 - 0.75)).toFixed(1));
         setPackCurrent(+(335.2 + (Math.random() * 3 - 1.5)).toFixed(1));
@@ -274,7 +419,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [isCharging, targetSoc]);
 
-  const handleStartCharging = (station: Station, connector: Connector) => {
+  const handleStartCharging = async (station: Station, connector: Connector) => {
     const PREAUTH_HOLD = 25.00;
     if (!isFleetMode && walletBalance < PREAUTH_HOLD) {
       Alert.alert(
@@ -288,6 +433,7 @@ function AppContent() {
       return;
     }
 
+    // Optimistic state
     if (!isFleetMode) {
       setWalletBalance((prev) => +(prev - PREAUTH_HOLD).toFixed(2));
       setHeldBalance(PREAUTH_HOLD);
@@ -299,11 +445,27 @@ function AppContent() {
     setSelectedStation(null);
     setActiveTab('telemetry');
 
-    Alert.alert(
-      'Cable Latch Engaged',
-      `OCPP 2.0.1 RemoteStart successful.\nConnected to ${station.stationId} #${connector.connectorId}.\nSafety handshake complete at 350 kW rating.`,
-      [{ text: 'View Telemetry', style: 'default' }]
-    );
+    // Call CitrineOS CSMS backend
+    const res = await api.remoteStartSession({
+      stationId: station.stationId,
+      connectorId: connector.connectorId,
+      isFleet: isFleetMode,
+      vin: isFleetMode && fleetVehicles[0] ? fleetVehicles[0].vin : undefined,
+      preauthHoldAmount: PREAUTH_HOLD,
+    });
+
+    if (res && res.success) {
+      Alert.alert(
+        'Cable Latch Engaged',
+        `OCPP 2.0.1 RemoteStart successful.\nConnected to ${station.stationId} #${connector.connectorId}.\nSafety handshake complete at ${connector.maxPowerKw} kW rating.`,
+        [{ text: 'View Telemetry', style: 'default' }]
+      );
+    } else {
+      Alert.alert(
+        'Session Active',
+        `Connector #${connector.connectorId} engaged at ${station.name}.\nCharging telemetry running in real time.`
+      );
+    }
   };
 
   const handleStopCharging = () => {
@@ -315,7 +477,7 @@ function AppContent() {
         {
           text: 'Ramp Down & Release',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             const finalCost = +(kwhConsumed * 3.80).toFixed(2);
             if (!isFleetMode) {
               const refund = +(heldBalance - Math.min(heldBalance, finalCost)).toFixed(2);
@@ -323,7 +485,6 @@ function AppContent() {
               setHeldBalance(0);
             }
 
-            // Record transaction
             const newTx: WalletTransaction = {
               id: `tx-${Date.now()}`,
               title: activeStationName,
@@ -334,8 +495,12 @@ function AppContent() {
               kwh: kwhConsumed,
             };
             setTransactions((prev) => [newTx, ...prev]);
-
             setIsCharging(false);
+
+            // Call real stop endpoint
+            await api.remoteStopSession();
+            await syncBackendData();
+
             Alert.alert(
               'Session Settled',
               `${kwhConsumed} kWh transferred in ${formatTime(elapsedSeconds)}.\nTotal settled: GH₵ ${finalCost.toFixed(2)}.\nCable unlocked safely.`
@@ -346,7 +511,7 @@ function AppContent() {
     );
   };
 
-  const handleTopUp = (amountNum: number) => {
+  const handleTopUp = async (amountNum: number) => {
     if (isNaN(amountNum) || amountNum <= 0) {
       Alert.alert('Invalid Amount', 'Please specify a valid top-up amount in GH₵.');
       return;
@@ -365,17 +530,24 @@ function AppContent() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'PIN Approved',
-          onPress: () => {
-            setWalletBalance((prev) => +(prev + amountNum).toFixed(2));
-            const newTx: WalletTransaction = {
-              id: `tx-topup-${Date.now()}`,
-              title: `MoMo Load (${providerNames[selectedMomoProvider]})`,
-              subtitle: `Instant Wallet Credit · Ref: GH-${Math.floor(100000 + Math.random() * 900000)}`,
-              timestamp: 'Just now',
-              amount: amountNum,
-              isCredit: true,
-            };
-            setTransactions((prev) => [newTx, ...prev]);
+          onPress: async () => {
+            const res = await api.topupWallet(amountNum, selectedMomoProvider.toUpperCase(), '+233 24 981 4421');
+            if (res && res.success && res.wallet) {
+              setWalletBalance(res.wallet.availableBalance);
+              setHeldBalance(res.wallet.heldBalance);
+              await syncBackendData();
+            } else {
+              setWalletBalance((prev) => +(prev + amountNum).toFixed(2));
+              const newTx: WalletTransaction = {
+                id: `tx-topup-${Date.now()}`,
+                title: `MoMo Load (${providerNames[selectedMomoProvider]})`,
+                subtitle: `Instant Wallet Credit · Ref: GH-${Math.floor(100000 + Math.random() * 900000)}`,
+                timestamp: 'Just now',
+                amount: amountNum,
+                isCredit: true,
+              };
+              setTransactions((prev) => [newTx, ...prev]);
+            }
             setCustomTopupAmount('');
             Alert.alert('Top-Up Successful', `GH₵ ${amountNum.toFixed(2)} credited to your XCharge pass.`);
           },
@@ -408,8 +580,7 @@ function AppContent() {
     return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Filtered stations for map
-  const filteredStations = ACCRA_STATIONS.filter((st) => {
+  const filteredStations = stations.filter((st) => {
     if (mapFilter === 'ultra') {
       return st.connectors.some((c) => c.maxPowerKw >= 200);
     }
@@ -427,11 +598,12 @@ function AppContent() {
   ];
 
   return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#020817" />
+    <View style={s.root}>
+      {/* Status Bar completely hidden for true edge-to-edge immersive view */}
+      <StatusBar hidden={true} translucent={true} backgroundColor="#020817" />
 
-      {/* Global Header */}
-      <View style={s.header}>
+      {/* Global High-Tech Header */}
+      <View style={[s.header, { paddingTop: Math.max(insets.top, 12) }]}>
         <View style={s.headerLeft}>
           <View style={s.brandLogoBadge}>
             <Zap size={18} color="#38bdf8" />
@@ -439,199 +611,302 @@ function AppContent() {
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={s.headerTitle}>XCharge</Text>
-              <View style={s.onlineDot} />
-              <Text style={s.onlineText}>LIVE</Text>
+              <TouchableOpacity
+                style={[s.backendStatusPill, isBackendOnline ? s.backendOnline : s.backendOffline]}
+                onPress={() => setShowSettingsModal(true)}
+                activeOpacity={0.7}
+              >
+                <View style={[s.onlineDot, { backgroundColor: isBackendOnline ? '#22c55e' : '#f59e0b' }]} />
+                <Text style={[s.onlineText, { color: isBackendOnline ? '#22c55e' : '#f59e0b' }]}>
+                  {isBackendOnline ? 'LIVE CSMS' : 'SYNCING'}
+                </Text>
+              </TouchableOpacity>
             </View>
             <Text style={s.headerSub}>
-              {isFleetMode ? 'Fleet: APEX LOGISTICS GH' : 'Driver Pass · Accra Core'}
+              {isFleetMode ? 'Fleet: APEX LOGISTICS GH' : 'Driver Pass · Accra Hub'}
             </Text>
           </View>
         </View>
 
-        <TouchableOpacity
-          onPress={() => setIsFleetMode(!isFleetMode)}
-          style={[s.modeToggleBadge, isFleetMode ? s.badgeFleet : s.badgePersonal]}
-          activeOpacity={0.8}
-        >
-          {isFleetMode ? (
-            <Truck size={12} color="#fbbf24" style={{ marginRight: 4 }} />
-          ) : (
-            <Car size={12} color="#38bdf8" style={{ marginRight: 4 }} />
-          )}
-          <Text style={[s.badgeText, isFleetMode ? s.badgeFleetText : s.badgePersonalText]}>
-            {isFleetMode ? 'FLEET: VIN' : 'PERSONAL'}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => setIsFleetMode(!isFleetMode)}
+            style={[s.modeToggleBadge, isFleetMode ? s.badgeFleet : s.badgePersonal]}
+            activeOpacity={0.8}
+          >
+            {isFleetMode ? (
+              <Truck size={12} color="#fbbf24" style={{ marginRight: 4 }} />
+            ) : (
+              <Car size={12} color="#38bdf8" style={{ marginRight: 4 }} />
+            )}
+            <Text style={[s.badgeText, isFleetMode ? s.badgeFleetText : s.badgePersonalText]}>
+              {isFleetMode ? 'FLEET: VIN' : 'PERSONAL'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowSettingsModal(true)}
+            style={s.settingsIconButton}
+            activeOpacity={0.7}
+          >
+            <Settings size={16} color="#94a3b8" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Content Body */}
+      {/* Main Screen Body */}
       <View style={s.content}>
         {/* ===================================================
-            TAB 1: INTERACTIVE MAP (react-native-maps)
+            TAB 1: INTERACTIVE MAP & STATIONS LIST
         ==================================================== */}
         {activeTab === 'map' && (
           <View style={{ flex: 1, position: 'relative' }}>
-            {/* Filter Pills Header */}
+            {/* Filter Pills & Map/List Switcher Header */}
             <View style={s.mapFilterBar}>
-              <TouchableOpacity
-                style={[s.filterChip, mapFilter === 'all' && s.filterChipActive]}
-                onPress={() => setMapFilter('all')}
-              >
-                <Text style={[s.filterChipText, mapFilter === 'all' && s.filterChipTextActive]}>
-                  All Superhubs ({ACCRA_STATIONS.length})
-                </Text>
-              </TouchableOpacity>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
+                <TouchableOpacity
+                  style={[s.filterChip, mapFilter === 'all' && s.filterChipActive]}
+                  onPress={() => setMapFilter('all')}
+                >
+                  <Text style={[s.filterChipText, mapFilter === 'all' && s.filterChipTextActive]}>
+                    All Superhubs ({stations.length})
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[s.filterChip, mapFilter === 'ultra' && s.filterChipActive]}
-                onPress={() => setMapFilter('ultra')}
-              >
-                <Zap size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
-                <Text style={[s.filterChipText, mapFilter === 'ultra' && s.filterChipTextActive]}>
-                  200+ kW Ultra
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.filterChip, mapFilter === 'ultra' && s.filterChipActive]}
+                  onPress={() => setMapFilter('ultra')}
+                >
+                  <Zap size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
+                  <Text style={[s.filterChipText, mapFilter === 'ultra' && s.filterChipTextActive]}>
+                    200+ kW Ultra
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[s.filterChip, mapFilter === 'available' && s.filterChipActive]}
-                onPress={() => setMapFilter('available')}
-              >
-                <View style={[s.statusDot, { backgroundColor: '#22c55e' }]} />
-                <Text style={[s.filterChipText, mapFilter === 'available' && s.filterChipTextActive]}>
-                  Available Now
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.filterChip, mapFilter === 'available' && s.filterChipActive]}
+                  onPress={() => setMapFilter('available')}
+                >
+                  <View style={[s.statusDot, { backgroundColor: '#22c55e' }]} />
+                  <Text style={[s.filterChipText, mapFilter === 'available' && s.filterChipTextActive]}>
+                    Available Now
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Map / List View Toggle */}
+                <TouchableOpacity
+                  style={[s.filterChip, s.viewToggleChip]}
+                  onPress={() => setMapViewMode(mapViewMode === 'map' ? 'list' : 'map')}
+                >
+                  {mapViewMode === 'map' ? (
+                    <>
+                      <List size={11} color="#38bdf8" style={{ marginRight: 4 }} />
+                      <Text style={[s.filterChipText, { color: '#38bdf8' }]}>List View</Text>
+                    </>
+                  ) : (
+                    <>
+                      <MapIcon size={11} color="#38bdf8" style={{ marginRight: 4 }} />
+                      <Text style={[s.filterChipText, { color: '#38bdf8' }]}>Map View</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
             </View>
 
-            {/* Native Map Component */}
-            <MapView
-              style={{ width: '100%', height: '100%' }}
-              provider={PROVIDER_DEFAULT}
-              initialRegion={{
-                latitude: 5.5850,
-                longitude: -0.1850,
-                latitudeDelta: 0.09,
-                longitudeDelta: 0.09,
-              }}
-              customMapStyle={DARK_MAP_STYLE}
-              showsUserLocation={false}
-              showsCompass={false}
-            >
-              {filteredStations.map((station) => {
-                const maxPower = Math.max(...station.connectors.map((c) => c.maxPowerKw));
-                const isSelected = selectedStation?.id === station.id;
-                const hasAvailable = station.connectors.some((c) => c.status === 'Available');
+            {/* Render View: Interactive WebMap OR List */}
+            {mapViewMode === 'map' ? (
+              <StationMap
+                stations={filteredStations}
+                selectedStation={selectedStation}
+                onSelectStation={(st) => setSelectedStation(st as Station)}
+              />
+            ) : (
+              <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 14, paddingTop: 60, paddingBottom: 32 }}>
+                <Text style={s.listSectionHeader}>ACCRA CHARGING HUBS ({filteredStations.length})</Text>
+                {filteredStations.map((station) => {
+                  const maxKw = Math.max(...station.connectors.map((c) => c.maxPowerKw));
+                  const availableConns = station.connectors.filter((c) => c.status === 'Available');
 
-                return (
-                  <Marker
-                    key={station.id}
-                    coordinate={{ latitude: station.latitude, longitude: station.longitude }}
-                    onPress={() => setSelectedStation(station)}
-                    tracksViewChanges={false}
-                  >
-                    <View style={[s.customMarker, isSelected && s.customMarkerSelected]}>
-                      <View style={[s.markerBadge, hasAvailable ? s.markerBadgeGreen : s.markerBadgeBlue]}>
-                        <Zap size={10} color={hasAvailable ? '#22c55e' : '#38bdf8'} />
-                        <Text style={[s.markerBadgeText, { color: hasAvailable ? '#22c55e' : '#38bdf8' }]}>
-                          {maxPower} kW
-                        </Text>
+                  return (
+                    <TouchableOpacity
+                      key={station.id}
+                      style={s.stationListCard}
+                      onPress={() => setSelectedStation(station)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={s.stationListHeader}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.stationListTitle}>{station.name}</Text>
+                          <Text style={s.stationListAddress}>{station.address}</Text>
+                        </View>
+                        <View style={s.powerHighlightPill}>
+                          <Zap size={12} color="#38bdf8" />
+                          <Text style={s.powerHighlightText}>{maxKw} kW</Text>
+                        </View>
                       </View>
-                      <View style={[s.markerPinStem, isSelected && s.markerPinStemSelected]} />
-                    </View>
-                  </Marker>
-                );
-              })}
-            </MapView>
 
-            {/* Floating Station Quick Card (When selected or bottom drawer) */}
-            <View style={s.mapOverlayBottom}>
-              {selectedStation ? (
-                <View style={s.floatingStationCard}>
-                  <View style={s.stationCardHeader}>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={s.stationCardTitle}>{selectedStation.name}</Text>
+                      <View style={s.stationListMetaRow}>
+                        <View style={s.metaItem}>
+                          <MapPin size={12} color="#94a3b8" />
+                          <Text style={s.metaItemText}>{station.distanceKm} km · ~{station.etaMins} mins</Text>
+                        </View>
+                        <View style={s.metaItem}>
+                          <View
+                            style={[
+                              s.statusDot,
+                              { backgroundColor: availableConns.length > 0 ? '#22c55e' : '#f59e0b' },
+                            ]}
+                          />
+                          <Text style={s.metaItemText}>
+                            {availableConns.length}/{station.connectors.length} Available
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={s.stationCardAddress}>{selectedStation.address}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setSelectedStation(null)} style={s.closeBtn}>
-                      <X size={16} color="#94a3b8" />
+
+                      <View style={s.connectorChipsRow}>
+                        {station.connectors.map((c) => (
+                          <View
+                            key={c.id}
+                            style={[
+                              s.miniConnectorChip,
+                              c.status === 'Available' ? s.miniChipAvailable : s.miniChipBusy,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                s.miniConnectorText,
+                                { color: c.status === 'Available' ? '#22c55e' : '#94a3b8' },
+                              ]}
+                            >
+                              {c.type} {c.maxPowerKw}kW · GH₵{c.tariffPerKwh.toFixed(2)}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      <View style={s.stationListActions}>
+                        <TouchableOpacity
+                          style={s.listRouteBtn}
+                          onPress={() => {
+                            Alert.alert('Navigation Route', `Starting turn-by-turn guidance to ${station.name}. ETA: ${station.etaMins} mins.`);
+                          }}
+                        >
+                          <Navigation size={13} color="#38bdf8" />
+                          <Text style={s.listRouteText}>Route</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={s.listChargeBtn}
+                          onPress={() => {
+                            const avail = station.connectors.find((c) => c.status === 'Available') || station.connectors[0];
+                            handleStartCharging(station, avail);
+                          }}
+                        >
+                          <Zap size={13} color="#020817" />
+                          <Text style={s.listChargeText}>Connect & Charge</Text>
+                        </TouchableOpacity>
+                      </View>
                     </TouchableOpacity>
-                  </View>
+                  );
+                })}
+              </ScrollView>
+            )}
 
-                  {/* Connectors availability pills */}
-                  <View style={s.connectorPillRow}>
-                    {selectedStation.connectors.map((c) => (
-                      <View
-                        key={c.id}
-                        style={[
-                          s.connectorMiniChip,
-                          c.status === 'Available' ? s.connectorChipGreen : s.connectorChipBlue,
-                        ]}
-                      >
-                        <Zap size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
-                        <Text
+            {/* Bottom Station Floating Drawer (Visible on Map Mode) */}
+            {mapViewMode === 'map' && (
+              <View style={s.mapOverlayBottom}>
+                {selectedStation ? (
+                  <View style={s.floatingStationCard}>
+                    <View style={s.stationCardHeader}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.stationCardTitle}>{selectedStation.name}</Text>
+                        <Text style={s.stationCardAddress}>{selectedStation.address}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => setSelectedStation(null)} style={s.closeBtn}>
+                        <X size={16} color="#94a3b8" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Connectors pills */}
+                    <View style={s.connectorPillRow}>
+                      {selectedStation.connectors.map((c) => (
+                        <View
+                          key={c.id}
                           style={[
-                            s.connectorMiniText,
-                            { color: c.status === 'Available' ? '#22c55e' : '#93c5fd' },
+                            s.connectorMiniChip,
+                            c.status === 'Available' ? s.connectorChipGreen : s.connectorChipBlue,
                           ]}
                         >
-                          {c.type} {c.maxPowerKw}kW · {c.status}
+                          <Zap size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
+                          <Text
+                            style={[
+                              s.connectorMiniText,
+                              { color: c.status === 'Available' ? '#22c55e' : '#93c5fd' },
+                            ]}
+                          >
+                            {c.type} {c.maxPowerKw}kW · {c.status}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Amenities Row */}
+                    <View style={s.amenitiesRow}>
+                      {selectedStation.amenities.map((item, idx) => (
+                        <Text key={idx} style={s.amenityText}>
+                          • {item}
+                        </Text>
+                      ))}
+                    </View>
+
+                    {/* Actions */}
+                    <View style={s.stationActions}>
+                      <TouchableOpacity
+                        style={s.navigateBtn}
+                        onPress={() => {
+                          Alert.alert(
+                            'Turn-by-Turn Navigation',
+                            `Navigating to ${selectedStation.name} via Liberation Rd.\nEstimated arrival: in ${selectedStation.etaMins} minutes (${selectedStation.distanceKm} km).`
+                          );
+                        }}
+                      >
+                        <Navigation size={14} color="#38bdf8" />
+                        <Text style={s.navigateBtnText}>Route ({selectedStation.distanceKm} km)</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={s.chargeActionBtn}
+                        onPress={() => {
+                          const availableConn =
+                            selectedStation.connectors.find((c) => c.status === 'Available') || selectedStation.connectors[0];
+                          handleStartCharging(selectedStation, availableConn);
+                        }}
+                      >
+                        <Zap size={14} color="#020817" />
+                        <Text style={s.chargeActionBtnText}>Connect & Charge</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={s.floatingNearbyPrompt}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <MapPin size={16} color="#38bdf8" />
+                        <Text style={{ color: '#f1f5f9', fontWeight: 'bold', fontSize: 13 }}>
+                          {stations.length} Accra Fast Charging Hubs Online
                         </Text>
                       </View>
-                    ))}
-                  </View>
-
-                  {/* Amenities Row */}
-                  <View style={s.amenitiesRow}>
-                    {selectedStation.amenities.map((item, idx) => (
-                      <Text key={idx} style={s.amenityText}>
-                        • {item}
-                      </Text>
-                    ))}
-                  </View>
-
-                  {/* CTA Actions */}
-                  <View style={s.stationActions}>
-                    <TouchableOpacity
-                      style={s.navigateBtn}
-                      onPress={() => {
-                        Alert.alert(
-                          'Turn-by-Turn Navigation',
-                          `Navigating to ${selectedStation.name} via Liberation Rd.\nEstimated arrival: in ${selectedStation.etaMins} minutes (${selectedStation.distanceKm} km).`
-                        );
-                      }}
-                    >
-                      <Navigation size={14} color="#38bdf8" />
-                      <Text style={s.navigateBtnText}>Route ({selectedStation.distanceKm} km)</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={s.chargeActionBtn}
-                      onPress={() => {
-                        const availableConn = selectedStation.connectors.find((c) => c.status === 'Available') || selectedStation.connectors[0];
-                        handleStartCharging(selectedStation, availableConn);
-                      }}
-                    >
-                      <Zap size={14} color="#020817" />
-                      <Text style={s.chargeActionBtnText}>Connect & Charge</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={s.floatingNearbyPrompt}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <MapPin size={16} color="#38bdf8" />
-                    <Text style={{ color: '#f1f5f9', fontWeight: 'bold', fontSize: 13 }}>
-                      3 Accra Fast Charging Hubs Online
+                      <TouchableOpacity onPress={syncBackendData} style={{ padding: 4 }}>
+                        <RefreshCw size={14} color="#38bdf8" />
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
+                      Tap any glowing charger pin to inspect live 350 kW telemetry, tariffs, or unlatch cable.
                     </Text>
                   </View>
-                  <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>
-                    Tap any marker to inspect live 350 kW power rating, tariffs, and unlatch cable.
-                  </Text>
-                </View>
-              )}
-            </View>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -639,8 +914,8 @@ function AppContent() {
             TAB 2: AUTOMOTIVE CHARGE HUD (Telemetry)
         ==================================================== */}
         {activeTab === 'telemetry' && (
-          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-            {/* Battery SoC Circle Gauge */}
+          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 36 }}>
+            {/* Battery SoC Circular Gauge */}
             <View style={s.hudGaugeContainer}>
               <View style={s.socOuterGlowRing}>
                 <View style={s.socInnerDial}>
@@ -678,105 +953,118 @@ function AppContent() {
               </View>
             </View>
 
-            {/* 4-Tile Automotive Bento Grid */}
+            {/* High-Precision Automotive Metrics Grid */}
             <View style={s.telemetryGrid}>
               <View style={s.telemetryTile}>
                 <View style={s.tileHeader}>
-                  <Battery size={14} color="#22c55e" />
-                  <Text style={s.tileLabel}>DELIVERED</Text>
-                </View>
-                <Text style={[s.tileValue, { color: '#22c55e' }]}>{kwhConsumed} kWh</Text>
-                <Text style={s.tileSub}>+1.2 kWh / min</Text>
-              </View>
-
-              <View style={s.telemetryTile}>
-                <View style={s.tileHeader}>
-                  <Clock size={14} color="#f8fafc" />
-                  <Text style={s.tileLabel}>DURATION</Text>
+                  <Clock size={13} color="#94a3b8" />
+                  <Text style={s.tileLabel}>ELAPSED TIME</Text>
                 </View>
                 <Text style={s.tileValue}>{formatTime(elapsedSeconds)}</Text>
-                <Text style={s.tileSub}>Ramp: ISO 15118</Text>
+                <Text style={s.tileSub}>Safety Protocol v2.0</Text>
               </View>
 
               <View style={s.telemetryTile}>
                 <View style={s.tileHeader}>
-                  <Zap size={14} color="#38bdf8" />
-                  <Text style={s.tileLabel}>PACK SPECS</Text>
+                  <Zap size={13} color="#22c55e" />
+                  <Text style={s.tileLabel}>ENERGY TRANSFERRED</Text>
                 </View>
-                <Text style={[s.tileValue, { fontSize: 16, color: '#38bdf8' }]}>
-                  {packVoltage}V
-                </Text>
-                <Text style={s.tileSub}>{packCurrent}A DC Flow</Text>
+                <Text style={s.tileValue}>{kwhConsumed.toFixed(2)} kWh</Text>
+                <Text style={s.tileSub}>Accrued: GH₵ {(kwhConsumed * 3.80).toFixed(2)}</Text>
               </View>
 
               <View style={s.telemetryTile}>
                 <View style={s.tileHeader}>
-                  <CreditCard size={14} color="#fbbf24" />
-                  <Text style={s.tileLabel}>ACCRUED COST</Text>
+                  <Flame size={13} color="#f59e0b" />
+                  <Text style={s.tileLabel}>PACK VOLTAGE</Text>
                 </View>
-                <Text style={[s.tileValue, { color: '#fbbf24' }]}>
-                  GH₵ {(kwhConsumed * 3.80).toFixed(2)}
-                </Text>
-                <Text style={s.tileSub}>GH₵ 3.80 / kWh</Text>
+                <Text style={s.tileValue}>{packVoltage} V</Text>
+                <Text style={s.tileSub}>Nominal: 400V - 800V Architecture</Text>
+              </View>
+
+              <View style={s.telemetryTile}>
+                <View style={s.tileHeader}>
+                  <Battery size={13} color="#38bdf8" />
+                  <Text style={s.tileLabel}>PACK CURRENT</Text>
+                </View>
+                <Text style={s.tileValue}>{packCurrent} A</Text>
+                <Text style={s.tileSub}>Liquid-Cooled Cable Active</Text>
               </View>
             </View>
 
-            {/* Active Session & Hardware Status */}
-            <View style={s.hardwareStatusBox}>
+            {/* Target Battery SoC Slider */}
+            <View style={s.targetSocSection}>
+              <Text style={s.sectionTitle}>TARGET BATTERY LIMIT (OPTIMAL LIFESPAN)</Text>
+              <View style={s.targetButtonRow}>
+                {[80, 90, 100].map((socValue) => (
+                  <TouchableOpacity
+                    key={socValue}
+                    style={[s.targetSocBtn, targetSoc === socValue && s.targetSocBtnActive]}
+                    onPress={() => setTargetSoc(socValue)}
+                  >
+                    <Text style={[s.targetSocBtnText, targetSoc === socValue && s.targetSocBtnTextActive]}>
+                      {socValue}% {socValue === 80 ? '(Daily)' : socValue === 100 ? '(Trip)' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={s.socAdviceText}>
+                Setting an 80% daily target preserves lithium pack health across Ghana's tropical climate conditions.
+              </Text>
+            </View>
+
+            {/* CSMS Live Bridge Banner */}
+            <View style={s.csmsBridgeBanner}>
               <View style={s.statusRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <ShieldCheck size={16} color="#38bdf8" />
-                  <Text style={{ color: '#f1f5f9', fontSize: 12, fontWeight: 'bold' }}>
-                    OCPP 2.0.1 Secure Session
-                  </Text>
-                </View>
                 <View style={s.connectedPill}>
                   <View style={s.activePulseDot} />
-                  <Text style={s.connectedPillText}>LATCH LOCKED</Text>
+                  <Text style={s.connectedPillText}>{citrineInfo}</Text>
                 </View>
+                <Text style={{ fontSize: 11, color: '#64748b' }}>OCPP 2.0.1 MeterValues</Text>
               </View>
-              <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
-                Station: {activeStationName} · {activeConnectorType}
-              </Text>
-              {!isFleetMode && (
-                <View style={s.preAuthNoticeRow}>
-                  <CreditCard size={12} color="#7dd3fc" style={{ marginRight: 6 }} />
-                  <Text style={{ color: '#7dd3fc', fontSize: 11, flex: 1 }}>
-                    Pre-auth hold of GH₵ {heldBalance.toFixed(2)} active. Remaining balance unlocks upon stop.
-                  </Text>
-                </View>
-              )}
+              <View style={s.preAuthNoticeRow}>
+                <Text style={{ fontSize: 10, color: '#94a3b8' }}>
+                  Session Node: {activeStationName} · Pre-Auth Locked: GH₵ {heldBalance.toFixed(2)}
+                </Text>
+              </View>
             </View>
 
-            {/* Stop / Start Primary Action Button */}
-            {isCharging ? (
-              <TouchableOpacity
-                onPress={handleStopCharging}
-                style={[s.primaryActionButton, { backgroundColor: '#e11d48' }]}
-                activeOpacity={0.85}
-              >
-                <X size={18} color="#ffffff" style={{ marginRight: 8 }} />
-                <Text style={s.primaryActionText}>Stop Charging & Release Connector</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => setActiveTab('map')}
-                style={[s.primaryActionButton, { backgroundColor: '#0284c7' }]}
-                activeOpacity={0.85}
-              >
-                <Navigation size={18} color="#ffffff" style={{ marginRight: 8 }} />
-                <Text style={s.primaryActionText}>Select Charger on Map</Text>
-              </TouchableOpacity>
-            )}
+            {/* Primary Action Button */}
+            <TouchableOpacity
+              style={[
+                s.primaryActionButton,
+                isCharging ? { backgroundColor: '#ef4444' } : { backgroundColor: '#22c55e' },
+              ]}
+              onPress={() => {
+                if (isCharging) {
+                  handleStopCharging();
+                } else {
+                  const defaultSt = stations[0];
+                  handleStartCharging(defaultSt, defaultSt.connectors[0]);
+                }
+              }}
+            >
+              {isCharging ? (
+                <>
+                  <Lock size={18} color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text style={s.primaryActionText}>DISENGAGE CABLE & SETTLE SESSION</Text>
+                </>
+              ) : (
+                <>
+                  <Zap size={18} color="#020817" style={{ marginRight: 8 }} />
+                  <Text style={[s.primaryActionText, { color: '#020817' }]}>INITIATE CHARGE AT AIRPORT CITY</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </ScrollView>
         )}
 
         {/* ===================================================
-            TAB 3: MOMO DRIVER WALLET
+            TAB 3: MOMO WALLET & PRE-AUTH ESCROW
         ==================================================== */}
         {activeTab === 'wallet' && (
-          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-            {/* Embossed Virtual Driver Pass Card */}
+          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 36 }}>
+            {/* Holographic Virtual EV Smart Card */}
             <View style={s.walletVirtualCard}>
               <View style={s.cardTopRow}>
                 <View>
@@ -784,243 +1072,266 @@ function AppContent() {
                   <Text style={s.virtualCardType}>Commercial Driver EV Smart Card</Text>
                 </View>
                 <View style={s.cardChipIcon}>
-                  <Sparkles size={20} color="#fbbf24" />
+                  <Radio size={24} color="#f59e0b" />
                 </View>
               </View>
 
-              <View style={{ marginVertical: 20 }}>
-                <Text style={s.walletBalanceLabel}>AVAILABLE BALANCE</Text>
+              <View style={{ marginVertical: 14 }}>
+                <Text style={s.walletBalanceLabel}>AVAILABLE EV CREDITS</Text>
                 <Text style={s.walletBalanceNumber}>GH₵ {walletBalance.toFixed(2)}</Text>
-                <View style={s.preAuthBadgeInline}>
-                  <Lock size={10} color="#fbbf24" style={{ marginRight: 4 }} />
-                  <Text style={{ color: '#fbbf24', fontSize: 10, fontWeight: '700' }}>
-                    GH₵ {heldBalance.toFixed(2)} Pre-Auth Hold
-                  </Text>
-                </View>
+                {heldBalance > 0 && (
+                  <View style={s.preAuthBadgeInline}>
+                    <Lock size={10} color="#f59e0b" style={{ marginRight: 4 }} />
+                    <Text style={{ fontSize: 10, color: '#f59e0b', fontWeight: 'bold' }}>
+                      GH₵ {heldBalance.toFixed(2)} Pre-Auth Held on Terminal
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={s.cardBottomRow}>
                 <View>
-                  <Text style={s.cardHolderLabel}>CARDHOLDER</Text>
-                  <Text style={s.cardHolderName}>KWAME MENSAH</Text>
+                  <Text style={s.cardHolderLabel}>ACCOUNT HOLDER</Text>
+                  <Text style={s.cardHolderName}>Kwame Mensah</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={s.cardHolderLabel}>ID CODE</Text>
-                  <Text style={s.cardHolderMono}>XC-8840-GH</Text>
+                  <Text style={s.cardHolderLabel}>TERMINAL ID</Text>
+                  <Text style={s.cardHolderMono}>XC-GH-0982-PASS</Text>
                 </View>
               </View>
             </View>
 
-            {/* MoMo Provider Top-Up Channels */}
-            <Text style={s.sectionHeaderTitle}>INSTANT MOBILE MONEY TOP-UP</Text>
-            <View style={s.momoProviderGrid}>
-              <TouchableOpacity
-                style={[s.momoChannelCard, selectedMomoProvider === 'mtn' && s.momoChannelActiveMtn]}
-                onPress={() => setSelectedMomoProvider('mtn')}
-              >
-                <View style={[s.momoBrandIcon, { backgroundColor: '#eab308' }]}>
-                  <Text style={{ fontWeight: '900', color: '#000', fontSize: 10 }}>MTN</Text>
-                </View>
-                <Text style={s.momoChannelName}>MTN MoMo</Text>
-                {selectedMomoProvider === 'mtn' && <Check size={14} color="#eab308" />}
-              </TouchableOpacity>
+            {/* Quick MoMo Top-Up Channels */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={s.sectionHeaderTitle}>INSTANT MOBILE MONEY TOP-UP</Text>
 
-              <TouchableOpacity
-                style={[s.momoChannelCard, selectedMomoProvider === 'telecel' && s.momoChannelActiveTelecel]}
-                onPress={() => setSelectedMomoProvider('telecel')}
-              >
-                <View style={[s.momoBrandIcon, { backgroundColor: '#ef4444' }]}>
-                  <Text style={{ fontWeight: '900', color: '#fff', fontSize: 9 }}>T-CEL</Text>
-                </View>
-                <Text style={s.momoChannelName}>Telecel Cash</Text>
-                {selectedMomoProvider === 'telecel' && <Check size={14} color="#ef4444" />}
-              </TouchableOpacity>
+              {/* Provider Selection */}
+              <View style={s.momoProviderGrid}>
+                {[
+                  { id: 'mtn', name: 'MTN MoMo', color: '#fbbf24', code: '*170#' },
+                  { id: 'telecel', name: 'Telecel Cash', color: '#ef4444', code: '*110#' },
+                  { id: 'at', name: 'AT Money', color: '#38bdf8', code: '*110#' },
+                ].map((prov) => (
+                  <TouchableOpacity
+                    key={prov.id}
+                    style={[s.momoChannelCard, selectedMomoProvider === prov.id && s.momoChannelCardActive]}
+                    onPress={() => setSelectedMomoProvider(prov.id as any)}
+                  >
+                    <View style={[s.channelBrandDot, { backgroundColor: prov.color }]} />
+                    <Text style={s.channelName}>{prov.name}</Text>
+                    <Text style={s.channelCode}>{prov.code}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-              <TouchableOpacity
-                style={[s.momoChannelCard, selectedMomoProvider === 'at' && s.momoChannelActiveAt]}
-                onPress={() => setSelectedMomoProvider('at')}
-              >
-                <View style={[s.momoBrandIcon, { backgroundColor: '#38bdf8' }]}>
-                  <Text style={{ fontWeight: '900', color: '#000', fontSize: 10 }}>AT</Text>
-                </View>
-                <Text style={s.momoChannelName}>AT Money</Text>
-                {selectedMomoProvider === 'at' && <Check size={14} color="#38bdf8" />}
-              </TouchableOpacity>
-            </View>
+              {/* Preset Amounts */}
+              <View style={s.presetAmountRow}>
+                {[20, 50, 100, 200].map((amt) => (
+                  <TouchableOpacity key={amt} style={s.presetAmountBtn} onPress={() => handleTopUp(amt)}>
+                    <Text style={s.presetAmountText}>+GH₵ {amt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            {/* Quick Top-Up Preset Chips */}
-            <View style={s.quickAmountRow}>
-              {[25, 50, 100, 200].map((amt) => (
+              {/* Custom Amount Top-Up */}
+              <View style={s.customAmountInputContainer}>
+                <TextInput
+                  style={s.customAmountField}
+                  placeholder="Enter custom amount in GH₵"
+                  placeholderTextColor="#64748b"
+                  keyboardType="numeric"
+                  value={customTopupAmount}
+                  onChangeText={setCustomTopupAmount}
+                />
                 <TouchableOpacity
-                  key={amt}
-                  style={s.amountChip}
-                  onPress={() => handleTopUp(amt)}
-                  activeOpacity={0.8}
+                  style={s.customTopupBtn}
+                  onPress={() => {
+                    handleTopUp(parseFloat(customTopupAmount));
+                  }}
                 >
-                  <Text style={s.amountChipText}>+GH₵ {amt}</Text>
+                  <Plus size={16} color="#020817" />
+                  <Text style={s.customTopupBtnText}>Top Up</Text>
                 </TouchableOpacity>
-              ))}
+              </View>
             </View>
 
-            {/* Custom Amount Input */}
-            <View style={s.customAmountRow}>
-              <TextInput
-                style={s.customAmountInput}
-                placeholder="Enter custom GH₵ amount"
-                placeholderTextColor="#64748b"
-                keyboardType="numeric"
-                value={customTopupAmount}
-                onChangeText={setCustomTopupAmount}
-              />
-              <TouchableOpacity
-                style={s.customAmountBtn}
-                onPress={() => handleTopUp(parseFloat(customTopupAmount))}
-              >
-                <Plus size={16} color="#020817" />
-                <Text style={s.customAmountBtnText}>Authorize</Text>
-              </TouchableOpacity>
+            {/* Pre-Authorization Security Explanation */}
+            <View style={s.securityNoticeBox}>
+              <ShieldCheck size={16} color="#22c55e" style={{ marginRight: 10, marginTop: 2 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={s.securityTitle}>Automated Pre-Auth Escrow System</Text>
+                <Text style={s.securityDesc}>
+                  Charging dispensers require a GH₵ 25.00 temporary hold to authenticate line safety. Any unconsumed balance is instantly credited back upon cable detachment.
+                </Text>
+              </View>
             </View>
 
             {/* Transaction Ledger */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, marginBottom: 12 }}>
-              <Text style={s.sectionHeaderTitle}>RECENT CHARGE TRANSACTIONS</Text>
-              <Text style={{ fontSize: 11, color: '#38bdf8' }}>CSMS Synced</Text>
-            </View>
-
-            {transactions.map((tx) => (
-              <View key={tx.id} style={s.txCard}>
-                <View style={s.txIconBox}>
-                  {tx.isCredit ? <Plus size={16} color="#22c55e" /> : <Zap size={16} color="#38bdf8" />}
-                </View>
-                <View style={{ flex: 1, marginHorizontal: 10 }}>
-                  <Text style={s.txTitle}>{tx.title}</Text>
-                  <Text style={s.txSubtitle}>{tx.subtitle}</Text>
-                  <Text style={s.txDate}>{tx.timestamp}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[s.txAmount, { color: tx.isCredit ? '#22c55e' : '#f1f5f9' }]}>
-                    {tx.isCredit ? '+' : '-'}GH₵ {tx.amount.toFixed(2)}
-                  </Text>
-                  {tx.kwh && <Text style={s.txKwhText}>{tx.kwh} kWh</Text>}
-                </View>
+            <View style={{ marginTop: 20 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={s.sectionHeaderTitle}>TRANSACTION LEDGER</Text>
+                <TouchableOpacity onPress={syncBackendData} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <RefreshCw size={12} color="#38bdf8" />
+                  <Text style={{ fontSize: 11, color: '#38bdf8' }}>Sync</Text>
+                </TouchableOpacity>
               </View>
-            ))}
+
+              {transactions.map((tx) => (
+                <View key={tx.id} style={s.transactionRowCard}>
+                  <View style={s.txIconBox}>
+                    {tx.isCredit ? <ArrowUpRight size={16} color="#22c55e" /> : <Zap size={16} color="#38bdf8" />}
+                  </View>
+                  <View style={{ flex: 1, marginHorizontal: 12 }}>
+                    <Text style={s.txTitle}>{tx.title}</Text>
+                    <Text style={s.txSubtitle}>{tx.subtitle}</Text>
+                    <Text style={s.txTimestamp}>{tx.timestamp}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[s.txAmount, { color: tx.isCredit ? '#22c55e' : '#f8fafc' }]}>
+                      {tx.isCredit ? '+' : '-'}GH₵ {tx.amount.toFixed(2)}
+                    </Text>
+                    {tx.kwh && <Text style={s.txKwh}>{tx.kwh} kWh</Text>}
+                  </View>
+                </View>
+              ))}
+            </View>
           </ScrollView>
         )}
 
         {/* ===================================================
-            TAB 4: FLEET VIN MANAGEMENT & ISO 15118
+            TAB 4: COMMERCIAL FLEET VIN MANAGEMENT (ISO 15118)
         ==================================================== */}
         {activeTab === 'fleet' && (
-          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-            {/* Commercial Fleet Summary */}
-            <View style={s.fleetHeaderCard}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 16, paddingBottom: 36 }}>
+            {/* Corporate Credit Overview */}
+            <View style={s.fleetCreditCard}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View>
-                  <Text style={{ color: '#fbbf24', fontSize: 11, fontWeight: 'bold' }}>
-                    COMMERCIAL FLEET ACCOUNT
+                  <Text style={s.fleetCreditTitle}>
+                    {fleetAccount?.companyName || 'Apex Logistics & Express EV Fleet'}
                   </Text>
-                  <Text style={s.fleetTitle}>Apex Logistics Ghana Ltd.</Text>
+                  <Text style={s.fleetCreditAccount}>
+                    Account: {fleetAccount?.billingAccountNo || 'CORP-XC-88402'} · ISO 15118
+                  </Text>
                 </View>
-                <View style={s.fleetActiveBadge}>
-                  <ShieldCheck size={14} color="#22c55e" />
-                  <Text style={{ color: '#22c55e', fontSize: 10, fontWeight: '700' }}>Active</Text>
+                <View style={s.fleetStatusBadge}>
+                  <Text style={s.fleetStatusText}>ACTIVE FLEET</Text>
                 </View>
               </View>
-              <View style={s.fleetDetailsRow}>
-                <Text style={s.fleetSubtext}>Billing Account: CORP-XC-88402</Text>
-                <Text style={s.fleetSubtext}>3 Registered Vehicles</Text>
-              </View>
-            </View>
 
-            <Text style={s.sectionHeaderTitle}>ASSIGNED FLEET VEHICLES & PLUG & CHARGE</Text>
-
-            {fleetVehicles.map((vehicle) => (
-              <View key={vehicle.vin} style={s.vehicleCard}>
-                <View style={s.vehicleCardTop}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.vehicleModel}>{vehicle.model}</Text>
-                    <Text style={s.vehiclePlate}>Plate: {vehicle.plate} · Driver: {vehicle.driver}</Text>
-                  </View>
-                  <View style={s.vehicleSocBadge}>
-                    <Battery size={12} color={vehicle.soc > 50 ? '#22c55e' : '#fbbf24'} />
-                    <Text style={[s.vehicleSocText, { color: vehicle.soc > 50 ? '#22c55e' : '#fbbf24' }]}>
-                      {vehicle.soc}%
-                    </Text>
-                  </View>
+              <View style={s.creditProgressBarContainer}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text style={s.creditMetricLabel}>CORPORATE CREDIT UTILIZATION</Text>
+                  <Text style={s.creditMetricValue}>
+                    GH₵ {fleetAccount?.currentUtilization.toFixed(2) || '1,420.50'} / GH₵ {fleetAccount?.creditLimit.toFixed(2) || '5,000.00'}
+                  </Text>
                 </View>
-
-                {/* Battery level indicator bar */}
-                <View style={s.batteryProgressBarTrack}>
+                <View style={s.creditTrack}>
                   <View
                     style={[
-                      s.batteryProgressBarFill,
+                      s.creditFill,
                       {
-                        width: `${vehicle.soc}%`,
-                        backgroundColor: vehicle.soc > 50 ? '#22c55e' : '#fbbf24',
+                        width: `${Math.min(
+                          100,
+                          Math.round(
+                            ((fleetAccount?.currentUtilization || 1420.5) / (fleetAccount?.creditLimit || 5000)) * 100
+                          )
+                        )}%`,
                       },
                     ]}
                   />
                 </View>
-
-                {/* VIN & Hardware Details */}
-                <View style={s.vinSpecsBox}>
-                  <Text style={s.vinLabel}>CHASSIS VIN:</Text>
-                  <Text style={s.vinMonoText}>{vehicle.vin}</Text>
-                </View>
-
-                {/* ISO 15118 Plug & Charge Switcher */}
-                <View style={s.plugAndChargeRow}>
-                  <View style={{ flex: 1, paddingRight: 10 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Radio size={14} color={vehicle.isPlugAndChargeEnabled ? '#22c55e' : '#64748b'} />
-                      <Text style={s.plugAndChargeTitle}>ISO 15118 Plug & Charge</Text>
-                    </View>
-                    <Text style={s.plugAndChargeSub}>
-                      {vehicle.isPlugAndChargeEnabled
-                        ? 'TLS certificate installed. Auto-authorizes instantly.'
-                        : 'Manual authentication required at charger.'}
-                    </Text>
-                  </View>
-                  <Switch
-                    value={vehicle.isPlugAndChargeEnabled}
-                    onValueChange={() => togglePlugAndCharge(vehicle.vin)}
-                    trackColor={{ false: '#1e293b', true: '#059669' }}
-                    thumbColor={vehicle.isPlugAndChargeEnabled ? '#34d399' : '#94a3b8'}
-                  />
-                </View>
-
-                {/* Vehicle Actions */}
-                <View style={s.vehicleActionsRow}>
-                  <TouchableOpacity
-                    style={s.locateVehicleBtn}
-                    onPress={() => {
-                      setActiveTab('map');
-                    }}
-                  >
-                    <MapPin size={12} color="#38bdf8" />
-                    <Text style={s.locateVehicleBtnText}>Route to Nearest Hub</Text>
-                  </TouchableOpacity>
-
-                  <Text style={s.lastChargedText}>Last: {vehicle.lastCharged}</Text>
-                </View>
               </View>
-            ))}
+            </View>
+
+            {/* Vehicle List */}
+            <View style={{ marginTop: 20 }}>
+              <Text style={s.sectionHeaderTitle}>REGISTERED FLEET VEHICLES ({fleetVehicles.length})</Text>
+
+              {fleetVehicles.map((vehicle) => (
+                <View key={vehicle.vin} style={s.vehicleCard}>
+                  <View style={s.vehicleTopRow}>
+                    <View style={s.vehicleIconBadge}>
+                      <Car size={18} color="#38bdf8" />
+                    </View>
+                    <View style={{ flex: 1, marginHorizontal: 10 }}>
+                      <Text style={s.vehicleModel}>{vehicle.model}</Text>
+                      <Text style={s.vehiclePlate}>Plate: {vehicle.plate} · Driver: {vehicle.driver}</Text>
+                    </View>
+                    <View style={s.socPill}>
+                      <Battery size={12} color={vehicle.soc > 50 ? '#22c55e' : '#f59e0b'} />
+                      <Text style={[s.socText, { color: vehicle.soc > 50 ? '#22c55e' : '#f59e0b' }]}>
+                        {vehicle.soc}%
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={s.batteryProgressBar}>
+                    <View
+                      style={[
+                        s.batteryProgressBarFill,
+                        {
+                          width: `${vehicle.soc}%`,
+                          backgroundColor: vehicle.soc > 50 ? '#22c55e' : '#f59e0b',
+                        },
+                      ]}
+                    />
+                  </View>
+
+                  <View style={s.vinSpecsBox}>
+                    <Text style={s.vinLabel}>CHASSIS VIN:</Text>
+                    <Text style={s.vinMonoText}>{vehicle.vin}</Text>
+                  </View>
+
+                  {/* ISO 15118 Plug & Charge Toggle */}
+                  <View style={s.plugAndChargeRow}>
+                    <View style={{ flex: 1, paddingRight: 10 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Zap size={14} color={vehicle.isPlugAndChargeEnabled ? '#22c55e' : '#94a3b8'} />
+                        <Text style={s.plugAndChargeTitle}>ISO 15118 Plug & Charge</Text>
+                      </View>
+                      <Text style={s.plugAndChargeSub}>
+                        Automatic TLS 1.3 cryptographic handshake upon cable insertion.
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => togglePlugAndCharge(vehicle.vin)}
+                      style={[
+                        s.miniToggleBtn,
+                        vehicle.isPlugAndChargeEnabled ? s.miniToggleActive : s.miniToggleInactive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          s.miniToggleText,
+                          { color: vehicle.isPlugAndChargeEnabled ? '#22c55e' : '#94a3b8' },
+                        ]}
+                      >
+                        {vehicle.isPlugAndChargeEnabled ? 'ENABLED' : 'DISABLED'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
           </ScrollView>
         )}
       </View>
 
-      {/* Bottom Navigation Bar (4 Native Tabs) */}
-      <View style={[s.bottomNav, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      {/* Edge-to-Edge Bottom Navigation Bar */}
+      <View style={[s.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
           return (
             <TouchableOpacity
               key={tab.key}
-              onPress={() => setActiveTab(tab.key as any)}
               style={[s.navItem, isActive && s.navItemActive]}
-              activeOpacity={0.8}
+              onPress={() => {
+                setActiveTab(tab.key as any);
+                activateImmersive();
+              }}
+              activeOpacity={0.7}
             >
               <Icon size={20} color={isActive ? '#38bdf8' : '#64748b'} />
               <Text style={[s.navLabel, isActive && s.navLabelActive]}>{tab.label}</Text>
@@ -1029,65 +1340,71 @@ function AppContent() {
         })}
       </View>
 
-      {/* Connector Selection Modal */}
-      {selectedStation && (
-        <Modal visible transparent animationType="slide">
-          <View style={s.modalOverlay}>
-            <View style={s.modalSheet}>
-              <View style={s.modalHeaderRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.modalStationTitle}>{selectedStation.name}</Text>
-                  <Text style={s.modalStationSub}>{selectedStation.address}</Text>
-                </View>
-                <TouchableOpacity onPress={() => setSelectedStation(null)} style={s.modalCloseBtn}>
-                  <X size={18} color="#94a3b8" />
-                </TouchableOpacity>
+      {/* Backend & CSMS Settings Modal */}
+      <Modal visible={showSettingsModal} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalSheet}>
+            <View style={s.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Server size={18} color="#38bdf8" />
+                <Text style={s.modalStationTitle}>XCharge CSMS Backend</Text>
               </View>
+              <TouchableOpacity onPress={() => setShowSettingsModal(false)} style={s.modalCloseBtn}>
+                <X size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
 
-              <Text style={s.modalSectionLabel}>CHOOSE FAST CONNECTOR</Text>
+            <Text style={s.modalSectionLabel}>CONNECTION STATUS</Text>
+            <View style={s.statusCardBox}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {isBackendOnline ? <Wifi size={16} color="#22c55e" /> : <WifiOff size={16} color="#f59e0b" />}
+                <Text style={{ color: isBackendOnline ? '#22c55e' : '#f59e0b', fontWeight: 'bold' }}>
+                  {isBackendOnline ? 'Connected to CitrineOS Server' : 'Connecting to Server...'}
+                </Text>
+              </View>
+              <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
+                Active Endpoint: {BACKEND_URL}
+              </Text>
+            </View>
 
-              {selectedStation.connectors.map((c) => (
-                <View key={c.id} style={s.connectorChoiceCard}>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={s.connectorTypeTitle}>{c.type} · {c.maxPowerKw} kW</Text>
-                      <View
-                        style={[
-                          s.miniStatusPill,
-                          c.status === 'Available' ? s.miniStatusGreen : s.miniStatusBlue,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            s.miniStatusText,
-                            { color: c.status === 'Available' ? '#22c55e' : '#60a5fa' },
-                          ]}
-                        >
-                          {c.status}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={s.connectorTariffSub}>GH₵ {c.tariffPerKwh.toFixed(2)} / kWh</Text>
-                  </View>
+            <Text style={[s.modalSectionLabel, { marginTop: 14 }]}>CUSTOM BACKEND URL</Text>
+            <TextInput
+              style={s.settingsInput}
+              value={customBackendInput}
+              onChangeText={setCustomBackendInput}
+              placeholder="e.g. http://192.168.1.100:3000"
+              placeholderTextColor="#64748b"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
 
-                  <TouchableOpacity
-                    onPress={() => handleStartCharging(selectedStation, c)}
-                    style={[
-                      s.unlockChargeBtn,
-                      c.status !== 'Available' && { backgroundColor: '#1e293b' },
-                    ]}
-                    disabled={c.status !== 'Available'}
-                  >
-                    <Text style={s.unlockChargeBtnText}>
-                      {c.status === 'Available' ? 'Unlock & Charge' : 'In Use'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+              <TouchableOpacity
+                style={s.settingsResetBtn}
+                onPress={() => {
+                  setCustomBackendInput('http://localhost:3000');
+                  setBackendUrl('http://localhost:3000');
+                  syncBackendData();
+                }}
+              >
+                <Text style={s.settingsResetText}>Reset Localhost</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={s.settingsApplyBtn}
+                onPress={() => {
+                  setBackendUrl(customBackendInput);
+                  syncBackendData();
+                  setShowSettingsModal(false);
+                  Alert.alert('Backend Updated', `Connecting to ${customBackendInput}`);
+                }}
+              >
+                <Text style={s.settingsApplyText}>Save & Reconnect</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-      )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1118,6 +1435,13 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
   };
 
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+      NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
+      NavigationBar.setBackgroundColorAsync('#000000').catch(() => {});
+    }
+    StatusBar.setHidden(true, 'none');
+
     Animated.timing(progressAnim, {
       toValue: 1,
       duration: 8000,
@@ -1152,17 +1476,13 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   return (
     <Animated.View style={[ss.splashRoot, { opacity: fadeAnim, width, height }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
-
-      {/* Fullscreen Video */}
+      <StatusBar hidden={true} translucent={true} backgroundColor="#000000" />
       <VideoView
         player={player}
         style={ss.splashVideo}
         contentFit="cover"
         nativeControls={false}
       />
-
-      {/* Dark gradient overlay at bottom */}
       <View style={ss.splashOverlay}>
         <View style={ss.splashBrand}>
           <Zap size={28} color="#38bdf8" />
@@ -1180,7 +1500,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
           </View>
         </View>
 
-        <Text style={ss.versionText}>v1.0.0</Text>
+        <Text style={ss.versionText}>v1.0.0 · CitrineOS</Text>
       </View>
     </Animated.View>
   );
@@ -1188,6 +1508,15 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
 export default function App() {
   const [isSplashDone, setIsSplashDone] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+      NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
+      NavigationBar.setBackgroundColorAsync('#020817').catch(() => {});
+    }
+    StatusBar.setHidden(true, 'none');
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -1230,9 +1559,6 @@ const ss = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 28,
-  },
-  splashBrandSymbol: {
-    fontSize: 28,
   },
   splashBrandName: {
     fontSize: 26,
@@ -1299,7 +1625,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
     backgroundColor: '#0b1324',
@@ -1325,16 +1651,31 @@ const s = StyleSheet.create({
     color: '#f8fafc',
     letterSpacing: 0.5,
   },
+  backendStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  backendOnline: {
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  backendOffline: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
   onlineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22c55e',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    marginRight: 4,
   },
   onlineText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#22c55e',
     letterSpacing: 0.5,
   },
   headerSub: {
@@ -1345,8 +1686,8 @@ const s = StyleSheet.create({
   modeToggleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
   },
@@ -1369,6 +1710,16 @@ const s = StyleSheet.create({
   badgePersonalText: {
     color: '#38bdf8',
   },
+  settingsIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#020817',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     flex: 1,
   },
@@ -1377,25 +1728,27 @@ const s = StyleSheet.create({
     backgroundColor: '#020817',
   },
 
-  // Map Styles
+  // Map Filter Bar
   mapFilterBar: {
     position: 'absolute',
     top: 12,
     left: 12,
     right: 12,
-    zIndex: 10,
-    flexDirection: 'row',
-    gap: 8,
+    zIndex: 15,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: 'rgba(11, 19, 36, 0.92)',
+    backgroundColor: 'rgba(11, 19, 36, 0.95)',
     borderWidth: 1,
     borderColor: '#1e293b',
+  },
+  viewToggleChip: {
+    backgroundColor: '#0f2744',
+    borderColor: '#38bdf8',
   },
   filterChipActive: {
     backgroundColor: '#0f2744',
@@ -1415,65 +1768,164 @@ const s = StyleSheet.create({
     borderRadius: 3,
     marginRight: 5,
   },
-  customMarker: {
-    alignItems: 'center',
+
+  // List View Styles
+  listSectionHeader: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748b',
+    letterSpacing: 1,
+    marginBottom: 12,
   },
-  customMarkerSelected: {
-    transform: [{ scale: 1.15 }],
-  },
-  markerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
+  stationListCard: {
     backgroundColor: '#0b1324',
-  },
-  markerBadgeGreen: {
-    borderColor: '#22c55e',
-  },
-  markerBadgeBlue: {
-    borderColor: '#38bdf8',
-  },
-  markerBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  markerPinStem: {
-    width: 2,
-    height: 6,
-    backgroundColor: '#38bdf8',
-  },
-  markerPinStemSelected: {
-    height: 8,
-    backgroundColor: '#22c55e',
-  },
-  mapOverlayBottom: {
-    position: 'absolute',
-    bottom: 16,
-    left: 14,
-    right: 14,
-  },
-  floatingStationCard: {
-    backgroundColor: 'rgba(11, 19, 36, 0.96)',
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#1e293b',
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    padding: 14,
+    marginBottom: 12,
+  },
+  stationListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  stationListTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f8fafc',
+  },
+  stationListAddress: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  powerHighlightPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  powerHighlightText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#38bdf8',
+  },
+  stationListMetaRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaItemText: {
+    fontSize: 11,
+    color: '#94a3b8',
+  },
+  connectorChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  miniConnectorChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  miniChipAvailable: {
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderColor: 'rgba(34, 197, 94, 0.25)',
+  },
+  miniChipBusy: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  miniConnectorText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  stationListActions: {
+    flexDirection: 'row',
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#1e293b',
+    paddingTop: 10,
+  },
+  listRouteBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: '#020817',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  listRouteText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#38bdf8',
+  },
+  listChargeBtn: {
+    flex: 1.5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: '#38bdf8',
+  },
+  listChargeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#020817',
+  },
+
+  // Map Overlay Bottom Drawer
+  mapOverlayBottom: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
+    zIndex: 20,
   },
   floatingNearbyPrompt: {
-    backgroundColor: 'rgba(11, 19, 36, 0.92)',
+    backgroundColor: 'rgba(11, 19, 36, 0.94)',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#1e293b',
     padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  floatingStationCard: {
+    backgroundColor: '#0b1324',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1e3a8a',
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   stationCardHeader: {
     flexDirection: 'row',
@@ -1481,7 +1933,7 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   stationCardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#f8fafc',
   },
@@ -1497,7 +1949,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 10,
+    marginVertical: 10,
   },
   connectorMiniChip: {
     flexDirection: 'row',
@@ -1510,21 +1962,21 @@ const s = StyleSheet.create({
   },
   connectorChipGreen: {
     backgroundColor: 'rgba(34,197,94,0.1)',
-    borderColor: 'rgba(34,197,94,0.3)',
+    borderColor: '#22c55e',
   },
   connectorChipBlue: {
     backgroundColor: 'rgba(56,189,248,0.1)',
-    borderColor: 'rgba(56,189,248,0.3)',
+    borderColor: '#38bdf8',
   },
   connectorMiniText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   amenitiesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 10,
+    gap: 6,
+    marginBottom: 12,
   },
   amenityText: {
     fontSize: 10,
@@ -1533,7 +1985,6 @@ const s = StyleSheet.create({
   stationActions: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 14,
   },
   navigateBtn: {
     flex: 1,
@@ -1541,71 +1992,74 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
+    backgroundColor: '#020817',
     borderWidth: 1,
     borderColor: '#1e293b',
-    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    paddingVertical: 10,
   },
   navigateBtnText: {
     color: '#38bdf8',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
   chargeActionBtn: {
-    flex: 1.4,
+    flex: 1.5,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 10,
+    backgroundColor: '#22c55e',
     borderRadius: 10,
-    backgroundColor: '#38bdf8',
+    paddingVertical: 10,
   },
   chargeActionBtnText: {
     color: '#020817',
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.3,
   },
 
-  // Telemetry HUD Styles
+  // Charge HUD Telemetry Styles
   hudGaugeContainer: {
     alignItems: 'center',
-    paddingVertical: 16,
+    marginBottom: 20,
   },
   socOuterGlowRing: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
     borderWidth: 3,
     borderColor: '#38bdf8',
+    backgroundColor: 'rgba(56,189,248,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.04)',
     shadowColor: '#38bdf8',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   socInnerDial: {
-    width: 176,
-    height: 176,
-    borderRadius: 88,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     backgroundColor: '#0b1324',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#1e293b',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 10,
+    padding: 12,
   },
   chargingBoltBadge: {
-    marginBottom: 4,
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(56,189,248,0.12)',
+    marginBottom: 2,
   },
   socPercentageText: {
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: '900',
-    color: '#f8fafc',
+    color: '#ffffff',
     letterSpacing: -1,
   },
   socStateLabel: {
@@ -1613,13 +2067,12 @@ const s = StyleSheet.create({
     fontWeight: '800',
     color: '#38bdf8',
     letterSpacing: 1,
-    textAlign: 'center',
+    marginTop: 2,
   },
   socTargetText: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#64748b',
     marginTop: 4,
-    textAlign: 'center',
   },
   powerMeterCard: {
     width: '100%',
@@ -1628,18 +2081,18 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1e293b',
     padding: 14,
-    marginTop: 18,
+    marginTop: 16,
   },
   metricLabel: {
     fontSize: 10,
     fontWeight: '800',
     color: '#64748b',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   powerValueHighlight: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#22c55e',
+    fontWeight: '900',
+    color: '#38bdf8',
   },
   powerProgressBarTrack: {
     height: 8,
@@ -1651,23 +2104,24 @@ const s = StyleSheet.create({
   },
   powerProgressBarFill: {
     height: '100%',
-    backgroundColor: '#22c55e',
+    backgroundColor: '#38bdf8',
     borderRadius: 4,
   },
   smallSub: {
     fontSize: 9,
-    color: '#475569',
+    color: '#64748b',
+    fontWeight: '600',
   },
   telemetryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginTop: 12,
+    marginBottom: 20,
   },
   telemetryTile: {
     width: '48%',
     backgroundColor: '#0b1324',
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#1e293b',
     padding: 12,
@@ -1679,27 +2133,74 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   tileLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 9,
+    fontWeight: '800',
     color: '#64748b',
+    letterSpacing: 0.5,
   },
   tileValue: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#f8fafc',
+    marginBottom: 2,
   },
   tileSub: {
     fontSize: 10,
-    color: '#475569',
-    marginTop: 2,
+    color: '#64748b',
   },
-  hardwareStatusBox: {
+  targetSocSection: {
     backgroundColor: '#0b1324',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#1e293b',
     padding: 14,
-    marginTop: 14,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748b',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  targetButtonRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  targetSocBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#020817',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    alignItems: 'center',
+  },
+  targetSocBtnActive: {
+    backgroundColor: '#0f2744',
+    borderColor: '#38bdf8',
+  },
+  targetSocBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94a3b8',
+  },
+  targetSocBtnTextActive: {
+    color: '#38bdf8',
+  },
+  socAdviceText: {
+    fontSize: 10,
+    color: '#64748b',
+    marginTop: 10,
+    lineHeight: 14,
+  },
+  csmsBridgeBanner: {
+    backgroundColor: '#0b1324',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    padding: 12,
+    marginBottom: 16,
   },
   statusRow: {
     flexDirection: 'row',
@@ -1740,12 +2241,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 14,
     paddingVertical: 14,
-    marginTop: 20,
-    elevation: 4,
+    marginTop: 8,
   },
   primaryActionText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -1790,7 +2290,7 @@ const s = StyleSheet.create({
     letterSpacing: 1,
   },
   walletBalanceNumber: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '900',
     color: '#ffffff',
     marginVertical: 4,
@@ -1827,12 +2327,12 @@ const s = StyleSheet.create({
   },
   cardHolderMono: {
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     color: '#38bdf8',
     marginTop: 2,
   },
   sectionHeaderTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#64748b',
     letterSpacing: 1,
@@ -1853,81 +2353,95 @@ const s = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
   },
-  momoChannelActiveMtn: {
-    borderColor: '#eab308',
-    backgroundColor: 'rgba(234, 179, 8, 0.08)',
-  },
-  momoChannelActiveTelecel: {
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-  },
-  momoChannelActiveAt: {
+  momoChannelCardActive: {
     borderColor: '#38bdf8',
-    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+    backgroundColor: '#0f2744',
   },
-  momoBrandIcon: {
-    width: 32,
-    height: 24,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
+  channelBrandDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     marginBottom: 6,
   },
-  momoChannelName: {
+  channelName: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: 4,
+    fontWeight: 'bold',
+    color: '#f8fafc',
   },
-  quickAmountRow: {
+  channelCode: {
+    fontSize: 9,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  presetAmountRow: {
     flexDirection: 'row',
     gap: 8,
     marginBottom: 12,
   },
-  amountChip: {
+  presetAmountBtn: {
     flex: 1,
     backgroundColor: '#0b1324',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#1e293b',
-    borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 9,
     alignItems: 'center',
   },
-  amountChipText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#22c55e',
+  presetAmountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#38bdf8',
   },
-  customAmountRow: {
+  customAmountInputContainer: {
     flexDirection: 'row',
     gap: 8,
   },
-  customAmountInput: {
+  customAmountField: {
     flex: 1,
     backgroundColor: '#0b1324',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#1e293b',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     color: '#f8fafc',
-    fontSize: 13,
+    fontSize: 12,
   },
-  customAmountBtn: {
+  customTopupBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#38bdf8',
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
-  customAmountBtnText: {
-    color: '#020817',
+  customTopupBtnText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: 'bold',
+    color: '#020817',
   },
-  txCard: {
+  securityNoticeBox: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.25)',
+    padding: 12,
+    marginTop: 10,
+  },
+  securityTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#22c55e',
+    marginBottom: 2,
+  },
+  securityDesc: {
+    fontSize: 10,
+    color: '#94a3b8',
+    lineHeight: 14,
+  },
+  transactionRowCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0b1324',
@@ -1942,6 +2456,8 @@ const s = StyleSheet.create({
     height: 32,
     borderRadius: 8,
     backgroundColor: '#020817',
+    borderWidth: 1,
+    borderColor: '#1e293b',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1955,58 +2471,76 @@ const s = StyleSheet.create({
     color: '#64748b',
     marginTop: 1,
   },
-  txDate: {
+  txTimestamp: {
     fontSize: 9,
     color: '#475569',
     marginTop: 2,
   },
   txAmount: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: 'bold',
   },
-  txKwhText: {
+  txKwh: {
     fontSize: 10,
     color: '#64748b',
     marginTop: 2,
   },
 
-  // Fleet Styles
-  fleetHeaderCard: {
+  // Fleet VIN Management Styles
+  fleetCreditCard: {
     backgroundColor: '#0b1324',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1e293b',
-    padding: 14,
-    marginBottom: 16,
+    borderColor: '#f59e0b',
+    padding: 16,
   },
-  fleetTitle: {
-    fontSize: 16,
+  fleetCreditTitle: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#f8fafc',
+  },
+  fleetCreditAccount: {
+    fontSize: 10,
+    color: '#64748b',
     marginTop: 2,
   },
-  fleetActiveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(34,197,94,0.1)',
+  fleetStatusBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.3)',
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
-  fleetDetailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+  fleetStatusText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#fbbf24',
   },
-  fleetSubtext: {
-    fontSize: 11,
+  creditProgressBarContainer: {
+    marginTop: 14,
+  },
+  creditMetricLabel: {
+    fontSize: 9,
+    fontWeight: '800',
     color: '#64748b',
+    letterSpacing: 0.5,
+  },
+  creditMetricValue: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fbbf24',
+  },
+  creditTrack: {
+    height: 6,
+    backgroundColor: '#020817',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  creditFill: {
+    height: '100%',
+    backgroundColor: '#f59e0b',
+    borderRadius: 3,
   },
   vehicleCard: {
     backgroundColor: '#0b1324',
@@ -2016,22 +2550,29 @@ const s = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
   },
-  vehicleCardTop: {
+  vehicleTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+  },
+  vehicleIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   vehicleModel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#f8fafc',
   },
   vehiclePlate: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#64748b',
-    marginTop: 2,
+    marginTop: 1,
   },
-  vehicleSocBadge: {
+  socPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -2042,11 +2583,11 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1e293b',
   },
-  vehicleSocText: {
+  socText: {
     fontSize: 11,
     fontWeight: 'bold',
   },
-  batteryProgressBarTrack: {
+  batteryProgressBar: {
     height: 4,
     backgroundColor: '#020817',
     borderRadius: 2,
@@ -2075,7 +2616,7 @@ const s = StyleSheet.create({
   },
   vinMonoText: {
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     color: '#38bdf8',
   },
   plugAndChargeRow: {
@@ -2096,28 +2637,23 @@ const s = StyleSheet.create({
     color: '#64748b',
     marginTop: 2,
   },
-  vehicleActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+  miniToggleBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
   },
-  locateVehicleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  miniToggleActive: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderColor: '#22c55e',
   },
-  locateVehicleBtnText: {
-    fontSize: 11,
-    color: '#38bdf8',
-    fontWeight: '700',
+  miniToggleInactive: {
+    backgroundColor: '#020817',
+    borderColor: '#1e293b',
   },
-  lastChargedText: {
-    fontSize: 10,
-    color: '#475569',
+  miniToggleText: {
+    fontSize: 9,
+    fontWeight: '800',
   },
 
   // Bottom Navigation
@@ -2150,7 +2686,7 @@ const s = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Modal Styles
+  // Modal Settings
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -2163,23 +2699,17 @@ const s = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderColor: '#1e293b',
-    maxHeight: '80%',
   },
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 16,
   },
   modalStationTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#f8fafc',
-  },
-  modalStationSub: {
-    fontSize: 11,
-    color: '#64748b',
-    marginTop: 2,
   },
   modalCloseBtn: {
     padding: 4,
@@ -2189,53 +2719,49 @@ const s = StyleSheet.create({
     fontWeight: '800',
     color: '#64748b',
     letterSpacing: 1,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  connectorChoiceCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  statusCardBox: {
     backgroundColor: '#020817',
-    borderRadius: 12,
+    borderRadius: 10,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#1e293b',
-    padding: 12,
-    marginBottom: 10,
   },
-  connectorTypeTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
+  settingsInput: {
+    backgroundColor: '#020817',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     color: '#f8fafc',
+    fontSize: 12,
   },
-  miniStatusPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+  settingsResetBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#020817',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    alignItems: 'center',
   },
-  miniStatusGreen: {
-    backgroundColor: 'rgba(34,197,94,0.15)',
-  },
-  miniStatusBlue: {
-    backgroundColor: 'rgba(56,189,248,0.15)',
-  },
-  miniStatusText: {
-    fontSize: 9,
+  settingsResetText: {
+    color: '#94a3b8',
+    fontSize: 12,
     fontWeight: '700',
   },
-  connectorTariffSub: {
-    fontSize: 11,
-    color: '#64748b',
-    marginTop: 3,
+  settingsApplyBtn: {
+    flex: 1.5,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#38bdf8',
+    alignItems: 'center',
   },
-  unlockChargeBtn: {
-    backgroundColor: '#22c55e',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  unlockChargeBtnText: {
+  settingsApplyText: {
     color: '#020817',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
   },
 });
