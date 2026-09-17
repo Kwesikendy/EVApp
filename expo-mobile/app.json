@@ -23,8 +23,8 @@
         "backgroundColor": "#070b10"
       },
       "navigationBar": {
-        "visible": "immersive",
-        "backgroundColor": "#020817"
+        "visible": "sticky-immersive",
+        "backgroundColor": "#00000000"
       }
     },
     "androidStatusBar": {

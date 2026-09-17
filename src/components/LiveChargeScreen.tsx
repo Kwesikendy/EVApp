@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Zap,
   Power,
   ChevronDown,
   ChevronUp,
@@ -116,7 +115,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
             </span>
 
             <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-xs font-mono font-bold text-[#00f0ff]">
-              <Zap className="w-3.5 h-3.5 fill-[#00f0ff]" />
+              <BatteryCharging className="w-3.5 h-3.5 text-[#00f0ff]" />
               <span>{chargingSpeedKw} kW Fast Charge</span>
             </div>
 

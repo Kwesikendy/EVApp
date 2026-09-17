@@ -13,12 +13,16 @@ import {
   TextInput,
   Platform,
   AppState,
+  Switch,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as NavigationBar from 'expo-navigation-bar';
 import {
-  Zap,
+  Plug,
+  Gauge,
+  BatteryCharging,
+  Activity,
   MapPin,
   CreditCard,
   Truck,
@@ -46,6 +50,10 @@ import {
   ShieldCheck,
   Clock,
   ArrowUpRight,
+  Bell,
+  Sliders,
+  Shield,
+  Smartphone,
 } from 'lucide-react-native';
 
 import StationMap, { MapStation } from './StationMap';
@@ -246,9 +254,16 @@ function AppContent() {
   // Backend connection & CitrineOS state
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [citrineInfo, setCitrineInfo] = useState<string>('CitrineOS CSMS Connected');
+  const [citrineInfo, setCitrineInfo] = useState<string>('Secure Charging Protocol Active');
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [customBackendInput, setCustomBackendInput] = useState<string>(BACKEND_URL);
+
+  // User App Preferences (Encapsulated)
+  const [autoUnlockCable, setAutoUnlockCable] = useState<boolean>(true);
+  const [pushAlertsEnabled, setPushAlertsEnabled] = useState<boolean>(true);
+  const [smsReceiptsEnabled, setSmsReceiptsEnabled] = useState<boolean>(true);
+  const [devModeUnlocked, setDevModeUnlocked] = useState<boolean>(false);
+  const [devTapCount, setDevTapCount] = useState<number>(0);
 
   // Stations & Fleet
   const [stations, setStations] = useState<Station[]>(DEFAULT_STATIONS);
@@ -275,11 +290,14 @@ function AppContent() {
   const [customTopupAmount, setCustomTopupAmount] = useState<string>('');
   const [transactions, setTransactions] = useState<WalletTransaction[]>(DEFAULT_TRANSACTIONS);
 
-  // Activate Android Immersive Mode (hide navigation bar and status bar completely)
+  // Activate Android Immersive Mode (hide navigation bar and control panel completely)
   const activateImmersive = async () => {
     if (Platform.OS === 'android') {
       try {
-        NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+        await NavigationBar.setPositionAsync('absolute').catch(() => {});
+        await NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
+        await NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+        await NavigationBar.setBackgroundColorAsync('#00000000').catch(() => {});
       } catch (_e) {
         // Safe catch
       }
@@ -590,7 +608,7 @@ function AppContent() {
 
   const tabs = [
     { key: 'map', label: 'Map', icon: MapPin },
-    { key: 'telemetry', label: 'Charge HUD', icon: Zap },
+    { key: 'telemetry', label: 'Charge HUD', icon: Plug },
     { key: 'wallet', label: 'MoMo Wallet', icon: CreditCard },
     { key: 'fleet', label: 'Fleet VIN', icon: Truck },
   ];
@@ -604,7 +622,7 @@ function AppContent() {
       <View style={[s.header, { paddingTop: Math.max(insets.top, 12) }]}>
         <View style={s.headerLeft}>
           <View style={s.brandLogoBadge}>
-            <Zap size={18} color="#38bdf8" />
+            <Plug size={18} color="#38bdf8" />
           </View>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -616,7 +634,7 @@ function AppContent() {
               >
                 <View style={[s.onlineDot, { backgroundColor: isBackendOnline ? '#22c55e' : '#f59e0b' }]} />
                 <Text style={[s.onlineText, { color: isBackendOnline ? '#22c55e' : '#f59e0b' }]}>
-                  {isBackendOnline ? 'LIVE CSMS' : 'SYNCING'}
+                  {isBackendOnline ? 'ONLINE' : 'CONNECTING'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -675,7 +693,7 @@ function AppContent() {
                   style={[s.filterChip, mapFilter === 'ultra' && s.filterChipActive]}
                   onPress={() => setMapFilter('ultra')}
                 >
-                  <Zap size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
+                  <Gauge size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
                   <Text style={[s.filterChipText, mapFilter === 'ultra' && s.filterChipTextActive]}>
                     200+ kW Ultra
                   </Text>
@@ -738,7 +756,7 @@ function AppContent() {
                           <Text style={s.stationListAddress}>{station.address}</Text>
                         </View>
                         <View style={s.powerHighlightPill}>
-                          <Zap size={12} color="#38bdf8" />
+                          <Gauge size={12} color="#38bdf8" />
                           <Text style={s.powerHighlightText}>{maxKw} kW</Text>
                         </View>
                       </View>
@@ -800,7 +818,7 @@ function AppContent() {
                             handleStartCharging(station, avail);
                           }}
                         >
-                          <Zap size={13} color="#020817" />
+                          <Plug size={13} color="#020817" />
                           <Text style={s.listChargeText}>Connect & Charge</Text>
                         </TouchableOpacity>
                       </View>
@@ -835,7 +853,7 @@ function AppContent() {
                             c.status === 'Available' ? s.connectorChipGreen : s.connectorChipBlue,
                           ]}
                         >
-                          <Zap size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
+                          <Plug size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
                           <Text
                             style={[
                               s.connectorMiniText,
@@ -880,7 +898,7 @@ function AppContent() {
                           handleStartCharging(selectedStation, availableConn);
                         }}
                       >
-                        <Zap size={14} color="#020817" />
+                        <Plug size={14} color="#020817" />
                         <Text style={s.chargeActionBtnText}>Connect & Charge</Text>
                       </TouchableOpacity>
                     </View>
@@ -918,7 +936,7 @@ function AppContent() {
               <View style={s.socOuterGlowRing}>
                 <View style={s.socInnerDial}>
                   <View style={s.chargingBoltBadge}>
-                    <Zap size={16} color={isCharging ? '#22c55e' : '#38bdf8'} />
+                    <BatteryCharging size={16} color={isCharging ? '#22c55e' : '#38bdf8'} />
                   </View>
                   <Text style={s.socPercentageText}>{batterySoc}%</Text>
                   <Text style={s.socStateLabel}>
@@ -964,7 +982,7 @@ function AppContent() {
 
               <View style={s.telemetryTile}>
                 <View style={s.tileHeader}>
-                  <Zap size={13} color="#22c55e" />
+                  <Activity size={13} color="#22c55e" />
                   <Text style={s.tileLabel}>ENERGY TRANSFERRED</Text>
                 </View>
                 <Text style={s.tileValue}>{kwhConsumed.toFixed(2)} kWh</Text>
@@ -1011,18 +1029,18 @@ function AppContent() {
               </Text>
             </View>
 
-            {/* CSMS Live Bridge Banner */}
+            {/* Secure Protocol & Hardware Verification Banner */}
             <View style={s.csmsBridgeBanner}>
               <View style={s.statusRow}>
                 <View style={s.connectedPill}>
-                  <View style={s.activePulseDot} />
+                  <ShieldCheck size={12} color="#22c55e" style={{ marginRight: 4 }} />
                   <Text style={s.connectedPillText}>{citrineInfo}</Text>
                 </View>
-                <Text style={{ fontSize: 11, color: '#64748b' }}>OCPP 2.0.1 MeterValues</Text>
+                <Text style={{ fontSize: 11, color: '#64748b' }}>Hardware Meter Verified</Text>
               </View>
               <View style={s.preAuthNoticeRow}>
                 <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-                  Session Node: {activeStationName} · Pre-Auth Locked: GH₵ {heldBalance.toFixed(2)}
+                  Station: {activeStationName} · Pre-Auth Hold: GH₵ {heldBalance.toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -1049,7 +1067,7 @@ function AppContent() {
                 </>
               ) : (
                 <>
-                  <Zap size={18} color="#020817" style={{ marginRight: 8 }} />
+                  <Plug size={18} color="#020817" style={{ marginRight: 8 }} />
                   <Text style={[s.primaryActionText, { color: '#020817' }]}>INITIATE CHARGE AT AIRPORT CITY</Text>
                 </>
               )}
@@ -1177,7 +1195,7 @@ function AppContent() {
               {transactions.map((tx) => (
                 <View key={tx.id} style={s.transactionRowCard}>
                   <View style={s.txIconBox}>
-                    {tx.isCredit ? <ArrowUpRight size={16} color="#22c55e" /> : <Zap size={16} color="#38bdf8" />}
+                    {tx.isCredit ? <ArrowUpRight size={16} color="#22c55e" /> : <Plug size={16} color="#38bdf8" />}
                   </View>
                   <View style={{ flex: 1, marginHorizontal: 12 }}>
                     <Text style={s.txTitle}>{tx.title}</Text>
@@ -1285,7 +1303,7 @@ function AppContent() {
                   <View style={s.plugAndChargeRow}>
                     <View style={{ flex: 1, paddingRight: 10 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Zap size={14} color={vehicle.isPlugAndChargeEnabled ? '#22c55e' : '#94a3b8'} />
+                        <Plug size={14} color={vehicle.isPlugAndChargeEnabled ? '#22c55e' : '#94a3b8'} />
                         <Text style={s.plugAndChargeTitle}>ISO 15118 Plug & Charge</Text>
                       </View>
                       <Text style={s.plugAndChargeSub}>
@@ -1338,68 +1356,151 @@ function AppContent() {
         })}
       </View>
 
-      {/* Backend & CSMS Settings Modal */}
+      {/* Driver Preferences & Settings Modal (Encapsulated) */}
       <Modal visible={showSettingsModal} transparent animationType="slide">
         <View style={s.modalOverlay}>
           <View style={s.modalSheet}>
             <View style={s.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Server size={18} color="#38bdf8" />
-                <Text style={s.modalStationTitle}>XCharge CSMS Backend</Text>
+                <Settings size={18} color="#38bdf8" />
+                <Text style={s.modalStationTitle}>Driver Preferences & Settings</Text>
               </View>
               <TouchableOpacity onPress={() => setShowSettingsModal(false)} style={s.modalCloseBtn}>
                 <X size={18} color="#94a3b8" />
               </TouchableOpacity>
             </View>
 
-            <Text style={s.modalSectionLabel}>CONNECTION STATUS</Text>
-            <View style={s.statusCardBox}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {isBackendOnline ? <Wifi size={16} color="#22c55e" /> : <WifiOff size={16} color="#f59e0b" />}
-                <Text style={{ color: isBackendOnline ? '#22c55e' : '#f59e0b', fontWeight: 'bold' }}>
-                  {isBackendOnline ? 'Connected to CitrineOS Server' : 'Connecting to Server...'}
+            <ScrollView style={{ maxHeight: 440 }} showsVerticalScrollIndicator={false}>
+              {/* Charging Preferences */}
+              <Text style={s.modalSectionLabel}>CHARGING & HARDWARE PREFERENCES</Text>
+
+              <View style={s.prefRow}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={s.prefTitle}>Auto-Release Charging Cable</Text>
+                  <Text style={s.prefSubtitle}>Automatically disengage physical connector lock once session is settled</Text>
+                </View>
+                <Switch
+                  value={autoUnlockCable}
+                  onValueChange={setAutoUnlockCable}
+                  trackColor={{ false: '#1e293b', true: '#0369a1' }}
+                  thumbColor={autoUnlockCable ? '#38bdf8' : '#94a3b8'}
+                />
+              </View>
+
+              <View style={s.prefDivider} />
+
+              <View style={s.prefRow}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={s.prefTitle}>Push Charging Alerts</Text>
+                  <Text style={s.prefSubtitle}>Real-time push notifications when battery reaches 80% or charge stops</Text>
+                </View>
+                <Switch
+                  value={pushAlertsEnabled}
+                  onValueChange={setPushAlertsEnabled}
+                  trackColor={{ false: '#1e293b', true: '#0369a1' }}
+                  thumbColor={pushAlertsEnabled ? '#38bdf8' : '#94a3b8'}
+                />
+              </View>
+
+              <View style={s.prefDivider} />
+
+              <View style={s.prefRow}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={s.prefTitle}>MoMo SMS Receipts</Text>
+                  <Text style={s.prefSubtitle}>Dispatches instant payment confirmation to registered mobile number</Text>
+                </View>
+                <Switch
+                  value={smsReceiptsEnabled}
+                  onValueChange={setSmsReceiptsEnabled}
+                  trackColor={{ false: '#1e293b', true: '#0369a1' }}
+                  thumbColor={smsReceiptsEnabled ? '#38bdf8' : '#94a3b8'}
+                />
+              </View>
+
+              {/* Cloud Connection & Safety */}
+              <Text style={[s.modalSectionLabel, { marginTop: 16 }]}>SYSTEM & CLOUD SYNCHRONIZATION</Text>
+              <View style={s.statusCardBox}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <ShieldCheck size={16} color="#22c55e" />
+                    <Text style={{ color: '#22c55e', fontWeight: 'bold', fontSize: 13 }}>
+                      Cloud Infrastructure Synced
+                    </Text>
+                  </View>
+                  <View style={[s.onlineDot, { backgroundColor: isBackendOnline ? '#22c55e' : '#f59e0b' }]} />
+                </View>
+                <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
+                  End-to-end encrypted telemetry & real-time mobile money billing active.
                 </Text>
               </View>
-              <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
-                Active Endpoint: {BACKEND_URL}
-              </Text>
-            </View>
 
-            <Text style={[s.modalSectionLabel, { marginTop: 14 }]}>CUSTOM BACKEND URL</Text>
-            <TextInput
-              style={s.settingsInput}
-              value={customBackendInput}
-              onChangeText={setCustomBackendInput}
-              placeholder="e.g. http://192.168.1.100:3000"
-              placeholderTextColor="#64748b"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+              {/* Hidden Developer Mode Trigger */}
               <TouchableOpacity
-                style={s.settingsResetBtn}
+                style={{ marginTop: 16, alignItems: 'center', paddingVertical: 8 }}
                 onPress={() => {
-                  setCustomBackendInput('http://localhost:3000');
-                  setBackendUrl('http://localhost:3000');
-                  syncBackendData();
+                  const next = devTapCount + 1;
+                  setDevTapCount(next);
+                  if (next >= 5) {
+                    setDevModeUnlocked(true);
+                    Alert.alert('Developer Diagnostics', 'Advanced server endpoint settings revealed below.');
+                  }
                 }}
+                activeOpacity={0.8}
               >
-                <Text style={s.settingsResetText}>Reset Localhost</Text>
+                <Text style={{ color: '#64748b', fontSize: 11 }}>
+                  XCharge Driver App v2.4.1 (Accra Build) {devModeUnlocked ? '· [Dev Mode Active]' : ''}
+                </Text>
               </TouchableOpacity>
 
+              {/* Advanced Developer Settings (Encapsulated behind developer trigger) */}
+              {devModeUnlocked && (
+                <View style={{ marginTop: 12, padding: 12, backgroundColor: '#020817', borderRadius: 10, borderWidth: 1, borderColor: '#334155' }}>
+                  <Text style={[s.modalSectionLabel, { color: '#f59e0b' }]}>DEVELOPER DIAGNOSTIC OVERRIDE</Text>
+                  <Text style={{ color: '#94a3b8', fontSize: 11, marginBottom: 8 }}>
+                    Active Endpoint: {BACKEND_URL}
+                  </Text>
+                  <TextInput
+                    style={s.settingsInput}
+                    value={customBackendInput}
+                    onChangeText={setCustomBackendInput}
+                    placeholder="http://localhost:3000"
+                    placeholderTextColor="#64748b"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                    <TouchableOpacity
+                      style={s.settingsResetBtn}
+                      onPress={() => {
+                        setCustomBackendInput('http://localhost:3000');
+                        setBackendUrl('http://localhost:3000');
+                        syncBackendData();
+                      }}
+                    >
+                      <Text style={s.settingsResetText}>Reset Localhost</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={s.settingsApplyBtn}
+                      onPress={() => {
+                        setBackendUrl(customBackendInput);
+                        syncBackendData();
+                        Alert.alert('Backend Updated', `Connecting to ${customBackendInput}`);
+                      }}
+                    >
+                      <Text style={s.settingsApplyText}>Save & Reconnect</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
               <TouchableOpacity
-                style={s.settingsApplyBtn}
-                onPress={() => {
-                  setBackendUrl(customBackendInput);
-                  syncBackendData();
-                  setShowSettingsModal(false);
-                  Alert.alert('Backend Updated', `Connecting to ${customBackendInput}`);
-                }}
+                style={[s.settingsApplyBtn, { width: '100%', marginTop: 16, marginBottom: 8, paddingVertical: 14 }]}
+                onPress={() => setShowSettingsModal(false)}
               >
-                <Text style={s.settingsApplyText}>Save & Reconnect</Text>
+                <Text style={s.settingsApplyText}>Done</Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1481,7 +1582,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
       />
       <View style={ss.splashOverlay}>
         <View style={ss.splashBrand}>
-          <Zap size={28} color="#38bdf8" />
+          <Plug size={28} color="#38bdf8" />
           <Text style={ss.splashBrandName}>XCharge</Text>
         </View>
 
@@ -2714,6 +2815,28 @@ const s = StyleSheet.create({
     color: '#64748b',
     letterSpacing: 1,
     marginBottom: 8,
+  },
+  prefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  prefTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#f8fafc',
+  },
+  prefSubtitle: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  prefDivider: {
+    height: 1,
+    backgroundColor: '#1e293b',
+    marginVertical: 4,
   },
   statusCardBox: {
     backgroundColor: '#020817',

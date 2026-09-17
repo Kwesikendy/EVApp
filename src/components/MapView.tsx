@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import type { ChargingStation, Connector } from '../types';
 import L from 'leaflet';
-import { Zap, Navigation, Clock, ShieldCheck, DollarSign } from 'lucide-react';
+import { Navigation, Clock, ShieldCheck, DollarSign } from 'lucide-react';
 
 interface MapViewProps {
   stations: ChargingStation[];

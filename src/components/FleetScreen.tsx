@@ -7,7 +7,6 @@ import {
   Navigation,
   Info,
   Battery,
-  Zap,
   CheckCircle2,
   AlertTriangle,
   Radio,

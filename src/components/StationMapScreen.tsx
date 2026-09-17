@@ -5,7 +5,8 @@ import {
   Navigation,
   Layers,
   Locate,
-  Zap,
+  Plug,
+  Gauge,
   Car,
   Clock,
   Compass,
@@ -228,7 +229,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({
               {isSelected ? (
                 <div className="flex flex-col items-center -translate-y-6">
                   <div className="px-3 py-1.5 rounded-xl bg-[#10141a] border border-[#00f0ff] shadow-xl text-[11px] font-mono font-bold text-white flex items-center gap-1.5 glow-cyan-sm whitespace-nowrap">
-                    <Zap className="w-3.5 h-3.5 text-[#00f0ff] fill-[#00f0ff]" />
+                    <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
                     <span>{st.badge}</span>
                   </div>
                   <div className="w-2 h-2 bg-[#00f0ff] rotate-45 -mt-1 shadow-md" />
@@ -313,7 +314,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({
                 : 'bg-[#10141a]/80 backdrop-blur-md border-white/[0.08] text-slate-300 hover:border-white/20'
             }`}
           >
-            <Zap className="w-3 h-3" />
+            <Gauge className="w-3 h-3" />
             <span>Fast 150kW+</span>
           </button>
 

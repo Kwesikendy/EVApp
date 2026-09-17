@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Zap, Wallet, Truck } from 'lucide-react';
+import { Compass, Plug, Wallet, Truck } from 'lucide-react';
 
 export type TabKey = 'map' | 'charge' | 'wallet' | 'fleet';
 
@@ -16,7 +16,7 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
 }) => {
   const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { key: 'map', label: 'Map', icon: Compass },
-    { key: 'charge', label: 'Charge', icon: Zap },
+    { key: 'charge', label: 'Charge', icon: Plug },
     { key: 'wallet', label: 'Wallet', icon: Wallet },
     { key: 'fleet', label: 'Fleet', icon: Truck },
   ];

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ChargingStation, Connector, UserWallet, FleetAccount } from '../types';
-import { Zap, Navigation, ShieldCheck, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { Plug, Gauge, Navigation, ShieldCheck, AlertCircle, CheckCircle2, X } from 'lucide-react';
 
 interface StationDetailModalProps {
   station: ChargingStation;
@@ -126,7 +126,7 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
                     </span>
                   </div>
                   <div className="text-sm font-bold text-slate-100 flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <Gauge className="w-3.5 h-3.5 text-amber-400" />
                     <span>{connector.maxPowerKw} kW</span>
                     <span className="text-xs font-medium text-slate-400 font-sans">({connector.type})</span>
                   </div>
@@ -208,10 +208,10 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
           onClick={handleUnlockAndCharge}
           className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm mt-auto"
         >
-          <Zap className="w-4 h-4" />
+          <Plug className="w-4 h-4" />
           <span>
             {isStarting
-              ? 'Requesting CitrineOS OCPP Unlock...'
+              ? 'Authorizing & Unlatching Cable...'
               : selectedConnector?.status !== 'Available'
               ? `Connector ${selectedConnector?.status}`
               : isFleetMode

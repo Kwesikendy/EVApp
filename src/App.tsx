@@ -11,14 +11,14 @@ import { X, Building2, ShieldCheck, Car } from 'lucide-react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
-  // Splash screen state
-  const [showSplash, setShowSplash] = useState<boolean>(true);
+  // Splash screen state (can be replayed from header)
+  const [showSplash, setShowSplash] = useState<boolean>(false);
 
   // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
-  const [activeTab, setActiveTab] = useState<TabKey>('charge');
+  const [activeTab, setActiveTab] = useState<TabKey>('map');
 
   // Viewport mode: 'phone' shell (~390px) or 'fluid' fullscreen
-  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('phone');
+  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('fluid');
 
   // Backend state for real telemetry & admin
   const [stations, setStations] = useState<ChargingStation[]>([]);
@@ -125,19 +125,6 @@ export default function App() {
           onSelectTab={(tab) => setActiveTab(tab)}
           isCharging={true}
         />
-
-        {/* Floating Quick Admin Trigger Pill (Subtle for Client Testing) */}
-        <div className="absolute top-16 right-3 z-30">
-          <button
-            id="btn-quick-admin-toggle"
-            onClick={() => setIsAdminOpen(true)}
-            className="px-2 py-0.5 rounded-full bg-[#181c24]/90 hover:bg-[#1f2632] border border-white/10 text-[10px] font-mono text-slate-400 hover:text-[#00f0ff] transition-all flex items-center gap-1 shadow-lg"
-            title="Open Admin Station Manager"
-          >
-            <Building2 className="w-3 h-3" />
-            <span>Admin</span>
-          </button>
-        </div>
       </div>
 
       {/* Vehicle Selector Modal */}

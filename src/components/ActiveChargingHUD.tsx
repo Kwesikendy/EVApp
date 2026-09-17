@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ActiveTelemetrySession } from '../types';
-import { Zap, Clock, DollarSign, BatteryCharging, Gauge, ShieldAlert, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
+import { Clock, DollarSign, BatteryCharging, Gauge, ShieldAlert, CheckCircle2, ChevronRight, Activity } from 'lucide-react';
 
 interface ActiveChargingHUDProps {
   session: ActiveTelemetrySession | null;
@@ -111,7 +111,7 @@ export const ActiveChargingHUD: React.FC<ActiveChargingHUDProps> = ({
           {/* Active Charge Speed kW */}
           <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3">
             <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <Gauge className="w-3.5 h-3.5 text-amber-400" />
               <span>Charge Speed</span>
             </div>
             <div className="flex items-baseline gap-1">

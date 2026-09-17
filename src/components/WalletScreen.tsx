@@ -8,7 +8,7 @@ import {
   Phone,
   ArrowUpRight,
   ArrowDownLeft,
-  Zap,
+  Plug,
   Building2,
   ShieldCheck
 } from 'lucide-react';
@@ -260,7 +260,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           <div className="p-3 bg-[#141820] border border-white/[0.04] rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-[#00f0ff]" />
+                <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
               </div>
               <div>
                 <span className="text-xs font-bold text-white block">Apex Hub Charging</span>
@@ -294,7 +294,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           <div className="p-3 bg-[#141820] border border-white/[0.04] rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-[#00f0ff]" />
+                <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
               </div>
               <div>
                 <span className="text-xs font-bold text-white block">Metro Depot Charge</span>

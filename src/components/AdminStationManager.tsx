@@ -5,7 +5,7 @@ import {
   Trash2,
   Power,
   MapPin,
-  Zap,
+  Plug,
   DollarSign,
   Building2,
   CheckCircle2,
@@ -31,13 +31,13 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
   // Form State
   const [name, setName] = useState('');
   const [stationId, setStationId] = useState('');
-  const [operator, setOperator] = useState('VoltCharge Energy');
+  const [operator, setOperator] = useState('XCharge Grid Network');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('5.5950');
-  const [longitude, setLongitude] = useState('-0.1890');
+  const [latitude, setLatitude] = useState('5.6037');
+  const [longitude, setLongitude] = useState('-0.1870');
   const [connectorType, setConnectorType] = useState<ConnectorType>('CCS2');
-  const [maxPowerKw, setMaxPowerKw] = useState('160');
-  const [tariffPerKwh, setTariffPerKwh] = useState('0.32');
+  const [maxPowerKw, setMaxPowerKw] = useState('350');
+  const [tariffPerKwh, setTariffPerKwh] = useState('3.80');
   const [connectorCount, setConnectorCount] = useState('2');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,7 +47,7 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
   };
 
   const handlePresetLocation = (city: string, lat: string, lng: string, addr: string) => {
-    setName(`${city} EV Hub`);
+    setName(`${city} Superhub`);
     setAddress(addr);
     setLatitude(lat);
     setLongitude(lng);
@@ -68,8 +68,8 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
         type: connectorType,
         maxPowerKw: parseFloat(maxPowerKw) || 150,
         status: 'Available',
-        tariffPerKwh: parseFloat(tariffPerKwh) || 0.30,
-        tariffCurrency: 'USD'
+        tariffPerKwh: parseFloat(tariffPerKwh) || 3.50,
+        tariffCurrency: 'GHS'
       }));
 
       const res = await fetch('/api/stations', {
@@ -185,7 +185,7 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
         <div className="mb-4 bg-slate-900 border border-sky-500/40 rounded-2xl p-5 shadow-2xl animate-in fade-in">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-sky-400" />
+              <Plug className="w-4 h-4 text-sky-400" />
               <h3 className="text-sm font-bold text-white">Register New Hardware Charging Point</h3>
             </div>
             <button
@@ -205,27 +205,35 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => handlePresetLocation('Central Plaza', '5.5920', '-0.1840', 'Independence Ave & Ring Rd')}
+                  onClick={() => handlePresetLocation('Airport City', '5.6050', '-0.1720', 'Liberation Rd, Terminal 3 District, Accra')}
                   className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
                 >
                   <MapPin className="w-3 h-3 text-[#00f0ff]" />
-                  <span>Downtown Financial Plaza</span>
+                  <span>Airport City Terminal 3</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => handlePresetLocation('East Highway', '5.6210', '-0.1510', 'Accra-Tema Motorway Interchange')}
+                  onClick={() => handlePresetLocation('Tema Motorway', '5.6420', '-0.0980', 'Accra-Tema Motorway Interchange, Freight Hub')}
                   className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
                 >
                   <MapPin className="w-3 h-3 text-[#00f0ff]" />
-                  <span>Motorway Logistics Stop</span>
+                  <span>Tema Motorway Freight Stop</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => handlePresetLocation('West Mall', '5.5780', '-0.2310', 'Achimota Retail Complex')}
+                  onClick={() => handlePresetLocation('Ridge Diplomatic', '5.5780', '-0.1910', 'GIMPA Bypass, Ridge Ambassadorial Enclave')}
                   className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
                 >
                   <MapPin className="w-3 h-3 text-[#00f0ff]" />
-                  <span>West Retail Hub</span>
+                  <span>Ridge Tech Enclave</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePresetLocation('Achimota Mall', '5.6120', '-0.2290', 'Achimota Retail Complex, N1 Highway')}
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
+                >
+                  <MapPin className="w-3 h-3 text-[#00f0ff]" />
+                  <span>Achimota Mall Express</span>
                 </button>
               </div>
             </div>
@@ -412,7 +420,7 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
                         : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                     }`}
                   >
-                    <Zap className="w-5 h-5" />
+                    <Plug className="w-5 h-5" />
                   </div>
 
                   <div>
