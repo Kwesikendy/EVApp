@@ -7,7 +7,7 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
-  const [videoSrc, setVideoSrc] = useState<string>('/electric_vehicle_charging.mp4');
+  const [videoSrc, setVideoSrc] = useState<string>('/Electric_vehicle_charging_at_sta…_20260917013218.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -142,8 +142,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           onPause={() => setIsVideoPlaying(false)}
         >
           <source src={videoSrc} type="video/mp4" />
-          <source src="/electric_vehicle_charging.mp4" type="video/mp4" />
-          <source src="/electric vehical charging.mp4" type="video/mp4" />
+          <source src="/Electric_vehicle_charging_at_sta…_20260917013218.mp4" type="video/mp4" />
         </video>
 
         {/* 2. Visual Digital Twin of the exact uploaded video scene:
@@ -320,30 +319,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           </span>
         </h1>
 
-        {/* 1-Click Load My Video File Banner */}
-        <div className="max-w-xs mx-auto">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full py-2.5 px-3 rounded-xl bg-[#141a24]/90 hover:bg-[#1c2432] border border-[#00f0ff]/30 text-xs text-slate-200 hover:text-white flex items-center justify-center gap-2 transition-all shadow-lg group active:scale-[0.98]"
-          >
-            {hasCustomVideo ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 text-[#00e699]" />
-                <span className="font-mono text-[11px] text-[#00e699]">Custom Video Loaded & Looping</span>
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 text-[#00f0ff] group-hover:animate-bounce" />
-                <span className="font-mono text-[11px]">
-                  {isUploading ? 'Saving Video to App...' : 'Click to Load Your Video File (.mp4)'}
-                </span>
-              </>
-            )}
-          </button>
-          <p className="text-[10px] text-slate-400 font-mono mt-1.5">
-            or drag & drop your video anywhere on screen
-          </p>
-        </div>
+
       </div>
 
       {/* 5. 'Enter Application' CTA Overlay */}
