@@ -39,7 +39,8 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
   };
 
   return (
-    <div id="screen-fleet" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-4 select-none pb-8">
+    <div id="screen-fleet" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 select-none pb-8">
+      <div className="w-full max-w-md mx-auto space-y-4">
       {/* 1. Header Metadata & Headline */}
       <div className="flex items-center justify-between">
         <div>
@@ -304,6 +305,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -17,8 +17,8 @@ export default function App() {
   // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
   const [activeTab, setActiveTab] = useState<TabKey>('map');
 
-  // Viewport mode: 'phone' shell (~390px) or 'fluid' fullscreen
-  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('fluid');
+  // Viewport mode: 'phone' shell (~420px luxury chassis) or 'fluid' fullscreen
+  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('phone');
 
   // Backend state for real telemetry & admin
   const [stations, setStations] = useState<ChargingStation[]>([]);
@@ -59,25 +59,59 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#0a0e14] text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans select-none">
+    <div className="w-screen h-screen bg-[#070a0e] text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans select-none relative p-0 sm:p-4">
+      {/* Ambient background glow for desktop showcase */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(0,240,255,0.08),transparent_60%)]" />
+
       {/* 1. Launch Splash Screen with Video and Cinematic Animation */}
       {showSplash && (
         <SplashScreen onComplete={() => setShowSplash(false)} />
       )}
 
+      {/* Desktop Top Status Pill */}
+      {deviceMode === 'phone' && (
+        <div className="hidden lg:flex items-center justify-between w-full max-w-4xl px-4 py-1.5 mb-1 shrink-0 z-20">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-mono font-semibold text-slate-400">
+              XCHARGE HYPERCHARGE OS <span className="text-[#00f0ff]">v2.4 WEB</span>
+            </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00f0ff]/10 text-[#00f0ff] border border-[#00f0ff]/30">
+              ACCRA NETWORK
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00e699] animate-pulse" />
+              OCPP 2.0.1 Live
+            </span>
+            <span>•</span>
+            <span className="text-slate-300">Ghana MoMo Gateway</span>
+          </div>
+        </div>
+      )}
+
       {/* 2. Main Mobile Frame / Responsive Container */}
       <div
         id="xcharge-app-container"
-        className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 relative ${
+        className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 relative z-10 ${
           deviceMode === 'phone'
-            ? 'max-w-[430px] max-h-[920px] rounded-none sm:rounded-[40px] sm:border sm:border-white/10 sm:shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:ring-8 sm:ring-[#141820]'
-            : 'max-w-none max-h-none'
+            ? 'sm:max-w-[420px] sm:max-h-[890px] sm:rounded-[44px] sm:border-[5px] sm:border-[#1e2531] sm:shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(0,240,255,0.12)] sm:ring-1 sm:ring-white/15'
+            : 'max-w-none max-h-none rounded-none border-none shadow-none'
         }`}
       >
-        {/* Device Notch on phone shell */}
+        {/* Device Dynamic Island Bar on phone shell */}
         {deviceMode === 'phone' && (
-          <div className="hidden sm:flex justify-center bg-[#10141a] pt-2 shrink-0">
-            <div className="w-28 h-4 bg-[#0a0e14] rounded-full border border-white/5" />
+          <div className="hidden sm:flex items-center justify-between px-6 pt-2.5 pb-1 bg-[#10141a] shrink-0 border-b border-white/[0.04]">
+            <span className="text-[11px] font-mono font-bold text-slate-300">9:41</span>
+            <div className="w-24 h-4 bg-black rounded-full border border-white/10 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-[#181c24] mr-auto ml-1.5 border border-white/5" />
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-300 font-mono">
+              <span>5G</span>
+              <div className="w-3.5 h-2 rounded-2xs border border-slate-300 p-0.5 flex items-center">
+                <div className="w-full h-full bg-[#00e699] rounded-3xs" />
+              </div>
+            </div>
           </div>
         )}
 

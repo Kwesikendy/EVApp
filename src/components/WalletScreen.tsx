@@ -39,7 +39,8 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
   };
 
   return (
-    <div id="screen-wallet" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-4 select-none pb-8">
+    <div id="screen-wallet" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 select-none pb-8">
+      <div className="w-full max-w-md mx-auto space-y-4">
       {/* 1. Account Switcher: Segmented Toggle Pills */}
       <div className="bg-[#10141a] border border-white/[0.08] p-1 rounded-2xl flex items-center">
         <button
@@ -353,6 +354,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

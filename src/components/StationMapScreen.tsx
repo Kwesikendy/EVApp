@@ -1,437 +1,460 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   Search,
   SlidersHorizontal,
   Navigation,
-  Layers,
   Locate,
-  Plug,
-  Gauge,
-  Car,
+  Zap,
   Clock,
   Compass,
   CheckCircle2,
-  AlertCircle
+  PhoneCall,
+  ShieldCheck,
+  ChevronRight,
+  Layers
 } from 'lucide-react';
-import type { ChargingStation } from '../types';
 
-interface StationMapScreenProps {
-  onSelectStationForCharge?: (station: any) => void;
-  onNavigateToCharge?: () => void;
-}
-
-interface MapStationItem {
+export interface WebStation {
   id: string;
+  stationId: string;
   name: string;
   subline: string;
-  badge: string;
-  color: 'cyan' | 'green' | 'amber' | 'red';
+  address: string;
   power: string;
+  maxKw: number;
   availableStalls: number;
   totalStalls: number;
   distance: string;
   eta: string;
-  pricePerKwh: string;
-  connectors: { type: string; count: number }[];
-  xPercent: number; // For responsive map placement
-  yPercent: number;
+  tariffPerKwh: number;
+  lat: number;
+  lng: number;
+  connectors: { type: string; count: number; maxKw: number }[];
+  amenities: string[];
 }
 
-export const StationMapScreen: React.FC<StationMapScreenProps> = ({
-  onSelectStationForCharge,
-  onNavigateToCharge,
-}) => {
-  const [activeFilter, setActiveFilter] = useState<string>('available');
-  const [selectedStationId, setSelectedStationId] = useState<string>('apex-hub');
+const ACCRA_STATIONS: WebStation[] = [
+  {
+    id: 'airport-superhub',
+    stationId: 'XC-ACC-01',
+    name: 'XCharge Superhub – Airport City',
+    subline: 'Liberation Rd, Airport Residential Area',
+    address: 'Liberation Rd, Opposite Marina Mall, Accra',
+    power: 'Up to 350 kW Ultra-Fast',
+    maxKw: 350,
+    availableStalls: 4,
+    totalStalls: 6,
+    distance: '1.8 km',
+    eta: '4 min',
+    tariffPerKwh: 3.20,
+    lat: 5.6037,
+    lng: -0.1870,
+    connectors: [
+      { type: 'CCS2', count: 4, maxKw: 350 },
+      { type: 'CHAdeMO', count: 2, maxKw: 100 },
+    ],
+    amenities: ['Coffee Lounge', 'Free Wi-Fi', 'Security 24/7', 'EV Detailing'],
+  },
+  {
+    id: 'spintex-corridor',
+    stationId: 'XC-ACC-02',
+    name: 'XCharge Express – Spintex Road',
+    subline: 'Kasapreko Junction, Spintex Industrial',
+    address: 'Spintex Rd, Near Palace Mall, Accra',
+    power: 'Up to 240 kW DC Fast',
+    maxKw: 240,
+    availableStalls: 3,
+    totalStalls: 4,
+    distance: '4.2 km',
+    eta: '8 min',
+    tariffPerKwh: 3.10,
+    lat: 5.6321,
+    lng: -0.1142,
+    connectors: [
+      { type: 'CCS2', count: 3, maxKw: 240 },
+      { type: 'Type 2', count: 1, maxKw: 22 },
+    ],
+    amenities: ['Convenience Store', 'Restrooms', 'Security 24/7'],
+  },
+  {
+    id: 'east-legon-hub',
+    stationId: 'XC-ACC-03',
+    name: 'XCharge Hub – East Legon',
+    subline: 'Lagos Avenue, Near American House',
+    address: 'Lagos Ave, East Legon, Accra',
+    power: 'Up to 180 kW High-Speed',
+    maxKw: 180,
+    availableStalls: 2,
+    totalStalls: 4,
+    distance: '5.1 km',
+    eta: '12 min',
+    tariffPerKwh: 2.95,
+    lat: 5.6420,
+    lng: -0.1550,
+    connectors: [
+      { type: 'CCS2', count: 2, maxKw: 180 },
+      { type: 'GB/T', count: 2, maxKw: 80 },
+    ],
+    amenities: ['Café', 'Wi-Fi', 'Shopping'],
+  },
+  {
+    id: 'financial-plaza',
+    stationId: 'XC-ACC-04',
+    name: 'XCharge Central – Financial Plaza',
+    subline: 'Independence Ave, Ridge Commercial Hub',
+    address: 'Ridge Towers, Independence Ave, Accra',
+    power: 'Up to 300 kW Ultra-Fast',
+    maxKw: 300,
+    availableStalls: 5,
+    totalStalls: 6,
+    distance: '3.6 km',
+    eta: '9 min',
+    tariffPerKwh: 3.30,
+    lat: 5.5560,
+    lng: -0.1920,
+    connectors: [
+      { type: 'CCS2', count: 4, maxKw: 300 },
+      { type: 'CHAdeMO', count: 2, maxKw: 120 },
+    ],
+    amenities: ['Executive Lounge', 'ATM', 'Valet Parking'],
+  },
+  {
+    id: 'tema-harbour',
+    stationId: 'XC-ACC-05',
+    name: 'XCharge Heavy Depot – Tema Harbour',
+    subline: 'Port Access Expressway, Industrial Zone',
+    address: 'Berth 11 Corridor, Tema Port',
+    power: 'Up to 160 kW Commercial Fleet',
+    maxKw: 160,
+    availableStalls: 1,
+    totalStalls: 2,
+    distance: '14.8 km',
+    eta: '22 min',
+    tariffPerKwh: 2.65,
+    lat: 5.6698,
+    lng: -0.0166,
+    connectors: [
+      { type: 'CCS2', count: 2, maxKw: 160 },
+    ],
+    amenities: ['Heavy Duty Bay', 'Driver Rest Area'],
+  },
+];
+
+interface StationMapScreenProps {
+  onNavigateToCharge?: () => void;
+}
+
+export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateToCharge }) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<{ [id: string]: L.Marker }>({});
+  const routePolylineRef = useRef<L.Polyline | null>(null);
+
+  const [stations] = useState<WebStation[]>(ACCRA_STATIONS);
+  const [selectedStationId, setSelectedStationId] = useState<string>('airport-superhub');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'ultra' | 'available'>('available');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isTrafficOn, setIsTrafficOn] = useState<boolean>(true);
   const [activeRoute, setActiveRoute] = useState<boolean>(true);
 
-  // Modernized station pins per spec
-  const stations: MapStationItem[] = [
-    {
-      id: 'apex-hub',
-      name: 'Apex Hypercharge Hub',
-      subline: '2.4 km · 6 min drive · Marina Corridor',
-      badge: '350 kW · 4 open · 2.4 km (6 min)',
-      color: 'cyan',
-      power: 'Up to 350 kW',
-      availableStalls: 4,
-      totalStalls: 6,
-      distance: '2.4 km',
-      eta: '6 min',
-      pricePerKwh: 'GH₵ 3.20 / kWh',
-      connectors: [
-        { type: 'CCS2', count: 3 },
-        { type: 'CHAdeMO', count: 1 },
-      ],
-      xPercent: 54,
-      yPercent: 42,
-    },
-    {
-      id: 'airport-supercharge',
-      name: 'Kotoka Terminal 3 Superhub',
-      subline: '1.1 km · 3 min drive · Airport Bypass',
-      badge: '300 kW · 3 open · 1.1 km (3 min)',
-      color: 'green',
-      power: 'Up to 300 kW',
-      availableStalls: 3,
-      totalStalls: 4,
-      distance: '1.1 km',
-      eta: '3 min',
-      pricePerKwh: 'GH₵ 3.10 / kWh',
-      connectors: [
-        { type: 'CCS2', count: 2 },
-        { type: 'Type 2', count: 1 },
-      ],
-      xPercent: 28,
-      yPercent: 30,
-    },
-    {
-      id: 'osu-depot',
-      name: 'Osu Oxford Fast Charger',
-      subline: '4.1 km · 11 min drive · Cantonments Rd',
-      badge: '180 kW · 1 open · 4.1 km (11 min)',
-      color: 'amber',
-      power: 'Up to 180 kW',
-      availableStalls: 1,
-      totalStalls: 4,
-      distance: '4.1 km',
-      eta: '11 min',
-      pricePerKwh: 'GH₵ 2.90 / kWh',
-      connectors: [{ type: 'CCS2', count: 1 }],
-      xPercent: 72,
-      yPercent: 65,
-    },
-    {
-      id: 'harbour-hub',
-      name: 'Tema Port Industrial Depot',
-      subline: '5.8 km · 16 min drive · Heavy Industrial Area',
-      badge: '50 kW · 0 open · 5.8 km (16 min)',
-      color: 'red',
-      power: 'Up to 50 kW',
-      availableStalls: 0,
-      totalStalls: 2,
-      distance: '5.8 km',
-      eta: '16 min',
-      pricePerKwh: 'GH₵ 2.50 / kWh',
-      connectors: [{ type: 'GB/T', count: 0 }],
-      xPercent: 82,
-      yPercent: 25,
-    },
-  ];
+  const selectedStation = stations.find((s) => s.id === selectedStationId) || stations[0];
 
-  const selectedStation = stations.find(s => s.id === selectedStationId) || stations[0];
+  // Initialize Real Leaflet Map centered on Accra
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [5.6037, -0.1870],
+      zoom: 13,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    // Sleek Dark Matter Tiles
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // User GPS pulsing dot
+    const userGpsIcon = L.divIcon({
+      className: 'user-pulse-marker',
+      html: `
+        <div style="position: relative; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #00f0ff; opacity: 0.4; animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #00f0ff; border: 2px solid #ffffff; box-shadow: 0 0 10px #00f0ff;"></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    L.marker([5.5920, -0.1820], { icon: userGpsIcon }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Sync Markers & Availability
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Clear old markers
+    Object.values(markersRef.current).forEach((m) => m.remove());
+    markersRef.current = {};
+
+    stations.forEach((st) => {
+      const isSelected = st.id === selectedStationId;
+      const isAvailable = st.availableStalls > 0;
+      const badgeColor = isAvailable ? '#00f0ff' : '#ff4d4d';
+
+      const customIcon = L.divIcon({
+        className: 'station-marker',
+        html: `
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #10141a;
+            border: 1.5px solid ${isSelected ? '#00f0ff' : 'rgba(255,255,255,0.15)'};
+            padding: 4px 8px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px ${isSelected ? 'rgba(0,240,255,0.45)' : 'rgba(0,0,0,0.7)'};
+            transform: scale(${isSelected ? '1.1' : '1'});
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+          ">
+            <span style="
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: ${badgeColor};
+              box-shadow: 0 0 6px ${badgeColor};
+            "></span>
+            <span style="
+              font-size: 11px;
+              font-weight: 700;
+              font-family: sans-serif;
+              color: ${isSelected ? '#00f0ff' : '#ffffff'};
+            ">${st.maxKw} kW · ${st.availableStalls} open</span>
+          </div>
+        `,
+        iconSize: [110, 30],
+        iconAnchor: [55, 15],
+      });
+
+      const marker = L.marker([st.lat, st.lng], { icon: customIcon }).addTo(map);
+      marker.on('click', () => {
+        setSelectedStationId(st.id);
+        map.flyTo([st.lat, st.lng], 14, { duration: 0.8 });
+      });
+
+      markersRef.current[st.id] = marker;
+    });
+  }, [stations, selectedStationId]);
+
+  // Draw Neon Route to Selected Station
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (routePolylineRef.current) {
+      routePolylineRef.current.remove();
+      routePolylineRef.current = null;
+    }
+
+    if (activeRoute && selectedStation) {
+      const userLoc: [number, number] = [5.5920, -0.1820];
+      const targetLoc: [number, number] = [selectedStation.lat, selectedStation.lng];
+
+      // Waypoint midpoint curve
+      const midPoint: [number, number] = [
+        (userLoc[0] + targetLoc[0]) / 2 + 0.003,
+        (userLoc[1] + targetLoc[1]) / 2 - 0.002,
+      ];
+
+      const polyline = L.polyline([userLoc, midPoint, targetLoc], {
+        color: '#00f0ff',
+        weight: 4,
+        opacity: 0.85,
+        dashArray: '8, 8',
+      }).addTo(map);
+
+      routePolylineRef.current = polyline;
+    }
+  }, [selectedStation, activeRoute]);
+
+  const filteredStations = stations.filter((s) => {
+    if (activeFilter === 'ultra') return s.maxKw >= 200;
+    if (activeFilter === 'available') return s.availableStalls > 0;
+    return true;
+  });
+
+  const handleRecenter = () => {
+    if (mapRef.current) {
+      mapRef.current.flyTo([5.5920, -0.1820], 14, { duration: 0.6 });
+    }
+  };
 
   return (
-    <div id="screen-station-map" className="flex-1 flex flex-col relative bg-[#0a0e14] overflow-hidden select-none">
-      {/* 1. Full-Bleed Dark Grid Map Canvas */}
-      <div className="absolute inset-0 z-0 bg-[#0a0e14]">
-        {/* Dark map grid pattern */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, #1f2632 1px, transparent 1px), linear-gradient(to bottom, #1f2632 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
+    <div className="flex-1 flex flex-col relative w-full h-full bg-[#0a0e14] overflow-hidden select-none">
+      {/* 1. Real Leaflet Map Canvas */}
+      <div ref={mapContainerRef} className="absolute inset-0 z-0 w-full h-full bg-[#0a0e14]" />
 
-        {/* Radial city glow accents */}
-        <div className="absolute top-1/4 left-1/3 w-80 h-80 rounded-full bg-[#00f0ff]/5 blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-[#00e699]/5 blur-3xl" />
-
-        {/* Stylized vector roads */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40">
-          <path
-            d="M -50 200 C 150 180, 200 350, 450 320"
-            fill="none"
-            stroke="#1f2632"
-            strokeWidth="14"
-          />
-          <path
-            d="M 120 -50 C 140 250, 280 400, 310 700"
-            fill="none"
-            stroke="#181c24"
-            strokeWidth="18"
-          />
-          <path
-            d="M 0 450 Q 200 420 400 520"
-            fill="none"
-            stroke="#1f2632"
-            strokeWidth="10"
-          />
-
-          {/* Traffic flow lines */}
-          {isTrafficOn && (
-            <>
-              <path
-                d="M 120 100 C 130 200, 200 320, 230 400"
-                fill="none"
-                stroke="#00e699"
-                strokeWidth="3"
-                strokeDasharray="8 6"
-                className="opacity-70"
-              />
-              <path
-                d="M 280 410 Q 300 480 320 580"
-                fill="none"
-                stroke="#ffb020"
-                strokeWidth="3"
-                strokeDasharray="8 6"
-                className="opacity-70"
-              />
-            </>
-          )}
-
-          {/* Active Neon Telemetry Route Line to Apex Hub */}
-          {activeRoute && (
-            <path
-              d="M 180 560 C 190 480, 210 400, 226 310"
-              fill="none"
-              stroke="#00f0ff"
-              strokeWidth="4"
-              strokeLinecap="round"
-              filter="drop-shadow(0 0 8px rgba(0,240,255,0.8))"
-              strokeDasharray="6 4"
-            />
-          )}
-        </svg>
-
-        {/* User Vehicle Puck (FL-08 Nordic) */}
-        <div
-          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-          style={{ left: '44%', top: '72%' }}
-        >
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-[#10141a] border-2 border-[#00f0ff] flex items-center justify-center glow-cyan-sm">
-              <Navigation className="w-4 h-4 text-[#00f0ff] fill-[#00f0ff] -rotate-45" />
-            </div>
-            <span className="absolute -inset-1 rounded-full bg-[#00f0ff]/20 animate-ping pointer-events-none" />
-          </div>
-          <span className="mt-1 px-1.5 py-0.5 rounded bg-[#10141a] border border-white/10 text-[9px] font-mono font-bold text-white">
-            FL-08
-          </span>
-        </div>
-
-        {/* Interactive Map Pins */}
-        {stations.map(st => {
-          const isSelected = st.id === selectedStationId;
-
-          return (
-            <div
-              key={st.id}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-200"
-              style={{ left: `${st.xPercent}%`, top: `${st.yPercent}%` }}
-              onClick={() => setSelectedStationId(st.id)}
-            >
-              {/* Highlighted Cyan Callout for selected pin */}
-              {isSelected ? (
-                <div className="flex flex-col items-center -translate-y-6">
-                  <div className="px-3 py-1.5 rounded-xl bg-[#10141a] border border-[#00f0ff] shadow-xl text-[11px] font-mono font-bold text-white flex items-center gap-1.5 glow-cyan-sm whitespace-nowrap">
-                    <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
-                    <span>{st.badge}</span>
-                  </div>
-                  <div className="w-2 h-2 bg-[#00f0ff] rotate-45 -mt-1 shadow-md" />
-                  <div className="w-4 h-4 rounded-full bg-[#00f0ff] border-2 border-[#10141a] mt-1 shadow-lg animate-bounce" />
-                </div>
-              ) : (
-                /* Unselected pin dots */
-                <div className="group relative flex flex-col items-center">
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 border-[#10141a] shadow-lg transition-transform group-hover:scale-125 ${
-                      st.color === 'green'
-                        ? 'bg-[#00e699]'
-                        : st.color === 'amber'
-                        ? 'bg-[#ffb020]'
-                        : 'bg-[#ff4d4d]'
-                    }`}
-                  />
-                  <span className="absolute top-5 px-1.5 py-0.5 rounded bg-[#10141a]/90 border border-white/10 text-[9px] font-mono text-slate-300 whitespace-nowrap">
-                    {st.power}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 2. Top Controls (Frosted Search Bar & Filter Ribbon) */}
-      <div className="relative z-20 p-3 sm:p-4 space-y-2.5">
-        {/* Floating frosted search bar */}
-        <div className="flex items-center gap-2 bg-[#10141a]/85 backdrop-blur-md border border-white/[0.08] rounded-2xl px-3 py-2 shadow-xl">
-          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+      {/* 2. Floating Top Search & Filter Toolbar */}
+      <div className="absolute top-3 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[calc(100%-2rem)] sm:max-w-md z-20 flex flex-col gap-2 pointer-events-none">
+        {/* Search Input Card */}
+        <div className="bg-[#10141a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-2.5 flex items-center gap-2.5 shadow-2xl pointer-events-auto">
+          <Search className="w-4 h-4 text-[#00f0ff] shrink-0 ml-1" />
           <input
-            id="input-station-search"
             type="text"
-            placeholder="Search Accra stations or hubs..."
+            placeholder="Search Accra ultra-fast chargers & hubs..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent border-none text-xs text-white placeholder-[#64748b] focus:outline-none font-medium"
           />
           <button
-            id="btn-filter-tune"
-            className="w-7 h-7 rounded-xl bg-[#181c24] border border-white/[0.08] flex items-center justify-center text-slate-300 hover:text-white"
+            onClick={() => setActiveRoute(!activeRoute)}
+            className={`p-1.5 rounded-xl border transition-all ${
+              activeRoute ? 'bg-[#00f0ff]/15 border-[#00f0ff]/40 text-[#00f0ff]' : 'bg-[#181c22] border-white/10 text-slate-400'
+            }`}
+            title="Toggle Live Route"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <Navigation className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Horizontal Scrollable Filter Pill Ribbon */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <button
-            id="filter-all"
-            onClick={() => setActiveFilter('all')}
-            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
-              activeFilter === 'all'
-                ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] font-bold'
-                : 'bg-[#10141a]/80 backdrop-blur-md border-white/[0.08] text-slate-300 hover:border-white/20'
-            }`}
-          >
-            All
-          </button>
-
-          <button
-            id="filter-available"
-            onClick={() => setActiveFilter('available')}
-            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all border flex items-center gap-1.5 ${
-              activeFilter === 'available'
-                ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                : 'bg-[#10141a]/80 backdrop-blur-md border-white/[0.08] text-slate-300 hover:border-white/20'
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            <span>Available Now</span>
-          </button>
-
-          <button
-            id="filter-fast"
-            onClick={() => setActiveFilter('fast')}
-            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all border flex items-center gap-1 ${
-              activeFilter === 'fast'
-                ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] font-bold'
-                : 'bg-[#10141a]/80 backdrop-blur-md border-white/[0.08] text-slate-300 hover:border-white/20'
-            }`}
-          >
-            <Gauge className="w-3 h-3" />
-            <span>Fast 150kW+</span>
-          </button>
-
-          <button
-            id="filter-momo"
-            onClick={() => setActiveFilter('momo')}
-            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
-              activeFilter === 'momo'
-                ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] font-bold'
-                : 'bg-[#10141a]/80 backdrop-blur-md border-white/[0.08] text-slate-300 hover:border-white/20'
-            }`}
-          >
-            MoMo Accepted
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Floating Map Action Buttons (Right side) */}
-      <div className="absolute right-3 top-36 z-20 flex flex-col gap-2">
-        <button
-          id="btn-map-locate"
-          onClick={() => setSelectedStationId('apex-hub')}
-          title="Re-center GPS"
-          className="w-9 h-9 rounded-2xl bg-[#10141a]/90 backdrop-blur-md border border-white/[0.08] shadow-lg flex items-center justify-center text-slate-300 hover:text-[#00f0ff] transition-colors"
-        >
-          <Locate className="w-4 h-4" />
-        </button>
-
-        <button
-          id="btn-map-layers"
-          title="Layer Switcher"
-          className="w-9 h-9 rounded-2xl bg-[#10141a]/90 backdrop-blur-md border border-white/[0.08] shadow-lg flex items-center justify-center text-slate-300 hover:text-white transition-colors"
-        >
-          <Layers className="w-4 h-4" />
-        </button>
-
-        <button
-          id="btn-map-traffic"
-          onClick={() => setIsTrafficOn(!isTrafficOn)}
-          title="Toggle Traffic"
-          className={`w-9 h-9 rounded-2xl backdrop-blur-md border shadow-lg flex items-center justify-center transition-colors ${
-            isTrafficOn
-              ? 'bg-[#181c24] border-[#00e699]/40 text-[#00e699]'
-              : 'bg-[#10141a]/90 border-white/[0.08] text-slate-500'
-          }`}
-        >
-          <Compass className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* 4. Bottom Station Drawer Sheet */}
-      <div className="relative z-20 mt-auto bg-[#10141a]/95 backdrop-blur-xl border-t border-white/[0.08] rounded-t-3xl p-4 space-y-3.5 shadow-2xl">
-        {/* Handle bar */}
-        <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
-
-        {/* Station name & status */}
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="text-base font-bold text-white tracking-tight">
-              {selectedStation.name}
-            </h3>
-            <p className="text-xs text-[#94a3b8] font-mono mt-0.5">
-              {selectedStation.subline}
-            </p>
-          </div>
-
-          <span className="px-2.5 py-1 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[11px] font-mono font-bold text-[#00e699] whitespace-nowrap">
-            • {selectedStation.availableStalls} of {selectedStation.totalStalls} stalls free
-          </span>
-        </div>
-
-        {/* Metric cards (2 columns) */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-[#141820] border border-white/[0.06] rounded-2xl p-2.5">
-            <span className="text-[10px] text-[#64748b] block">MAX CHARGING SPEED</span>
-            <span className="text-sm font-bold text-white font-mono">{selectedStation.power}</span>
-          </div>
-
-          <div className="bg-[#141820] border border-white/[0.06] rounded-2xl p-2.5">
-            <span className="text-[10px] text-[#64748b] block">PRICING RATE</span>
-            <span className="text-sm font-bold text-[#00f0ff] font-mono">{selectedStation.pricePerKwh}</span>
-          </div>
-        </div>
-
-        {/* Connector Availability Pills */}
-        <div className="flex items-center gap-2">
-          {selectedStation.connectors.map(c => (
-            <div
-              key={c.type}
-              className="px-2.5 py-1 rounded-xl bg-[#181c24] border border-white/[0.08] text-xs font-mono text-slate-200 flex items-center gap-1.5"
+        {/* Filter Badges */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pointer-events-auto pb-1">
+          {[
+            { id: 'available', label: 'Available Now' },
+            { id: 'ultra', label: 'Ultra-Fast 200kW+' },
+            { id: 'all', label: 'All Hubs' },
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setActiveFilter(f.id as any)}
+              className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all shrink-0 border ${
+                activeFilter === f.id
+                  ? 'bg-[#00f0ff] text-black border-[#00f0ff] shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  : 'bg-[#10141a]/85 backdrop-blur-md text-[#94a3b8] border-white/10 hover:border-white/20'
+              }`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff]" />
-              <span>{c.type} ({c.count} avail)</span>
-            </div>
+              {f.label}
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Actions: Dual CTAs */}
-        <div className="grid grid-cols-2 gap-2.5 pt-1">
-          <button
-            id="btn-reserve-stall"
-            onClick={() => alert(`Stall at ${selectedStation.name} reserved for 15 minutes.`)}
-            className="min-h-[44px] py-2.5 rounded-2xl border border-white/20 hover:border-white/40 text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-[0.98]"
-          >
-            <span>Reserve Stall</span>
-          </button>
+      {/* 3. Floating Right Quick Action Floating Buttons */}
+      <div className="absolute right-3 top-28 z-20 flex flex-col gap-2">
+        <button
+          onClick={handleRecenter}
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] hover:border-[#00f0ff]/50 active:scale-95 transition-all"
+          title="Recenter to My Location"
+        >
+          <Locate className="w-4 h-4 text-[#00f0ff]" />
+        </button>
+        <button
+          onClick={() => {
+            if (mapRef.current) {
+              const currentZoom = mapRef.current.getZoom();
+              mapRef.current.setZoom(currentZoom + 1);
+            }
+          }}
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold"
+        >
+          +
+        </button>
+        <button
+          onClick={() => {
+            if (mapRef.current) {
+              const currentZoom = mapRef.current.getZoom();
+              mapRef.current.setZoom(currentZoom - 1);
+            }
+          }}
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold"
+        >
+          −
+        </button>
+      </div>
 
-          <button
-            id="btn-start-route-charge"
-            onClick={() => {
-              if (onNavigateToCharge) onNavigateToCharge();
-            }}
-            className="min-h-[44px] py-2.5 rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wide transition-all glow-cyan-sm flex items-center justify-center gap-1.5 active:scale-[0.98]"
-          >
-            <Navigation className="w-3.5 h-3.5 fill-current" />
-            <span>Start Route</span>
-          </button>
+      {/* 4. Sleek Bottom Station Preview Card (Fixed height, perfectly contained) */}
+      <div className="absolute bottom-3 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[calc(100%-2rem)] sm:max-w-md z-20">
+        <div className="bg-[#10141a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.8)] flex flex-col gap-3">
+          {/* Header Row */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white tracking-tight truncate">
+                  {selectedStation.name}
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-[#00e676]/15 text-[#00e676] text-[10px] font-bold border border-[#00e676]/30 shrink-0">
+                  {selectedStation.availableStalls} of {selectedStation.totalStalls} Open
+                </span>
+              </div>
+              <p className="text-[11px] text-[#94a3b8] truncate mt-0.5">
+                {selectedStation.subline} · <span className="text-[#00f0ff] font-semibold">{selectedStation.distance} ({selectedStation.eta})</span>
+              </p>
+            </div>
+
+            <div className="text-right shrink-0">
+              <div className="text-xs font-mono font-bold text-[#00f0ff]">
+                GH₵ {selectedStation.tariffPerKwh.toFixed(2)}
+              </div>
+              <div className="text-[9px] text-[#64748b] font-medium uppercase tracking-wider">
+                per kWh
+              </div>
+            </div>
+          </div>
+
+          {/* Connectors & Power Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {selectedStation.connectors.map((c, idx) => (
+              <div
+                key={idx}
+                className="px-2.5 py-1 rounded-lg bg-[#181c22] border border-white/5 flex items-center gap-1.5 shrink-0"
+              >
+                <Zap className="w-3 h-3 text-[#00f0ff]" />
+                <span className="text-[11px] font-semibold text-slate-200">
+                  {c.type} ({c.count} avail)
+                </span>
+                <span className="text-[9px] text-[#94a3b8] font-mono">
+                  {c.maxKw}kW
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                alert(`Routing initiated to ${selectedStation.name}. Follow live navigation.`);
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-[#181c22] hover:bg-[#20252e] border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <Navigation className="w-3.5 h-3.5 text-[#00f0ff]" />
+              Navigate ({selectedStation.eta})
+            </button>
+
+            <button
+              onClick={() => {
+                if (onNavigateToCharge) onNavigateToCharge();
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-[#00f0ff] hover:bg-[#00d2ff] text-black text-xs font-extrabold transition-all shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <Zap className="w-3.5 h-3.5 fill-black" />
+              Plug & Charge
+            </button>
+          </div>
         </div>
       </div>
     </div>

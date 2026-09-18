@@ -26,8 +26,9 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   return (
     <header
       id="xcharge-global-header"
-      className="h-14 bg-[#10141a] border-b border-white/[0.08] px-3 sm:px-4 flex items-center justify-between shrink-0 select-none z-30"
+      className="h-14 bg-[#10141a] border-b border-white/[0.08] px-3 sm:px-4 shrink-0 select-none z-30"
     >
+      <div className="w-full max-w-4xl mx-auto h-full flex items-center justify-between">
       {/* Left: Official XCHARGE Logo + status pill */}
       <div className="flex items-center gap-2.5">
         <XChargeLogo size="sm" variant="full" />
@@ -90,6 +91,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
         >
           <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
         </button>
+      </div>
       </div>
     </header>
   );

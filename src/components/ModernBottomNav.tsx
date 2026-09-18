@@ -24,8 +24,9 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
   return (
     <nav
       id="xcharge-bottom-nav"
-      className="h-16 bg-[#10141a] border-t border-white/[0.08] grid grid-cols-4 px-2 shrink-0 z-30 select-none"
+      className="h-16 bg-[#10141a] border-t border-white/[0.08] px-2 shrink-0 z-30 select-none"
     >
+      <div className="w-full max-w-md mx-auto h-full grid grid-cols-4">
       {tabs.map(tab => {
         const isActive = activeTab === tab.key;
         const Icon = tab.icon;
@@ -67,6 +68,7 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
           </button>
         );
       })}
+      </div>
     </nav>
   );
 };

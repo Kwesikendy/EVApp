@@ -44,7 +44,8 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
   const strokeDashoffset = circumference - (currentSoc / 100) * circumference;
 
   return (
-    <div id="screen-live-charge" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-4 select-none pb-8">
+    <div id="screen-live-charge" className="flex-1 flex flex-col bg-[#0a0e14] overflow-y-auto no-scrollbar p-3.5 sm:p-4 select-none pb-8">
+      <div className="w-full max-w-md mx-auto space-y-4">
       {/* 1. Sub-Header: Active Charger Banner Card */}
       <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-3.5 flex items-center justify-between">
         <div className="space-y-1">
@@ -270,6 +271,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
         <p className="text-[10px] text-center text-[#94a3b8] font-mono leading-relaxed">
           Safely ramps down session and unlatches connector cable
         </p>
+      </div>
       </div>
     </div>
   );
