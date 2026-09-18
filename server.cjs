@@ -258,7 +258,7 @@ function updateUserProfile(phoneNumber, updates) {
 
 // server.ts
 var app = (0, import_express.default)();
-var PORT = 3e3;
+var PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
 app.use(import_express.default.json({ limit: "50mb" }));
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
