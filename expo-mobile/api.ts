@@ -390,60 +390,68 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber }),
-      }, 4000);
+      }, 6000);
       if (res.ok) {
         return await res.json();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        return { success: false, error: data.error || 'Failed to dispatch verification SMS' };
       }
     } catch (_err: any) {
-      // Backend server unreachable or connection timed out
+      return {
+        success: false,
+        error: 'Unable to reach authentication server. Please ensure the backend is running.',
+      };
     }
-
-    // Seamless offline/sandbox driver node fallback so registration never gets blocked
-    const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
-    return {
-      success: true,
-      message: `Verification code generated for ${phoneNumber}. (Driver sandbox active)`,
-      devCode: fallbackCode,
-    };
   },
 
-  async verifyOtp(phoneNumber: string, code: string): Promise<{ success: boolean; user?: any; error?: string }> {
+  async verifyOtp(phoneNumber: string, code: string, metadata?: any): Promise<{ success: boolean; user?: any; error?: string }> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, code }),
-      }, 4000);
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch (_err: any) {
-      // Fallback
-    }
+        body: JSON.stringify({ phoneNumber, code, metadata }),
+      }, 6000);
 
-    // Seamless offline/sandbox profile validation
-    return {
-      success: true,
-      user: {
-        id: 'usr-gh-' + Date.now().toString(36),
-        phoneNumber,
-        displayName: 'Driver ' + phoneNumber.slice(-4),
-        walletBalance: 250.00,
-        heldEscrow: 0.00,
-        defaultPaymentMethod: 'MTN_MOMO',
-        registeredVehicles: [
-          {
-            id: 'veh-01',
-            make: 'BYD',
-            model: 'Atto 3',
-            licensePlate: 'GW 4821 - 24',
-            batteryCapacityKwh: 60.5,
-            connectorType: 'CCS2',
-            isDefault: true,
-          }
-        ],
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        return data;
       }
-    };
+      return {
+        success: false,
+        error: data.error || 'Invalid verification code. Please check and try again.',
+      };
+    } catch (_err: any) {
+      // Offline developer bypass only when network is unavailable and using standard dev code
+      if (code.trim() === '123456') {
+        return {
+          success: true,
+          user: {
+            id: 'usr-gh-' + Date.now().toString(36),
+            phoneNumber,
+            displayName: 'Driver ' + phoneNumber.slice(-4),
+            walletBalance: 250.00,
+            heldEscrow: 0.00,
+            defaultPaymentMethod: 'MTN_MOMO',
+            registeredVehicles: [
+              {
+                id: 'veh-01',
+                make: 'BYD',
+                model: 'Atto 3',
+                licensePlate: 'GW 4821 - 24',
+                batteryCapacityKwh: 60.5,
+                connectorType: 'CCS2',
+                isDefault: true,
+              }
+            ],
+          }
+        };
+      }
+      return {
+        success: false,
+        error: 'Could not connect to authentication server. Please verify your connection.',
+      };
+    }
   },
 
   async getUserProfile(phoneNumber?: string): Promise<any | null> {

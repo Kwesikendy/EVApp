@@ -31,7 +31,9 @@ interface OtpVerificationScreenProps {
     devCode?: string;
     accountType?: string;
     fullName?: string;
+    email?: string;
     selectedEv?: string;
+    selectedGateway?: string;
   };
 }
 
@@ -75,7 +77,13 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
   const verifyCode = async (codeToVerify: string) => {
     setIsVerifying(true);
     try {
-      const res = await api.verifyOtp(phoneNumber, codeToVerify);
+      const metadata = {
+        displayName: routeParams?.fullName,
+        email: routeParams?.email,
+        selectedEv: routeParams?.selectedEv,
+        selectedGateway: routeParams?.selectedGateway,
+      };
+      const res = await api.verifyOtp(phoneNumber, codeToVerify, metadata);
       setIsVerifying(false);
 
       if (res.success && res.user) {

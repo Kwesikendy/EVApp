@@ -35,45 +35,82 @@ export interface UserProfile {
   updatedAt: string;
 }
 
-// Default driver user database
-const USERS_DB = new Map<string, UserProfile>([
-  [
-    '+233248901204',
-    {
-      id: 'usr-gh-001',
-      phoneNumber: '+233248901204',
-      displayName: 'Kofi Mensah',
-      email: 'kofi.mensah@xcharge.africa',
-      walletBalance: 245.50,
-      heldEscrow: 0.00,
-      defaultPaymentMethod: 'MTN_MOMO',
-      registeredVehicles: [
-        {
-          id: 'veh-01',
-          make: 'BYD',
-          model: 'Atto 3 EV',
-          year: 2024,
-          batteryCapacityKwh: 60.5,
-          connectorType: 'CCS2',
-          licensePlate: 'GW 4821 - 24',
-          isDefault: true,
-        },
-        {
-          id: 'veh-02',
-          make: 'Tesla',
-          model: 'Model Y Long Range',
-          year: 2023,
-          batteryCapacityKwh: 75.0,
-          connectorType: 'CCS2',
-          licensePlate: 'ER 1904 - 23',
-          isDefault: false,
+import fs from 'fs';
+import path from 'path';
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+
+function loadUsersFromDisk(): Map<string, UserProfile> {
+  const map = new Map<string, UserProfile>();
+  const defaultDriver: UserProfile = {
+    id: 'usr-gh-001',
+    phoneNumber: '+233248901204',
+    displayName: 'Kofi Mensah',
+    email: 'kofi.mensah@xcharge.africa',
+    walletBalance: 245.50,
+    heldEscrow: 0.00,
+    defaultPaymentMethod: 'MTN_MOMO',
+    registeredVehicles: [
+      {
+        id: 'veh-01',
+        make: 'BYD',
+        model: 'Atto 3 EV',
+        year: 2024,
+        batteryCapacityKwh: 60.5,
+        connectorType: 'CCS2',
+        licensePlate: 'GW 4821 - 24',
+        isDefault: true,
+      },
+      {
+        id: 'veh-02',
+        make: 'Tesla',
+        model: 'Model Y Long Range',
+        year: 2023,
+        batteryCapacityKwh: 75.0,
+        connectorType: 'CCS2',
+        licensePlate: 'ER 1904 - 23',
+        isDefault: false,
+      }
+    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  map.set(defaultDriver.phoneNumber, defaultDriver);
+
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const content = fs.readFileSync(USERS_FILE, 'utf-8');
+      const records: UserProfile[] = JSON.parse(content);
+      if (Array.isArray(records)) {
+        for (const user of records) {
+          if (user && user.phoneNumber) {
+            map.set(normalizeGhanaPhoneNumber(user.phoneNumber), user);
+          }
         }
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      }
     }
-  ]
-]);
+  } catch (err) {
+    console.warn('[XCharge DB] Could not read users.json, using defaults:', err);
+  }
+
+  return map;
+}
+
+export function saveUsersToDisk(): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const list = Array.from(USERS_DB.values());
+    fs.writeFileSync(USERS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('[XCharge DB] Failed to persist users to disk:', err);
+  }
+}
+
+// User persistent database loaded from disk
+const USERS_DB = loadUsersFromDisk();
 
 /**
  * Standardize Ghanaian phone number format to +233XXXXXXXXX
@@ -152,10 +189,21 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
   };
 }
 
+export interface VerifyOtpMetadata {
+  displayName?: string;
+  email?: string;
+  selectedEv?: string;
+  selectedGateway?: string;
+}
+
 /**
- * Verify OTP code
+ * Verify OTP code with optional driver registration metadata
  */
-export function verifyOtp(phoneNumber: string, inputCode: string): { success: boolean; error?: string; user?: UserProfile } {
+export function verifyOtp(
+  phoneNumber: string,
+  inputCode: string,
+  metadata?: VerifyOtpMetadata
+): { success: boolean; error?: string; user?: UserProfile } {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const record = OTP_STORE.get(normalized);
 
@@ -188,21 +236,46 @@ export function verifyOtp(phoneNumber: string, inputCode: string): { success: bo
   // Retrieve or create driver profile
   let user = USERS_DB.get(normalized);
   if (!user) {
+    let make = 'BYD';
+    let model = 'Atto 3';
+    let batteryCapacityKwh = 60.5;
+    let connectorType = 'CCS2';
+
+    if (metadata?.selectedEv === 'tesla') {
+      make = 'Tesla';
+      model = 'Model Y';
+      batteryCapacityKwh = 75.0;
+      connectorType = 'CCS2';
+    } else if (metadata?.selectedEv === 'hyundai') {
+      make = 'Hyundai';
+      model = 'Ioniq 5';
+      batteryCapacityKwh = 77.4;
+      connectorType = 'CCS2';
+    }
+
+    let defaultPayment: 'MTN_MOMO' | 'TELECEL_CASH' | 'MASTERCARD' = 'MTN_MOMO';
+    if (metadata?.selectedGateway === 'telecel') {
+      defaultPayment = 'TELECEL_CASH';
+    } else if (metadata?.selectedGateway === 'card') {
+      defaultPayment = 'MASTERCARD';
+    }
+
     user = {
       id: `usr-gh-${Date.now().toString(36)}`,
       phoneNumber: normalized,
-      displayName: `Driver ${normalized.slice(-4)}`,
-      walletBalance: 50.00, // Welcome promotional credit
+      displayName: metadata?.displayName || `Driver ${normalized.slice(-4)}`,
+      email: metadata?.email || `${normalized.replace(/\D/g, '')}@xcharge.africa`,
+      walletBalance: 100.00, // Welcome promotional credit
       heldEscrow: 0.00,
-      defaultPaymentMethod: 'MTN_MOMO',
+      defaultPaymentMethod: defaultPayment,
       registeredVehicles: [
         {
           id: `veh-${Date.now().toString(36)}`,
-          make: 'BYD',
-          model: 'Atto 3',
+          make,
+          model,
           year: 2024,
-          batteryCapacityKwh: 60.5,
-          connectorType: 'CCS2',
+          batteryCapacityKwh,
+          connectorType,
           licensePlate: `GX ${Math.floor(1000 + Math.random() * 9000)} - 24`,
           isDefault: true,
         }
@@ -211,6 +284,13 @@ export function verifyOtp(phoneNumber: string, inputCode: string): { success: bo
       updatedAt: new Date().toISOString(),
     };
     USERS_DB.set(normalized, user);
+    saveUsersToDisk();
+  } else if (metadata && (metadata.displayName || metadata.email || metadata.selectedEv)) {
+    if (metadata.displayName) user.displayName = metadata.displayName;
+    if (metadata.email) user.email = metadata.email;
+    user.updatedAt = new Date().toISOString();
+    USERS_DB.set(normalized, user);
+    saveUsersToDisk();
   }
 
   return { success: true, user };
@@ -232,5 +312,6 @@ export function updateUserProfile(phoneNumber: string, updates: Partial<UserProf
     updatedAt: new Date().toISOString(),
   };
   USERS_DB.set(normalized, updated);
+  saveUsersToDisk();
   return updated;
 }

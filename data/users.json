@@ -1,0 +1,58 @@
+[
+  {
+    "id": "usr-gh-001",
+    "phoneNumber": "+233248901204",
+    "displayName": "Kofi Mensah",
+    "email": "kofi.mensah@xcharge.africa",
+    "walletBalance": 245.5,
+    "heldEscrow": 0,
+    "defaultPaymentMethod": "MTN_MOMO",
+    "registeredVehicles": [
+      {
+        "id": "veh-01",
+        "make": "BYD",
+        "model": "Atto 3 EV",
+        "year": 2024,
+        "batteryCapacityKwh": 60.5,
+        "connectorType": "CCS2",
+        "licensePlate": "GW 4821 - 24",
+        "isDefault": true
+      },
+      {
+        "id": "veh-02",
+        "make": "Tesla",
+        "model": "Model Y Long Range",
+        "year": 2023,
+        "batteryCapacityKwh": 75,
+        "connectorType": "CCS2",
+        "licensePlate": "ER 1904 - 23",
+        "isDefault": false
+      }
+    ],
+    "createdAt": "2026-09-18T02:42:35.531Z",
+    "updatedAt": "2026-09-18T02:42:35.531Z"
+  },
+  {
+    "id": "usr-gh-mu6cscr0",
+    "phoneNumber": "+233241234567",
+    "displayName": "Ekow Mensah",
+    "email": "ekow@gmail.com",
+    "walletBalance": 100,
+    "heldEscrow": 0,
+    "defaultPaymentMethod": "MTN_MOMO",
+    "registeredVehicles": [
+      {
+        "id": "veh-mu6cscr0",
+        "make": "Tesla",
+        "model": "Model Y",
+        "year": 2024,
+        "batteryCapacityKwh": 75,
+        "connectorType": "CCS2",
+        "licensePlate": "GX 6541 - 24",
+        "isDefault": true
+      }
+    ],
+    "createdAt": "2026-09-18T02:42:35.532Z",
+    "updatedAt": "2026-09-18T02:44:31.332Z"
+  }
+]

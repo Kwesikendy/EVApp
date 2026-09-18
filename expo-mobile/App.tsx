@@ -71,6 +71,7 @@ import { LoginScreen } from './screens/LoginScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { OtpVerificationScreen } from './screens/OtpVerificationScreen';
 import { OtpSuccessScreen } from './screens/OtpSuccessScreen';
+import { SessionStorage } from './storage';
 
 export interface Connector {
   id: number;
@@ -262,9 +263,44 @@ function AppContent() {
 
   // Persistent Driver Authentication & Onboarding
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
   const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'otp' | 'otp_success'>('login');
   const [authParams, setAuthParams] = useState<any>({});
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Restore stored session on mobile app startup
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const session = await SessionStorage.getSession();
+        if (session && session.user) {
+          setCurrentUser(session.user);
+          if (session.user.walletBalance !== undefined) {
+            setWalletBalance(session.user.walletBalance);
+          }
+          if (session.user.registeredVehicles && session.user.registeredVehicles.length > 0) {
+            const mappedVehicles: FleetVehicle[] = session.user.registeredVehicles.map((v: any, idx: number) => ({
+              vin: v.id || `VIN-GH-${idx}`,
+              model: `${v.make || ''} ${v.model || ''}`.trim() || 'EV',
+              plate: v.licensePlate || `GW ${idx + 1}00 - 24`,
+              driver: session.user.displayName || 'Driver',
+              soc: 78,
+              status: 'idle',
+              batteryCapacityKwh: v.batteryCapacityKwh || 60,
+              assignedStation: 'Spintex Ultra Hub',
+            }));
+            setFleetVehicles(mappedVehicles);
+          }
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.warn('Session restore error:', err);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    }
+    restoreSession();
+  }, []);
 
   const [activeTab, setActiveTab] = useState<'map' | 'telemetry' | 'wallet' | 'fleet'>('map');
   const [mapViewMode, setMapViewMode] = useState<'map' | 'list'>('map');
@@ -832,6 +868,17 @@ function AppContent() {
     { key: 'fleet', label: 'Fleet VIN', icon: Truck },
   ];
 
+  if (isCheckingSession) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0a0e14', justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar hidden={true} translucent={true} backgroundColor="#0a0e14" />
+        <XChargeMarkNative size={54} />
+        <ActivityIndicator size="small" color="#00f0ff" style={{ marginTop: 24, marginBottom: 12 }} />
+        <Text style={{ color: '#00f0ff', fontSize: 11, fontWeight: '700', letterSpacing: 2 }}>INITIALIZING TELEMETRY NODE...</Text>
+      </View>
+    );
+  }
+
   if (!isAuthenticated) {
     if (authScreen === 'login') {
       return (
@@ -860,8 +907,9 @@ function AppContent() {
             if (params) setAuthParams(params);
             setAuthScreen(screen);
           }}
-          onVerified={(user) => {
+          onVerified={async (user) => {
             setCurrentUser(user);
+            await SessionStorage.saveSession(user);
             if (user?.walletBalance !== undefined) {
               setWalletBalance(user.walletBalance);
             }
@@ -887,7 +935,11 @@ function AppContent() {
       return (
         <OtpSuccessScreen
           user={currentUser || authParams?.user}
-          onEnterDashboard={() => {
+          onEnterDashboard={async () => {
+            const userToSave = currentUser || authParams?.user;
+            if (userToSave) {
+              await SessionStorage.saveSession(userToSave);
+            }
             setIsAuthenticated(true);
             setAuthScreen('login');
           }}
@@ -1896,18 +1948,20 @@ function AppContent() {
                   style={{
                     backgroundColor: '#181c22',
                     borderWidth: 1,
-                    borderColor: '#2a313d',
+                    borderColor: '#ff4d4d44',
                     borderRadius: 8,
-                    paddingVertical: 8,
+                    paddingVertical: 10,
                     alignItems: 'center',
                   }}
-                  onPress={() => {
+                  onPress={async () => {
+                    await SessionStorage.clearSession();
                     setIsAuthenticated(false);
+                    setCurrentUser(null);
                     setAuthScreen('login');
                     setShowSettingsModal(false);
                   }}
                 >
-                  <Text style={{ color: '#ff4d4d', fontSize: 12, fontWeight: '700' }}>← Switch Account / Sign Out</Text>
+                  <Text style={{ color: '#ff4d4d', fontSize: 12, fontWeight: '700' }}>← Sign Out / Switch Account</Text>
                 </TouchableOpacity>
               </View>
 

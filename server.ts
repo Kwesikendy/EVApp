@@ -1095,11 +1095,11 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
 app.post('/api/auth/verify-otp', (req, res) => {
   try {
-    const { phoneNumber, code } = req.body;
+    const { phoneNumber, code, metadata } = req.body;
     if (!phoneNumber || !code) {
       return res.status(400).json({ success: false, error: 'Phone number and verification code are required' });
     }
-    const result = verifyOtp(phoneNumber, code);
+    const result = verifyOtp(phoneNumber, code, metadata);
     if (!result.success) {
       return res.status(400).json(result);
     }
