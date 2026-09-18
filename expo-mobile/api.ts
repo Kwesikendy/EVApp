@@ -16,7 +16,7 @@ function getDefaultBackendUrl(): string {
         return CLOUD_BACKEND_URL;
       }
       if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-        return `http://${ip}:3000`;
+        return `http://${ip}:5173`;
       }
     }
     // On standalone Android APKs and mobile devices, use the live Cloud Run backend
