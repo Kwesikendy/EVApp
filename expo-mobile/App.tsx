@@ -14,6 +14,7 @@ import {
   Platform,
   AppState,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -65,6 +66,7 @@ import {
 import StationMap, { MapStation } from './StationMap';
 import { api, ApiFleetAccount, BACKEND_URL, setBackendUrl, CLOUD_BACKEND_URL } from './api';
 import { MtnMomoLogoNative, TelecelLogoNative, MastercardLogoNative } from './PaymentLogosNative';
+import { XChargeLogoNative, XChargeMarkNative } from './XChargeLogoNative';
 import { LoginScreen } from './screens/LoginScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { OtpVerificationScreen } from './screens/OtpVerificationScreen';
@@ -344,10 +346,18 @@ function AppContent() {
   const activateImmersive = async () => {
     if (Platform.OS === 'android') {
       try {
-        await NavigationBar.setPositionAsync('absolute').catch(() => {});
-        await NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
-        await NavigationBar.setVisibilityAsync('hidden').catch(() => {});
-        await NavigationBar.setBackgroundColorAsync('#00000000').catch(() => {});
+        if (typeof (NavigationBar as any).setPositionAsync === 'function') {
+          await (NavigationBar as any).setPositionAsync('absolute').catch(() => {});
+        }
+        if (typeof (NavigationBar as any).setBehaviorAsync === 'function') {
+          await (NavigationBar as any).setBehaviorAsync('overlay-swipe').catch(() => {});
+        }
+        if (typeof NavigationBar.setVisibilityAsync === 'function') {
+          await NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+        }
+        if (typeof (NavigationBar as any).setBackgroundColorAsync === 'function') {
+          await (NavigationBar as any).setBackgroundColorAsync('#00000000').catch(() => {});
+        }
       } catch (_e) {
         // Safe catch
       }
@@ -855,6 +865,19 @@ function AppContent() {
             if (user?.walletBalance !== undefined) {
               setWalletBalance(user.walletBalance);
             }
+            if (user?.registeredVehicles && user.registeredVehicles.length > 0) {
+              const mappedVehicles: FleetVehicle[] = user.registeredVehicles.map((v: any, idx: number) => ({
+                vin: v.id || `VIN-GH-${idx}`,
+                model: `${v.make} ${v.model}`,
+                plate: v.licensePlate || `GW ${idx + 1}00 - 24`,
+                driver: user.displayName || 'Driver',
+                soc: 78,
+                status: 'idle',
+                batteryCapacityKwh: v.batteryCapacityKwh || 60,
+                assignedStation: 'Spintex Ultra Hub',
+              }));
+              setFleetVehicles(mappedVehicles);
+            }
           }}
           routeParams={authParams}
         />
@@ -882,11 +905,11 @@ function AppContent() {
       <View style={[s.header, { paddingTop: Math.max(insets.top, 12) }]}>
         <View style={s.headerLeft}>
           <View style={s.brandLogoBadge}>
-            <Plug size={18} color="#38bdf8" />
+            <XChargeMarkNative size={22} />
           </View>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={s.headerTitle}>XCharge</Text>
+              <XChargeLogoNative width={112} height={32} showSubtitle={false} />
               <TouchableOpacity
                 style={[s.backendStatusPill, isBackendOnline ? s.backendOnline : s.backendOffline]}
                 onPress={() => setShowSettingsModal(true)}
@@ -2640,8 +2663,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
       />
       <View style={ss.splashOverlay}>
         <View style={ss.splashBrand}>
-          <Plug size={28} color="#38bdf8" />
-          <Text style={ss.splashBrandName}>XCharge</Text>
+          <XChargeLogoNative width={210} height={60} showSubtitle={true} />
         </View>
 
         <View style={ss.loadingSection}>
@@ -3963,6 +3985,11 @@ const s = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.75)',
+  },
+  modalOverlayDark: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'flex-end',
   },
   modalSheet: {
     backgroundColor: '#0b1324',

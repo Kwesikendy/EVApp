@@ -11,8 +11,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ShieldCheck,
+  Car,
+  Smartphone,
+} from 'lucide-react-native';
 import { Theme } from '../theme';
 import { api } from '../api';
+import { XChargeLogoNative, XChargeMarkNative } from '../XChargeLogoNative';
 
 const EV_MODELS = [
   { id: 'tesla', name: 'Tesla Model 3 / Y', spec: 'CCS2 / NACS' },
@@ -29,10 +38,11 @@ const PAYMENT_GATEWAYS = [
 ];
 
 interface SignUpScreenProps {
-  onNavigate: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
+  navigation?: any;
+  onNavigate?: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
 }
 
-export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
+export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNavigate }) => {
   const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -41,6 +51,20 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
   const [selectedGateway, setSelectedGateway] = useState('momo');
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => {
+    if (onNavigate) {
+      onNavigate(screen, params);
+    } else if (navigation) {
+      const screenMap: Record<string, string> = {
+        login: 'Login',
+        signup: 'SignUp',
+        otp: 'OtpVerification',
+        otp_success: 'OtpSuccess',
+      };
+      navigation.navigate(screenMap[screen] || screen, params);
+    }
+  };
 
   const handleContinue = async () => {
     if (!phoneNumber.trim()) {
@@ -63,7 +87,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
 
       setIsLoading(false);
       if (result.success) {
-        onNavigate('otp', {
+        navigate('otp', {
           phoneNumber: fullPhone,
           fullName,
           email,
@@ -95,14 +119,23 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
       >
         {/* Step Indicator Header */}
         <View style={styles.stepHeader}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => onNavigate('login')}>
-            <Text style={styles.backArrow}>←</Text>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              if (onNavigate) {
+                onNavigate('login');
+              } else if (navigation?.goBack) {
+                navigation.goBack();
+              }
+            }}
+          >
+            <ArrowLeft size={18} color={Theme.colors.textPrimary} />
           </TouchableOpacity>
           <View style={styles.stepTextContainer}>
             <Text style={styles.stepCounter}>STEP 1 OF 3</Text>
             <Text style={styles.stepTitle}>Account Setup</Text>
           </View>
-          <View style={styles.onlineDot} />
+          <XChargeMarkNative size={22} />
         </View>
 
         {/* Progress Bar */}
@@ -112,6 +145,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
 
         {/* Title */}
         <View style={styles.titleSection}>
+          <XChargeLogoNative width={160} height={48} showSubtitle={false} style={{ marginBottom: 12 }} />
           <Text style={styles.mainTitle}>Create Driver Account</Text>
           <Text style={styles.mainSubtitle}>
             Register your EV profile to access superchargers, track live battery telemetry, and pay via MoMo.
@@ -226,7 +260,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
           onPress={() => setAgreed(!agreed)}
         >
           <View style={[styles.checkSquare, agreed && styles.checkSquareActive]}>
-            {agreed && <Text style={styles.checkmark}>✓</Text>}
+            {agreed && <Check size={12} color={Theme.colors.onPrimary} strokeWidth={3.5} />}
           </View>
           <Text style={styles.termsText}>
             I agree to XCharge <Text style={styles.termsHighlight}>Terms of Service</Text> and the{' '}
@@ -244,7 +278,10 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
           {isLoading ? (
             <ActivityIndicator color={Theme.colors.onPrimary} size="small" />
           ) : (
-            <Text style={styles.primaryBtnText}>Continue to Phone Verification →</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.primaryBtnText}>Continue to Phone Verification</Text>
+              <ArrowRight size={18} color={Theme.colors.onPrimary} strokeWidth={2.5} />
+            </View>
           )}
         </TouchableOpacity>
 
@@ -252,7 +289,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onNavigate }) => {
         <View style={styles.footerRow}>
           <Text style={styles.footerText}>
             Already have an account?{' '}
-            <Text style={styles.footerLink} onPress={() => onNavigate('login')}>
+            <Text style={styles.footerLink} onPress={() => navigate('login')}>
               Log In
             </Text>
           </Text>

@@ -30,10 +30,10 @@ export const XChargeLogo: React.FC<XChargeLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center select-none ${className}`}>
-      {/* 1. Try loading uploaded xcharge.png image */}
+      {/* 1. Try loading uploaded xcharge-logo.svg */}
       {!imgFailed ? (
         <img
-          src="/xcharge.png"
+          src="/logos/xcharge-logo.svg"
           alt="XCHARGE Logo"
           className={`${heightMap[size]} w-auto object-contain drop-shadow-[0_0_12px_rgba(0,240,255,0.4)]`}
           onError={() => setImgFailed(true)}

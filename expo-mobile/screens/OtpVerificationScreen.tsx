@@ -9,12 +9,23 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ArrowLeft,
+  Delete,
+  KeyRound,
+  RotateCw,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react-native';
 import { Theme } from '../theme';
 import { api } from '../api';
+import { XChargeMarkNative } from '../XChargeLogoNative';
 
 interface OtpVerificationScreenProps {
-  onNavigate: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
-  onVerified: (user: any) => void;
+  navigation?: any;
+  route?: any;
+  onNavigate?: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
+  onVerified?: (user: any) => void;
   routeParams?: {
     phoneNumber?: string;
     devCode?: string;
@@ -25,18 +36,35 @@ interface OtpVerificationScreenProps {
 }
 
 export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
+  navigation,
+  route,
   onNavigate,
   onVerified,
   routeParams,
 }) => {
   const insets = useSafeAreaInsets();
-  const phoneNumber = routeParams?.phoneNumber || '+233 24 123 4567';
-  const devCode = routeParams?.devCode;
+  const params = routeParams || route?.params || {};
+  const phoneNumber = params?.phoneNumber || '+233 24 123 4567';
+  const devCode = params?.devCode;
 
   const [digits, setDigits] = useState<string[]>([]);
   const [timer, setTimer] = useState(120);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
+
+  const navigate = (screen: 'login' | 'signup' | 'otp' | 'otp_success', navParams?: any) => {
+    if (onNavigate) {
+      onNavigate(screen, navParams);
+    } else if (navigation) {
+      const screenMap: Record<string, string> = {
+        login: 'Login',
+        signup: 'SignUp',
+        otp: 'OtpVerification',
+        otp_success: 'OtpSuccess',
+      };
+      navigation.navigate(screenMap[screen] || screen, navParams);
+    }
+  };
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -51,8 +79,10 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
       setIsVerifying(false);
 
       if (res.success && res.user) {
-        onVerified(res.user);
-        onNavigate('otp_success', { user: res.user, phoneNumber });
+        if (onVerified) {
+          onVerified(res.user);
+        }
+        navigate('otp_success', { user: res.user, phoneNumber });
       } else {
         Alert.alert('Verification Failed', res.error || 'Invalid passcode. Please check and try again.');
         setDigits([]);
@@ -115,8 +145,15 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
     >
       {/* Top Protocol Bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => onNavigate('login')}>
-          <Text style={styles.backBtnText}>← Back</Text>
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+          onPress={() => {
+            if (onNavigate) onNavigate('login');
+            else if (navigation?.goBack) navigation.goBack();
+          }}
+        >
+          <ArrowLeft size={18} color={Theme.colors.textSecondary} />
+          <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
         <View style={styles.badge}>
           <View style={styles.greenDot} />
@@ -124,17 +161,11 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
         </View>
       </View>
 
-      {/* Dev helper notice if in test sandbox */}
-      {devCode && (
-        <View style={styles.sandboxBanner}>
-          <Text style={styles.sandboxText}>
-            🧪 Sandbox Test Code: <Text style={{ color: Theme.colors.primary, fontWeight: '700' }}>{devCode}</Text>
-          </Text>
-        </View>
-      )}
-
       {/* Headline */}
       <View style={styles.centerHeader}>
+        <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(0, 240, 255, 0.08)', borderWidth: 1, borderColor: 'rgba(0, 240, 255, 0.3)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+          <XChargeMarkNative size={36} />
+        </View>
         <Text style={styles.title}>Verification Code</Text>
         <Text style={styles.subtitle}>
           Enter the 6-digit one-time passcode transmitted via SMS to {phoneNumber}
@@ -196,13 +227,10 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
           <TouchableOpacity
             style={styles.keypadBtn}
             activeOpacity={0.7}
-            onPress={() => {
-              // Fill dev bypass code 123456
-              setDigits(['1', '2', '3', '4', '5', '6']);
-              verifyCode('123456');
-            }}
+            onPress={() => setDigits([])}
+            disabled={isVerifying || digits.length === 0}
           >
-            <Text style={styles.keypadSpecial}>◎</Text>
+            <Text style={[styles.keypadSpecial, { fontWeight: '700', fontSize: 16 }]}>C</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.keypadBtn}
@@ -218,7 +246,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             activeOpacity={0.7}
             disabled={isVerifying}
           >
-            <Text style={styles.keypadSpecial}>⌫</Text>
+            <Delete size={22} color={Theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>

@@ -1,17 +1,34 @@
-// screens/OtpSuccessScreen.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Check,
+  ArrowRight,
+  ShieldCheck,
+  Smartphone,
+  MapPin,
+  Zap,
+} from 'lucide-react-native';
 import { Theme } from '../theme';
+import { XChargeLogoNative, XChargeMarkNative } from '../XChargeLogoNative';
 
 interface OtpSuccessScreenProps {
-  onEnterDashboard: () => void;
+  navigation?: any;
+  onEnterDashboard?: () => void;
   user?: any;
 }
 
-export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ onEnterDashboard, user }) => {
+export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ navigation, onEnterDashboard, user }) => {
   const insets = useSafeAreaInsets();
   const walletAmount = user?.walletBalance !== undefined ? `GH₵ ${Number(user.walletBalance).toFixed(2)} Ready` : 'GH₵ 240.00 Ready';
+
+  const handleProceed = () => {
+    if (onEnterDashboard) {
+      onEnterDashboard();
+    } else if (navigation) {
+      navigation.navigate('MainDashboard');
+    }
+  };
 
   return (
     <View
@@ -32,9 +49,10 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ onEnterDashb
       <View style={styles.centerBadgeContainer}>
         <View style={styles.outerRing}>
           <View style={styles.innerRing}>
-            <Text style={styles.checkIcon}>✓</Text>
+            <XChargeMarkNative size={44} />
           </View>
         </View>
+        <XChargeLogoNative width={180} height={52} showSubtitle={false} style={{ marginBottom: 10 }} />
         <Text style={styles.heroTitle}>Identity Verified</Text>
         <Text style={styles.heroSub}>
           Welcome back, {user?.displayName || 'Driver'}. Establishing real-time telemetry link to Accra Grid Hub.
@@ -44,17 +62,17 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ onEnterDashb
       {/* Sync Checklist */}
       <View style={styles.checklistCard}>
         <View style={styles.checkItem}>
-          <Text style={styles.checkDot}>✓</Text>
+          <Check size={16} color={Theme.colors.primary} strokeWidth={3} style={{ marginRight: 8 }} />
           <Text style={styles.checkLabel}>OCPI 2.2.1 Protocol</Text>
           <Text style={styles.checkStatus}>Verified</Text>
         </View>
         <View style={styles.checkItem}>
-          <Text style={styles.checkDot}>✓</Text>
+          <Check size={16} color={Theme.colors.primary} strokeWidth={3} style={{ marginRight: 8 }} />
           <Text style={styles.checkLabel}>MoMo Wallet Link</Text>
           <Text style={styles.checkStatus}>{walletAmount}</Text>
         </View>
         <View style={styles.checkItem}>
-          <Text style={styles.checkDot}>✓</Text>
+          <Check size={16} color={Theme.colors.primary} strokeWidth={3} style={{ marginRight: 8 }} />
           <Text style={styles.checkLabel}>Nearby Fast Stall Cache</Text>
           <Text style={styles.checkStatus}>Synced</Text>
         </View>
@@ -63,10 +81,13 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ onEnterDashb
       {/* Bottom CTA */}
       <TouchableOpacity
         style={styles.ctaBtn}
-        onPress={onEnterDashboard}
+        onPress={handleProceed}
         activeOpacity={0.85}
       >
-        <Text style={styles.ctaText}>Enter Dashboard Now →</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={styles.ctaText}>Enter Dashboard Now</Text>
+          <ArrowRight size={18} color={Theme.colors.onPrimary} strokeWidth={2.5} />
+        </View>
       </TouchableOpacity>
     </View>
   );

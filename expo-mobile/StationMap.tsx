@@ -39,7 +39,7 @@ export default function StationMap({
   onStartCharge,
   userLocation = { latitude: 5.5900, longitude: -0.1800 },
 }: StationMapProps) {
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<any>(null);
   const [currentMapStyle, setCurrentMapStyle] = useState<'osm' | 'dark'>('osm');
 
   // Generate HTML for OpenStreetMap with Leaflet

@@ -13,19 +13,44 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Zap,
+  Fingerprint,
+  CreditCard,
+  Smartphone,
+  Check,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react-native';
 import { Theme } from '../theme';
 import { api } from '../api';
+import { XChargeLogoNative, XChargeMarkNative } from '../XChargeLogoNative';
 
 interface LoginScreenProps {
-  onNavigate: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
+  navigation?: any;
+  onNavigate?: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation, onNavigate }) => {
   const insets = useSafeAreaInsets();
   const [accountType, setAccountType] = useState<'personal' | 'fleet'>('personal');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [trustDevice, setTrustDevice] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => {
+    if (onNavigate) {
+      onNavigate(screen, params);
+    } else if (navigation) {
+      const screenMap: Record<string, string> = {
+        login: 'Login',
+        signup: 'SignUp',
+        otp: 'OtpVerification',
+        otp_success: 'OtpSuccess',
+      };
+      navigation.navigate(screenMap[screen] || screen, params);
+    }
+  };
 
   const handleSendCode = async () => {
     if (!phoneNumber.trim()) {
@@ -40,7 +65,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
 
       setIsLoading(false);
       if (result.success) {
-        onNavigate('otp', {
+        navigate('otp', {
           phoneNumber: fullPhone,
           devCode: result.devCode,
           accountType,
@@ -81,9 +106,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
         {/* Brand Logo & Headline */}
         <View style={styles.brandContainer}>
           <View style={styles.logoMarkContainer}>
-            <Text style={styles.logoGlyph}>✕</Text>
+            <XChargeMarkNative size={44} />
           </View>
-          <Text style={styles.logoTitle}>XCHARGE</Text>
+          <XChargeLogoNative width={210} height={60} showSubtitle={true} style={{ marginBottom: 14 }} />
           <Text style={styles.heading}>Driver Authentication</Text>
           <Text style={styles.subheading}>
             Enter your registered mobile number to receive a secure one-time verification code via Moolre SMS.
@@ -145,7 +170,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
           onPress={() => setTrustDevice(!trustDevice)}
         >
           <View style={[styles.checkboxBox, trustDevice && styles.checkboxActive]}>
-            {trustDevice && <Text style={styles.checkmark}>✓</Text>}
+            {trustDevice && <Check size={12} color={Theme.colors.onPrimary} strokeWidth={3.5} />}
           </View>
           <View style={styles.checkboxLabelContainer}>
             <Text style={styles.checkboxTitle}>Trust this device for 30 days</Text>
@@ -165,7 +190,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
           {isLoading ? (
             <ActivityIndicator color={Theme.colors.onPrimary} size="small" />
           ) : (
-            <Text style={styles.primaryBtnText}>Send Verification Code →</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.primaryBtnText}>Send Verification Code</Text>
+              <ArrowRight size={18} color={Theme.colors.onPrimary} strokeWidth={2.5} />
+            </View>
           )}
         </TouchableOpacity>
 
@@ -186,7 +214,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
               Alert.alert('Demo Account Loaded', 'Kofi Mensah (+233 24 890 1204) loaded for testing.');
             }}
           >
-            <Text style={styles.quickIcon}>◎</Text>
+            <Fingerprint size={20} color={Theme.colors.primary} />
             <Text style={styles.quickLabel}>Biometric</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -196,7 +224,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
               Alert.alert('RFID Reader Ready', 'Tap RFID tag on charger terminal NFC scanner to authenticate.');
             }}
           >
-            <Text style={styles.quickIcon}>💳</Text>
+            <CreditCard size={20} color={Theme.colors.primary} />
             <Text style={styles.quickLabel}>RFID Card</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -207,7 +235,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
               Alert.alert('MoMo Quick Sync', 'Telecel/MTN instant driver node ready.');
             }}
           >
-            <Text style={styles.quickIcon}>⚡</Text>
+            <Smartphone size={20} color={Theme.colors.primary} />
             <Text style={styles.quickLabel}>MoMo Sync</Text>
           </TouchableOpacity>
         </View>
@@ -216,11 +244,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>
             Do not have an account?{' '}
-            <Text style={styles.footerLink} onPress={() => onNavigate('signup')}>
+            <Text style={styles.footerLink} onPress={() => navigate('signup')}>
               Sign Up
             </Text>
           </Text>
-          <TouchableOpacity onPress={() => onNavigate('signup')}>
+          <TouchableOpacity onPress={() => navigate('signup')}>
             <Text style={styles.footerSecLink}>Fleet Manager Portal Login ↗</Text>
           </TouchableOpacity>
           <Text style={styles.complianceText}>OCPI 2.2.1 SECURE TELEMETRY GATEWAY</Text>
