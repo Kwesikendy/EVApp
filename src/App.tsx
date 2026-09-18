@@ -7,12 +7,40 @@ import { StationMapScreen } from './components/StationMapScreen';
 import { WalletScreen } from './components/WalletScreen';
 import { FleetScreen } from './components/FleetScreen';
 import { AdminStationManager } from './components/AdminStationManager';
-import { X, Building2, ShieldCheck, Car } from 'lucide-react';
+import { LoginScreen } from './components/LoginScreen';
+import { SignUpScreen } from './components/SignUpScreen';
+import { OtpVerificationScreen } from './components/OtpVerificationScreen';
+import { OtpSuccessScreen } from './components/OtpSuccessScreen';
+import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Sparkles } from 'lucide-react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
   // Splash screen state (can be replayed from header)
   const [showSplash, setShowSplash] = useState<boolean>(false);
+
+  // Authentication workflow: 'authenticated' | 'login' | 'signup' | 'otp' | 'otp_success'
+  const [authView, setAuthView] = useState<'authenticated' | 'login' | 'signup' | 'otp' | 'otp_success'>(() => {
+    try {
+      const saved = localStorage.getItem('xcharge_user_session');
+      return saved ? 'authenticated' : 'login';
+    } catch {
+      return 'login';
+    }
+  });
+
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem('xcharge_user_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [authPhone, setAuthPhone] = useState<string>('+233248901204');
+  const [authDevCode, setAuthDevCode] = useState<string | undefined>('123456');
+  const [authRegistration, setAuthRegistration] = useState<any>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
   const [activeTab, setActiveTab] = useState<TabKey>('map');
@@ -25,7 +53,18 @@ export default function App() {
   const [activeSession, setActiveSession] = useState<ActiveTelemetrySession | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState<boolean>(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('FL-08 Nordic');
+  const [selectedVehicle, setSelectedVehicle] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('xcharge_user_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.registeredVehicles?.[0]?.model) {
+          return `${parsed.registeredVehicles[0].make} ${parsed.registeredVehicles[0].model}`;
+        }
+      }
+    } catch {}
+    return 'FL-08 Nordic';
+  });
 
   // Load live data from server
   const loadData = async () => {
@@ -56,6 +95,15 @@ export default function App() {
     } catch {
       alert('Charge stopped locally.');
     }
+  };
+
+  const handleSignOut = () => {
+    try {
+      localStorage.removeItem('xcharge_user_session');
+    } catch {}
+    setCurrentUser(null);
+    setIsProfileModalOpen(false);
+    setAuthView('login');
   };
 
   return (
@@ -115,51 +163,211 @@ export default function App() {
           </div>
         )}
 
-        {/* Persistent Header */}
-        <ModernHeader
-          vehicleBadge={selectedVehicle}
-          deviceMode={deviceMode}
-          onToggleDeviceMode={() => setDeviceMode(deviceMode === 'phone' ? 'fluid' : 'phone')}
-          onReplaySplash={() => setShowSplash(true)}
-          onOpenVehicleSelect={() => setIsVehicleModalOpen(true)}
-          onOpenAdmin={() => setIsAdminOpen(true)}
-        />
+        {/* Render Authentication Suite or Main Dashboard */}
+        {authView !== 'authenticated' ? (
+          <div className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
+            {authView === 'login' && (
+              <LoginScreen
+                onSendCode={(phone, type, devCode) => {
+                  setAuthPhone(phone);
+                  setAuthDevCode(devCode);
+                  setAuthView('otp');
+                }}
+                onNavigateToSignUp={() => setAuthView('signup')}
+                onGuestExplore={() => setAuthView('authenticated')}
+              />
+            )}
 
-        {/* Main Content Area (4 Modernized Screens) */}
-        <main className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
-          {activeTab === 'map' && (
-            <StationMapScreen
-              onNavigateToCharge={() => setActiveTab('charge')}
+            {authView === 'signup' && (
+              <SignUpScreen
+                onContinue={(data) => {
+                  setAuthPhone(data.phoneNumber);
+                  setAuthDevCode(data.devCode);
+                  setAuthRegistration(data);
+                  setAuthView('otp');
+                }}
+                onBackToLogin={() => setAuthView('login')}
+              />
+            )}
+
+            {authView === 'otp' && (
+              <OtpVerificationScreen
+                phoneNumber={authPhone}
+                devCode={authDevCode}
+                registrationMetadata={authRegistration}
+                onVerified={(user) => {
+                  setCurrentUser(user);
+                  try {
+                    localStorage.setItem('xcharge_user_session', JSON.stringify(user));
+                  } catch {}
+                  if (user?.registeredVehicles?.[0]?.model) {
+                    setSelectedVehicle(`${user.registeredVehicles[0].make} ${user.registeredVehicles[0].model}`);
+                  }
+                  setAuthView('otp_success');
+                }}
+                onBackToLogin={() => setAuthView('login')}
+              />
+            )}
+
+            {authView === 'otp_success' && (
+              <OtpSuccessScreen
+                user={currentUser}
+                onEnterDashboard={() => setAuthView('authenticated')}
+              />
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Persistent Header */}
+            <ModernHeader
+              vehicleBadge={selectedVehicle}
+              deviceMode={deviceMode}
+              onToggleDeviceMode={() => setDeviceMode(deviceMode === 'phone' ? 'fluid' : 'phone')}
+              onReplaySplash={() => setShowSplash(true)}
+              onOpenProfile={() => setIsProfileModalOpen(true)}
+              onOpenVehicleSelect={() => setIsVehicleModalOpen(true)}
+              onOpenAdmin={() => setIsAdminOpen(true)}
             />
-          )}
 
-          {activeTab === 'charge' && (
-            <LiveChargeScreen
-              session={activeSession}
-              onStopCharging={handleStopCharging}
+            {/* Main Content Area (4 Modernized Screens) */}
+            <main className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
+              {activeTab === 'map' && (
+                <StationMapScreen
+                  onNavigateToCharge={() => setActiveTab('charge')}
+                />
+              )}
+
+              {activeTab === 'charge' && (
+                <LiveChargeScreen
+                  session={activeSession}
+                  onStopCharging={handleStopCharging}
+                />
+              )}
+
+              {activeTab === 'wallet' && (
+                <WalletScreen />
+              )}
+
+              {activeTab === 'fleet' && (
+                <FleetScreen
+                  onLocateVehicle={(vin) => {
+                    setActiveTab('map');
+                  }}
+                />
+              )}
+            </main>
+
+            {/* Persistent Bottom Navigation (4 Tabs) */}
+            <ModernBottomNav
+              activeTab={activeTab}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              isCharging={true}
             />
-          )}
-
-          {activeTab === 'wallet' && (
-            <WalletScreen />
-          )}
-
-          {activeTab === 'fleet' && (
-            <FleetScreen
-              onLocateVehicle={(vin) => {
-                setActiveTab('map');
-              }}
-            />
-          )}
-        </main>
-
-        {/* Persistent Bottom Navigation (4 Tabs) */}
-        <ModernBottomNav
-          activeTab={activeTab}
-          onSelectTab={(tab) => setActiveTab(tab)}
-          isCharging={true}
-        />
+          </>
+        )}
       </div>
+
+      {/* Driver Profile Modal with Sign Out & Switch Account */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#10141a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="w-5 h-5 text-[#00f0ff]" />
+                <h3 className="text-sm font-bold text-white">Driver Account & Telemetry Profile</h3>
+              </div>
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Driver Identity Card */}
+            <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#141820] to-[#181c24] border border-white/[0.08] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] font-bold text-base font-mono">
+                    {(currentUser?.displayName || 'Kofi Mensah').charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white leading-tight">
+                      {currentUser?.displayName || 'Kofi Mensah'}
+                    </h4>
+                    <p className="text-xs text-[#94a3b8] font-mono mt-0.5">
+                      {currentUser?.phoneNumber || '+233 24 890 1204'}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-2 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
+                  ACTIVE DRIVER
+                </span>
+              </div>
+
+              {/* Wallet & Vehicle Sub-Row */}
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06] text-xs font-mono">
+                <div className="bg-[#10141a] p-2.5 rounded-xl">
+                  <span className="text-[10px] text-[#64748b] block">MOMO WALLET</span>
+                  <span className="text-sm font-bold text-[#00f0ff]">
+                    GH₵ {currentUser?.walletBalance !== undefined ? Number(currentUser.walletBalance).toFixed(2) : '245.50'}
+                  </span>
+                </div>
+                <div className="bg-[#10141a] p-2.5 rounded-xl">
+                  <span className="text-[10px] text-[#64748b] block">ACTIVE VEHICLE</span>
+                  <span className="text-sm font-bold text-white truncate block">
+                    {selectedVehicle}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileModalOpen(false);
+                  setIsVehicleModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <Car className="w-4 h-4 text-[#00f0ff]" />
+                  <span>Switch Vehicle Profile</span>
+                </div>
+                <span className="text-[10px] font-mono text-[#00f0ff]">CHANGE →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileModalOpen(false);
+                  setIsAdminOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#00e699]" />
+                  <span>Station Admin & CSMS Monitor</span>
+                </div>
+                <span className="text-[10px] font-mono text-[#00e699]">ADMIN →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out / Switch Account</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Vehicle Selector Modal */}
       {isVehicleModalOpen && (

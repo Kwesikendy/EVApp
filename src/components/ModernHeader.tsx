@@ -85,8 +85,8 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
         {/* Profile Avatar Button (Operator / Account Portal) */}
         <button
           id="header-profile-btn"
-          onClick={onOpenAdmin || onOpenProfile}
-          title="Operator & Account Portal"
+          onClick={onOpenProfile || onOpenAdmin}
+          title="Driver Profile & Operator Portal"
           className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group"
         >
           <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
