@@ -11,6 +11,10 @@ function getDefaultBackendUrl(): string {
     const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
     if (hostUri) {
       const ip = hostUri.split(':')[0];
+      // If running over an ngrok or exp.direct tunnel, do not append :3000 to tunnel hostname
+      if (ip && ip.includes('exp.direct') || ip.includes('ngrok') || ip.includes('loca.lt')) {
+        return CLOUD_BACKEND_URL;
+      }
       if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
         return `http://${ip}:3000`;
       }

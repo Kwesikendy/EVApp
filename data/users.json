@@ -54,5 +54,28 @@
     ],
     "createdAt": "2026-09-18T02:42:35.532Z",
     "updatedAt": "2026-09-18T02:44:31.332Z"
+  },
+  {
+    "id": "usr-gh-mu7h4shl",
+    "phoneNumber": "+233595749197",
+    "displayName": "Driver 9197",
+    "email": "233595749197@xcharge.africa",
+    "walletBalance": 100,
+    "heldEscrow": 0,
+    "defaultPaymentMethod": "MTN_MOMO",
+    "registeredVehicles": [
+      {
+        "id": "veh-mu7h4shl",
+        "make": "BYD",
+        "model": "Atto 3",
+        "year": 2024,
+        "batteryCapacityKwh": 60.5,
+        "connectorType": "CCS2",
+        "licensePlate": "GX 4371 - 24",
+        "isDefault": true
+      }
+    ],
+    "createdAt": "2026-09-18T21:32:00.441Z",
+    "updatedAt": "2026-09-18T21:32:00.441Z"
   }
 ]
