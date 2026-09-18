@@ -99,6 +99,6 @@ export interface OcppMessage {
   id: string;
   timestamp: string;
   direction: 'INCOMING' | 'OUTGOING';
-  action: 'BootNotification' | 'StatusNotification' | 'MeterValues' | 'RemoteStartTransaction' | 'RemoteStopTransaction' | 'Authorize' | 'Heartbeat';
+  action: 'BootNotification' | 'StatusNotification' | 'MeterValues' | 'RemoteStartTransaction' | 'RemoteStopTransaction' | 'Authorize' | 'Heartbeat' | 'SimulatedSessionStarted' | 'SimulatedSessionCompleted';
   payload: Record<string, unknown>;
 }

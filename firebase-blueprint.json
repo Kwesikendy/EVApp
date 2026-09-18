@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered driver account on XCharge EV platform",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "phoneNumber": { "type": "string", "maxLength": 20 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "walletBalance": { "type": "number" },
+        "heldEscrow": { "type": "number" },
+        "defaultPaymentMethod": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "phoneNumber", "walletBalance", "heldEscrow", "createdAt"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "EV vehicle registered by a driver",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "make": { "type": "string", "maxLength": 60 },
+        "model": { "type": "string", "maxLength": 60 },
+        "year": { "type": "number" },
+        "batteryCapacityKwh": { "type": "number" },
+        "connectorType": { "type": "string", "maxLength": 40 },
+        "licensePlate": { "type": "string", "maxLength": 30 },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "make", "model", "batteryCapacityKwh", "connectorType", "createdAt"]
+    },
+    "ChargingSession": {
+      "title": "ChargingSession",
+      "description": "Real-time or completed OCPP 2.0.1 EV charging session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "stationId": { "type": "string", "maxLength": 128 },
+        "connectorId": { "type": "number" },
+        "meterStartKwh": { "type": "number" },
+        "meterStopKwh": { "type": "number" },
+        "energyDeliveredKwh": { "type": "number" },
+        "tariffGhsPerKwh": { "type": "number" },
+        "totalCostGhs": { "type": "number" },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["ACTIVE", "COMPLETED", "SUSPENDED", "CANCELLED"] },
+        "startTime": { "type": "string", "format": "date-time" },
+        "stopTime": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "stationId", "connectorId", "status", "startTime"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial ledger record of MoMo top-ups, session debits, or refunds",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "amountGhs": { "type": "number" },
+        "type": { "type": "string", "enum": ["TOPUP", "CHARGE", "REFUND", "ESCROW_HOLD"] },
+        "provider": { "type": "string", "maxLength": 50 },
+        "reference": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["PENDING", "SUCCESS", "FAILED"] },
+        "description": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "amountGhs", "type", "provider", "reference", "status", "createdAt"]
+    },
+    "Station": {
+      "title": "Station",
+      "description": "OCPP 2.0.1 Charging Station in the XCharge Ghana Network",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "address": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 60 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "powerKw": { "type": "number" },
+        "tariffGhsPerKwh": { "type": "number" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "CHARGING", "OFFLINE"] }
+      },
+      "required": ["id", "name", "address", "city", "latitude", "longitude", "powerKw", "tariffGhsPerKwh", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Driver profiles and wallet balances"
+    },
+    "/users/{userId}/vehicles/{vehicleId}": {
+      "schema": { "$ref": "#/entities/Vehicle" },
+      "description": "Registered EVs belonging to a driver"
+    },
+    "/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/ChargingSession" },
+      "description": "Active and completed EV charging sessions"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "User transaction ledger for MoMo, cards, and session billings"
+    },
+    "/stations/{stationId}": {
+      "schema": { "$ref": "#/entities/Station" },
+      "description": "Directory of charging stations in Ghana"
+    }
+  }
+}

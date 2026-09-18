@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access unless explicitly granted
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && incoming().id == userId
+        && incoming().phoneNumber is string && incoming().phoneNumber.size() <= 25
+        && incoming().walletBalance is number && incoming().walletBalance >= 0
+        && incoming().heldEscrow is number && incoming().heldEscrow >= 0;
+      allow update: if isOwner(userId)
+        && incoming().id == existing().id
+        && incoming().phoneNumber == existing().phoneNumber
+        && incoming().walletBalance is number && incoming().walletBalance >= 0
+        && incoming().heldEscrow is number && incoming().heldEscrow >= 0;
+      allow delete: if false; // Profiles cannot be directly deleted via client
+
+      // User Registered EV Vehicles Subcollection
+      match /vehicles/{vehicleId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(vehicleId)
+          && incoming().id == vehicleId
+          && incoming().userId == userId
+          && incoming().make is string && incoming().make.size() <= 60
+          && incoming().model is string && incoming().model.size() <= 60
+          && incoming().batteryCapacityKwh is number && incoming().batteryCapacityKwh > 0;
+        allow update: if isOwner(userId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // User Financial & Payment Transactions Ledger
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(transactionId)
+          && incoming().id == transactionId
+          && incoming().userId == userId
+          && incoming().amountGhs is number
+          && incoming().provider is string && incoming().provider.size() <= 50
+          && incoming().reference is string && incoming().reference.size() <= 128;
+        allow update: if false; // Financial ledger is append-only
+        allow delete: if false;
+      }
+    }
+
+    // Charging Sessions
+    match /sessions/{sessionId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isValidId(sessionId)
+        && incoming().id == sessionId
+        && incoming().userId == request.auth.uid
+        && incoming().stationId is string && incoming().stationId.size() <= 128
+        && incoming().connectorId is number;
+      allow update: if isSignedIn()
+        && existing().userId == request.auth.uid
+        && incoming().id == existing().id
+        && incoming().userId == existing().userId
+        && incoming().stationId == existing().stationId;
+      allow delete: if false;
+    }
+
+    // Stations Directory (Read-only for app users, managed by station owners/admin)
+    match /stations/{stationId} {
+      allow read: if true;
+      allow write: if false; // Station provisioning handled by backend service or admin
+    }
+  }
+}

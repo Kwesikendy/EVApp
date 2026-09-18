@@ -30,13 +30,13 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
   const [isTechDetailsOpen, setIsTechDetailsOpen] = useState<boolean>(false);
 
   // Default simulated stats or real active session data
-  const currentSoc = session ? Math.min(100, Math.round(session.batteryPercent)) : 68;
-  const chargingSpeedKw = session ? Math.round(session.chargingSpeedKw) : 185;
-  const energyKwh = session ? session.energyConsumedKwh.toFixed(1) : '34.0';
-  const costGhs = session ? (session.currentCostUsd * 14.28).toFixed(2) : '14.28'; // Currency strictly GH₵
-  const rangeAddedKm = Math.round((session?.energyConsumedKwh || 34) * 4.18);
-  const voltage = 742;
-  const currentAmps = 248;
+  const currentSoc = session ? Math.min(100, Math.round(session.currentSocPercent || 68)) : 68;
+  const chargingSpeedKw = session ? Math.round(session.currentPowerKw || 185) : 185;
+  const energyKwh = session ? (session.kwhDelivered || 0).toFixed(2) : '34.00';
+  const costGhs = session ? (session.accruedCost !== undefined ? session.accruedCost.toFixed(2) : ((session.kwhDelivered || 0) * 4.20).toFixed(2)) : '142.80';
+  const rangeAddedKm = Math.round(((session?.kwhDelivered !== undefined ? session.kwhDelivered : 34)) * 4.18);
+  const voltage = session?.voltageV || 742;
+  const currentAmps = session?.currentA || 248;
 
   // Circular gauge math
   const radius = 105;

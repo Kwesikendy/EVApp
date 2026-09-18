@@ -131,7 +131,7 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
                     <span className="text-xs font-medium text-slate-400 font-sans">({connector.type})</span>
                   </div>
                   <div className="text-[11px] text-slate-400 mt-1">
-                    ${connector.tariffPerKwh.toFixed(2)} / kWh
+                    GH₵ {connector.tariffPerKwh.toFixed(2)} / kWh
                   </div>
                 </button>
               );

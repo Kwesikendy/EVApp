@@ -10,8 +10,10 @@ import {
   ArrowDownLeft,
   Plug,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  Smartphone
 } from 'lucide-react';
+import { MtnMomoLogo, TelecelLogo, MastercardLogo } from './PaymentLogos';
 
 interface WalletScreenProps {
   onTopUpSuccess?: (amount: number) => void;
@@ -147,15 +149,47 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           </button>
         </div>
 
+        {/* Selected Gateway Indicator */}
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#141820] border border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            {selectedMethod === 'mtn' ? (
+              <MtnMomoLogo size="icon" />
+            ) : selectedMethod === 'vodafone' || selectedMethod === 'telecel' ? (
+              <TelecelLogo size="icon" />
+            ) : (
+              <MastercardLogo size="icon" />
+            )}
+            <div>
+              <span className="text-xs font-bold text-white font-mono block">
+                {selectedMethod === 'mtn' ? 'MTN MoMo (*170#)' :
+                 selectedMethod === 'vodafone' || selectedMethod === 'telecel' ? 'Telecel Cash (*110#)' :
+                 'Mastercard 3D Secure'}
+              </span>
+              <span className="text-[10px] text-[#94a3b8] font-mono">Instant zero-fee direct escrow</span>
+            </div>
+          </div>
+          <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-[#00e699]/15 text-[#00e699] border border-[#00e699]/30">
+            CONNECTED
+          </span>
+        </div>
+
         {/* Primary Action Button */}
         <button
           id="btn-wallet-topup"
           onClick={handleTopUp}
           disabled={isProcessing}
-          className="w-full min-h-[46px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2.5 active:scale-[0.99] disabled:opacity-60 shadow-lg"
         >
           <Wallet className="w-4 h-4 fill-current" />
-          <span>{isProcessing ? 'CONFIRMING MOMO STK PUSH...' : `TOP UP WITH MOMO (GH₵ ${selectedPreset})`}</span>
+          <span>
+            {isProcessing
+              ? 'CONFIRMING TELCO USSD PUSH...'
+              : selectedMethod === 'mtn'
+              ? `TOP UP WITH MTN MOMO (GH₵ ${selectedPreset})`
+              : selectedMethod === 'vodafone' || selectedMethod === 'telecel'
+              ? `TOP UP WITH TELECEL CASH (GH₵ ${selectedPreset})`
+              : `CHARGE MASTERCARD DEBIT (GH₵ ${selectedPreset})`}
+          </span>
         </button>
       </div>
 
@@ -172,78 +206,90 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           </button>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {/* Row 1: MTN Mobile Money (Default) */}
           <div
             onClick={() => setSelectedMethod('mtn')}
-            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'mtn'
-                ? 'bg-[#181c24] border-[#00f0ff]/50'
-                : 'bg-[#141820] border-white/[0.06]'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#ffb020]/15 border border-[#ffb020]/30 flex items-center justify-center">
-                <Phone className="w-4 h-4 text-[#ffb020]" />
-              </div>
+              <MtnMomoLogo size="icon" />
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white font-mono">MTN Mobile Money</span>
-                  <span className="px-1.5 py-0.5 rounded bg-[#00f0ff]/10 text-[9px] font-mono font-bold text-[#00f0ff]">
+                  <span className="px-1.5 py-0.5 rounded bg-[#00f0ff]/15 text-[9px] font-mono font-bold text-[#00f0ff] border border-[#00f0ff]/30">
                     DEFAULT
                   </span>
                 </div>
-                <p className="text-[11px] text-[#94a3b8] font-mono">+233 (024) 890 1204</p>
+                <p className="text-[11px] text-[#94a3b8] font-mono">+233 (024) 890 1204 · *170#</p>
               </div>
             </div>
 
-            <div className="w-4 h-4 rounded-full bg-[#00f0ff] flex items-center justify-center">
-              <Check className="w-3 h-3 text-[#0a0e14] stroke-[3]" />
+            <div className="w-5 h-5 rounded-full bg-[#00f0ff] flex items-center justify-center shadow-sm">
+              <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
             </div>
           </div>
 
-          {/* Row 2: Vodafone Cash / Telecel */}
+          {/* Row 2: Telecel Cash (formerly Vodafone) */}
           <div
-            onClick={() => setSelectedMethod('vodafone')}
-            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-              selectedMethod === 'vodafone'
-                ? 'bg-[#181c24] border-[#00f0ff]/50'
-                : 'bg-[#141820] border-white/[0.06]'
+            onClick={() => setSelectedMethod('telecel')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+              selectedMethod === 'telecel' || selectedMethod === 'vodafone'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-[#ff4d4d]/15 border border-[#ff4d4d]/30 flex items-center justify-center">
-                <Phone className="w-4 h-4 text-[#ff4d4d]" />
-              </div>
+              <TelecelLogo size="icon" />
               <div>
-                <span className="text-xs font-bold text-white font-mono block">Vodafone Cash / Telecel</span>
-                <p className="text-[11px] text-[#94a3b8] font-mono">+233 (020) 412 8890</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white font-mono">Telecel Cash</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#e2001a]/15 text-[9px] font-mono font-bold text-[#ff4d4d] border border-[#e2001a]/30">
+                    GHANA
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#94a3b8] font-mono">+233 (020) 412 8890 · *110#</p>
               </div>
             </div>
 
-            <div className={`w-4 h-4 rounded-full border ${selectedMethod === 'vodafone' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`} />
+            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'telecel' || selectedMethod === 'vodafone' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`}>
+              {(selectedMethod === 'telecel' || selectedMethod === 'vodafone') && (
+                <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
+              )}
+            </div>
           </div>
 
           {/* Row 3: Mastercard Debit */}
           <div
             onClick={() => setSelectedMethod('card')}
-            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'card'
-                ? 'bg-[#181c24] border-[#00f0ff]/50'
-                : 'bg-[#141820] border-white/[0.06]'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                <CreditCard className="w-4 h-4 text-slate-300" />
-              </div>
+              <MastercardLogo size="icon" />
               <div>
-                <span className="text-xs font-bold text-white font-mono block">Mastercard Debit</span>
-                <p className="text-[11px] text-[#94a3b8] font-mono">Ending in 4091</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white font-mono">Mastercard Debit</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-[9px] font-mono font-bold text-amber-400 border border-amber-500/30">
+                    3D SECURE
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#94a3b8] font-mono">•••• •••• •••• 4091 · Exp 08/28</p>
               </div>
             </div>
 
-            <div className={`w-4 h-4 rounded-full border ${selectedMethod === 'card' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`} />
+            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'card' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`}>
+              {selectedMethod === 'card' && (
+                <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
+              )}
+            </div>
           </div>
         </div>
       </div>
