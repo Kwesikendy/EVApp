@@ -4,7 +4,7 @@
     "phoneNumber": "+233248901204",
     "displayName": "Kofi Mensah",
     "email": "kofi.mensah@xcharge.africa",
-    "walletBalance": 245.5,
+    "walletBalance": 353.95,
     "heldEscrow": 0,
     "defaultPaymentMethod": "MTN_MOMO",
     "registeredVehicles": [
@@ -30,7 +30,99 @@
       }
     ],
     "createdAt": "2026-09-18T02:42:35.531Z",
-    "updatedAt": "2026-09-18T02:42:35.531Z"
+    "updatedAt": "2026-09-19T01:27:55.546Z",
+    "transactions": [
+      {
+        "id": "settle-1789781275546",
+        "timestamp": "2026-09-19T01:27:55.546Z",
+        "amount": 1.05,
+        "type": "CHARGE_SETTLEMENT",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "STMT-ses-1789781269012",
+        "description": "Settlement: 0.25 kWh consumed (GH₵ 1.05)"
+      },
+      {
+        "id": "rel-1789781275546",
+        "timestamp": "2026-09-19T01:27:55.546Z",
+        "amount": 25,
+        "type": "PREAUTH_RELEASE",
+        "status": "RELEASED",
+        "provider": "MOMO",
+        "reference": "REL-1789781275546",
+        "description": "Release of GH₵ 25.00 pre-auth security hold"
+      },
+      {
+        "id": "hold-1789781269010",
+        "timestamp": "2026-09-19T01:27:49.010Z",
+        "amount": 25,
+        "type": "PREAUTH_HOLD",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "PREAUTH-1789781269010",
+        "description": "Security hold of GH₵ 25.00 at XCharge Superhub - Airport City"
+      },
+      {
+        "id": "tx-1789781261912",
+        "timestamp": "2026-09-19T01:27:41.912Z",
+        "amount": 40,
+        "type": "TOPUP",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "MTN-AUTH-31237183",
+        "description": "MTN MoMo Top-Up (+233248901204) · Approved"
+      },
+      {
+        "id": "tx-1789781187998",
+        "timestamp": "2026-09-19T01:26:27.998Z",
+        "amount": 30,
+        "type": "TOPUP",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "TEL-WH-8841",
+        "description": "Webhook Top-Up Settlement (Telecel)"
+      },
+      {
+        "id": "settle-1789781187996",
+        "timestamp": "2026-09-19T01:26:27.996Z",
+        "amount": 10.5,
+        "type": "CHARGE_SETTLEMENT",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "STMT-ses-test-phase2",
+        "description": "Settlement: 2.50 kWh consumed (GH₵ 10.50)"
+      },
+      {
+        "id": "rel-1789781187996",
+        "timestamp": "2026-09-19T01:26:27.996Z",
+        "amount": 25,
+        "type": "PREAUTH_RELEASE",
+        "status": "RELEASED",
+        "provider": "MOMO",
+        "reference": "REL-1789781187996",
+        "description": "Release of GH₵ 25.00 pre-auth security hold"
+      },
+      {
+        "id": "hold-1789781187994",
+        "timestamp": "2026-09-19T01:26:27.994Z",
+        "amount": 25,
+        "type": "PREAUTH_HOLD",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "PREAUTH-1789781187994",
+        "description": "Security hold of GH₵ 25.00 at Airport City Superhub"
+      },
+      {
+        "id": "tx-1789781187991",
+        "timestamp": "2026-09-19T01:26:27.991Z",
+        "amount": 50,
+        "type": "TOPUP",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "MTN-AUTH-99572768",
+        "description": "MTN MoMo Top-Up (+233248901204) · Approved"
+      }
+    ]
   },
   {
     "id": "usr-gh-mu6cscr0",

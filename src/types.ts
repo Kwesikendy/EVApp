@@ -73,6 +73,7 @@ export interface ActiveTelemetrySession {
   stationId: string;
   connectorId: number;
   userId: string;
+  driverPhone?: string;
   isFleetSession: boolean;
   fleetVin?: string;
   startTime: number;

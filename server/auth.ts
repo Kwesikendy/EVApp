@@ -12,6 +12,17 @@ interface OtpRecord {
 // In-memory OTP storage with automatic expiry
 const OTP_STORE = new Map<string, OtpRecord>();
 
+export interface WalletTransaction {
+  id: string;
+  timestamp: string;
+  amount: number;
+  type: 'TOPUP' | 'CHARGE_SETTLEMENT' | 'PREAUTH_HOLD' | 'PREAUTH_RELEASE';
+  status: 'SUCCESS' | 'RELEASED' | 'PENDING' | 'FAILED';
+  provider: 'MOMO' | 'CARD';
+  reference: string;
+  description: string;
+}
+
 // User persistence model
 export interface UserProfile {
   id: string;
@@ -31,6 +42,7 @@ export interface UserProfile {
     licensePlate: string;
     isDefault: boolean;
   }[];
+  transactions?: WalletTransaction[];
   createdAt: string;
   updatedAt: string;
 }
@@ -315,3 +327,210 @@ export function updateUserProfile(phoneNumber: string, updates: Partial<UserProf
   saveUsersToDisk();
   return updated;
 }
+
+/**
+ * Retrieve driver wallet with real-time balance and ledger history
+ */
+export function getUserWallet(phoneNumber?: string): {
+  userId: string;
+  currency: 'GHS';
+  availableBalance: number;
+  heldBalance: number;
+  momoProvider: 'MTN' | 'TELECEL' | 'CARD';
+  phoneNumber: string;
+  transactions: WalletTransaction[];
+} {
+  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : '+233248901204';
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get('+233248901204') || Array.from(USERS_DB.values())[0];
+  }
+
+  const defaultProvider = user.defaultPaymentMethod === 'TELECEL_CASH'
+    ? 'TELECEL'
+    : user.defaultPaymentMethod === 'MASTERCARD'
+    ? 'CARD'
+    : 'MTN';
+
+  return {
+    userId: user.id,
+    currency: 'GHS',
+    availableBalance: user.walletBalance,
+    heldBalance: user.heldEscrow || 0,
+    momoProvider: defaultProvider,
+    phoneNumber: user.phoneNumber,
+    transactions: user.transactions || [],
+  };
+}
+
+/**
+ * Top up driver wallet with instant disk persistence and audit log entry
+ */
+export function creditUserWallet(
+  phoneNumber: string,
+  amount: number,
+  description: string,
+  reference: string,
+  provider: 'MOMO' | 'CARD'
+): UserProfile {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+
+  if (!user) {
+    user = {
+      id: `usr-gh-${Date.now().toString(36)}`,
+      phoneNumber: norm,
+      displayName: `Driver ${norm.slice(-4)}`,
+      email: `${norm.replace(/\D/g, '')}@xcharge.africa`,
+      walletBalance: 0,
+      heldEscrow: 0,
+      defaultPaymentMethod: provider === 'CARD' ? 'MASTERCARD' : 'MTN_MOMO',
+      registeredVehicles: [
+        {
+          id: `veh-${Date.now().toString(36)}`,
+          make: 'BYD',
+          model: 'Atto 3',
+          year: 2024,
+          batteryCapacityKwh: 60.5,
+          connectorType: 'CCS2',
+          licensePlate: `GX ${Math.floor(1000 + Math.random() * 9000)} - 24`,
+          isDefault: true,
+        },
+      ],
+      transactions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    USERS_DB.set(norm, user);
+  }
+
+  user.walletBalance = +(user.walletBalance + amount).toFixed(2);
+  user.updatedAt = new Date().toISOString();
+
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `tx-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    amount,
+    type: 'TOPUP',
+    status: 'SUCCESS',
+    provider,
+    reference,
+    description,
+  });
+
+  if (user.transactions.length > 50) user.transactions.pop();
+  saveUsersToDisk();
+  return user;
+}
+
+/**
+ * Place security pre-authorization hold on driver wallet when session starts
+ */
+export function holdUserEscrow(
+  phoneNumber: string,
+  holdAmount: number,
+  stationName: string
+): { success: boolean; availableBalance: number; heldEscrow: number; error?: string } {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get('+233248901204') || Array.from(USERS_DB.values())[0];
+  }
+
+  if (user.walletBalance < holdAmount) {
+    return {
+      success: false,
+      availableBalance: user.walletBalance,
+      heldEscrow: user.heldEscrow || 0,
+      error: `Insufficient wallet balance for pre-auth hold. Required: GH₵ ${holdAmount.toFixed(2)}, Available: GH₵ ${user.walletBalance.toFixed(2)}`,
+    };
+  }
+
+  user.walletBalance = +(user.walletBalance - holdAmount).toFixed(2);
+  user.heldEscrow = +((user.heldEscrow || 0) + holdAmount).toFixed(2);
+  user.updatedAt = new Date().toISOString();
+
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `hold-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    amount: holdAmount,
+    type: 'PREAUTH_HOLD',
+    status: 'SUCCESS',
+    provider: user.defaultPaymentMethod === 'MASTERCARD' ? 'CARD' : 'MOMO',
+    reference: `PREAUTH-${Date.now()}`,
+    description: `Security hold of GH₵ ${holdAmount.toFixed(2)} at ${stationName}`,
+  });
+
+  if (user.transactions.length > 50) user.transactions.pop();
+  saveUsersToDisk();
+
+  return {
+    success: true,
+    availableBalance: user.walletBalance,
+    heldEscrow: user.heldEscrow,
+  };
+}
+
+/**
+ * Settle actual charging session costs against escrow hold and release unspent balance
+ */
+export function settleAndReleaseEscrow(
+  phoneNumber: string,
+  actualCost: number,
+  holdAmount: number,
+  sessionDetails: { sessionId: string; kwhDelivered: number }
+): { success: boolean; availableBalance: number; heldEscrow: number; user?: UserProfile; error?: string } {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get('+233248901204') || Array.from(USERS_DB.values())[0];
+  }
+
+  // Release preauth hold
+  user.heldEscrow = Math.max(0, +((user.heldEscrow || 0) - holdAmount).toFixed(2));
+
+  // Settle difference
+  const refund = +(holdAmount - actualCost).toFixed(2);
+  if (refund > 0) {
+    user.walletBalance = +(user.walletBalance + refund).toFixed(2);
+  } else {
+    user.walletBalance = +(user.walletBalance - (actualCost - holdAmount)).toFixed(2);
+  }
+  user.updatedAt = new Date().toISOString();
+
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `rel-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    amount: holdAmount,
+    type: 'PREAUTH_RELEASE',
+    status: 'RELEASED',
+    provider: user.defaultPaymentMethod === 'MASTERCARD' ? 'CARD' : 'MOMO',
+    reference: `REL-${Date.now()}`,
+    description: `Release of GH₵ ${holdAmount.toFixed(2)} pre-auth security hold`,
+  });
+
+  user.transactions.unshift({
+    id: `settle-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    amount: actualCost,
+    type: 'CHARGE_SETTLEMENT',
+    status: 'SUCCESS',
+    provider: user.defaultPaymentMethod === 'MASTERCARD' ? 'CARD' : 'MOMO',
+    reference: `STMT-${sessionDetails.sessionId}`,
+    description: `Settlement: ${sessionDetails.kwhDelivered.toFixed(2)} kWh consumed (GH₵ ${actualCost.toFixed(2)})`,
+  });
+
+  if (user.transactions.length > 50) user.transactions.splice(50);
+  saveUsersToDisk();
+
+  return {
+    success: true,
+    availableBalance: user.walletBalance,
+    heldEscrow: user.heldEscrow,
+    user,
+  };
+}
+

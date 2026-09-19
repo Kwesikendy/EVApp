@@ -275,8 +275,14 @@ function AppContent() {
         const session = await SessionStorage.getSession();
         if (session && session.user) {
           setCurrentUser(session.user);
+          if (session.user.phoneNumber) {
+            setMomoPhone(session.user.phoneNumber);
+          }
           if (session.user.walletBalance !== undefined) {
             setWalletBalance(session.user.walletBalance);
+          }
+          if (session.user.heldEscrow !== undefined) {
+            setHeldBalance(session.user.heldEscrow);
           }
           if (session.user.registeredVehicles && session.user.registeredVehicles.length > 0) {
             const mappedVehicles: FleetVehicle[] = session.user.registeredVehicles.map((v: any, idx: number) => ({
@@ -423,7 +429,7 @@ function AppContent() {
 
       const [stationsData, walletData, fleetData, sessionData] = await Promise.all([
         api.getStations(),
-        api.getWallet(),
+        api.getWallet(currentUser?.phoneNumber),
         api.getFleet(),
         api.getActiveSession(),
       ]);
@@ -525,7 +531,7 @@ function AppContent() {
     syncBackendData();
     const interval = setInterval(syncBackendData, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentUser?.phoneNumber]);
 
   // Live charging telemetry and real-time billing ticker loop
   useEffect(() => {
@@ -664,7 +670,13 @@ function AppContent() {
       isFleet: isFleetMode,
       vin: isFleetMode && fleetVehicles[0] ? fleetVehicles[0].vin : undefined,
       preauthHoldAmount: PREAUTH_HOLD,
+      phoneNumber: currentUser?.phoneNumber,
     });
+
+    if (res && res.wallet) {
+      setWalletBalance(res.wallet.availableBalance);
+      setHeldBalance(res.wallet.heldBalance);
+    }
 
     if (res && res.success) {
       Alert.alert(
@@ -715,10 +727,14 @@ function AppContent() {
       setTransactions((prev) => [newTx, ...prev]);
 
       // Call backend remoteStop and simulator stop
-      await Promise.all([
-        api.remoteStopSession().catch(() => {}),
+      const [stopRes] = await Promise.all([
+        api.remoteStopSession({ phoneNumber: currentUser?.phoneNumber }).catch(() => null),
         api.stopSimulation().catch(() => {}),
       ]);
+      if (stopRes && stopRes.wallet) {
+        setWalletBalance(stopRes.wallet.availableBalance);
+        setHeldBalance(stopRes.wallet.heldBalance);
+      }
       await syncBackendData();
 
       setIsCharging(false);
@@ -755,11 +771,12 @@ function AppContent() {
 
   const handleDispatchMomoUssd = async () => {
     setMomoStep('DISPATCHING');
+    const phoneToUse = currentUser?.phoneNumber || momoPhone;
     try {
       const res = await api.initiateMomoPayment({
         amount: momoAmount,
         provider: selectedMomoProvider.toUpperCase(),
-        phone: momoPhone,
+        phone: phoneToUse,
       });
       if (res && res.networkReference) {
         setMomoNetworkRef(res.networkReference);
@@ -780,13 +797,14 @@ function AppContent() {
 
   const handleConfirmMomoPin = async (customPin?: string) => {
     const pinToUse = customPin || momoPin || '1234';
+    const phoneToUse = currentUser?.phoneNumber || momoPhone;
     setMomoStep('DISPATCHING');
     try {
       const res = await api.confirmMomoPayment({
         transactionId: momoTxId,
         amount: momoAmount,
         provider: selectedMomoProvider.toUpperCase(),
-        phone: momoPhone,
+        phone: phoneToUse,
         pin: pinToUse,
       });
 
@@ -910,8 +928,14 @@ function AppContent() {
           onVerified={async (user) => {
             setCurrentUser(user);
             await SessionStorage.saveSession(user);
+            if (user?.phoneNumber) {
+              setMomoPhone(user.phoneNumber);
+            }
             if (user?.walletBalance !== undefined) {
               setWalletBalance(user.walletBalance);
+            }
+            if (user?.heldEscrow !== undefined) {
+              setHeldBalance(user.heldEscrow);
             }
             if (user?.registeredVehicles && user.registeredVehicles.length > 0) {
               const mappedVehicles: FleetVehicle[] = user.registeredVehicles.map((v: any, idx: number) => ({
@@ -939,6 +963,15 @@ function AppContent() {
             const userToSave = currentUser || authParams?.user;
             if (userToSave) {
               await SessionStorage.saveSession(userToSave);
+              if (userToSave.phoneNumber) {
+                setMomoPhone(userToSave.phoneNumber);
+              }
+              if (userToSave.walletBalance !== undefined) {
+                setWalletBalance(userToSave.walletBalance);
+              }
+              if (userToSave.heldEscrow !== undefined) {
+                setHeldBalance(userToSave.heldEscrow);
+              }
             }
             setIsAuthenticated(true);
             setAuthScreen('login');

@@ -171,9 +171,10 @@ export const api = {
     return null;
   },
 
-  async getWallet(): Promise<ApiWallet | null> {
+  async getWallet(phoneNumber?: string): Promise<ApiWallet | null> {
     try {
-      const res = await fetchWithTimeout(`${BACKEND_URL}/api/wallet`, { method: 'GET' }, 3500);
+      const query = phoneNumber ? `?phoneNumber=${encodeURIComponent(phoneNumber)}` : '';
+      const res = await fetchWithTimeout(`${BACKEND_URL}/api/wallet${query}`, { method: 'GET' }, 3500);
       if (res.ok) return await res.json();
     } catch (_err) {
       // Fallback
@@ -283,7 +284,8 @@ export const api = {
     isFleet: boolean;
     vin?: string;
     preauthHoldAmount?: number;
-  }): Promise<{ success: boolean; session?: ApiActiveSession; error?: string } | null> {
+    phoneNumber?: string;
+  }): Promise<{ success: boolean; session?: ApiActiveSession; wallet?: ApiWallet; error?: string } | null> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/ocpp/remote-start`, {
         method: 'POST',
@@ -300,11 +302,12 @@ export const api = {
     }
   },
 
-  async remoteStopSession(): Promise<{ success: boolean; error?: string } | null> {
+  async remoteStopSession(params?: { phoneNumber?: string }): Promise<{ success: boolean; completedSession?: ApiActiveSession; wallet?: ApiWallet; error?: string } | null> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/ocpp/remote-stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params || {}),
       }, 5000);
       return await res.json();
     } catch (err: any) {
