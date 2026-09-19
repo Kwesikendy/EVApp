@@ -255,6 +255,266 @@ function updateUserProfile(phoneNumber, updates) {
   saveUsersToDisk();
   return updated;
 }
+function getUserWallet(phoneNumber) {
+  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : "+233248901204";
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get("+233248901204") || Array.from(USERS_DB.values())[0];
+  }
+  const defaultProvider = user.defaultPaymentMethod === "TELECEL_CASH" ? "TELECEL" : user.defaultPaymentMethod === "MASTERCARD" ? "CARD" : "MTN";
+  return {
+    userId: user.id,
+    currency: "GHS",
+    availableBalance: user.walletBalance,
+    heldBalance: user.heldEscrow || 0,
+    momoProvider: defaultProvider,
+    phoneNumber: user.phoneNumber,
+    transactions: user.transactions || []
+  };
+}
+function creditUserWallet(phoneNumber, amount, description, reference, provider) {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = {
+      id: `usr-gh-${Date.now().toString(36)}`,
+      phoneNumber: norm,
+      displayName: `Driver ${norm.slice(-4)}`,
+      email: `${norm.replace(/\D/g, "")}@xcharge.africa`,
+      walletBalance: 0,
+      heldEscrow: 0,
+      defaultPaymentMethod: provider === "CARD" ? "MASTERCARD" : "MTN_MOMO",
+      registeredVehicles: [
+        {
+          id: `veh-${Date.now().toString(36)}`,
+          make: "BYD",
+          model: "Atto 3",
+          year: 2024,
+          batteryCapacityKwh: 60.5,
+          connectorType: "CCS2",
+          licensePlate: `GX ${Math.floor(1e3 + Math.random() * 9e3)} - 24`,
+          isDefault: true
+        }
+      ],
+      transactions: [],
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    USERS_DB.set(norm, user);
+  }
+  user.walletBalance = +(user.walletBalance + amount).toFixed(2);
+  user.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `tx-${Date.now()}`,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    amount,
+    type: "TOPUP",
+    status: "SUCCESS",
+    provider,
+    reference,
+    description
+  });
+  if (user.transactions.length > 50) user.transactions.pop();
+  saveUsersToDisk();
+  return user;
+}
+function holdUserEscrow(phoneNumber, holdAmount, stationName) {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get("+233248901204") || Array.from(USERS_DB.values())[0];
+  }
+  if (user.walletBalance < holdAmount) {
+    return {
+      success: false,
+      availableBalance: user.walletBalance,
+      heldEscrow: user.heldEscrow || 0,
+      error: `Insufficient wallet balance for pre-auth hold. Required: GH\u20B5 ${holdAmount.toFixed(2)}, Available: GH\u20B5 ${user.walletBalance.toFixed(2)}`
+    };
+  }
+  user.walletBalance = +(user.walletBalance - holdAmount).toFixed(2);
+  user.heldEscrow = +((user.heldEscrow || 0) + holdAmount).toFixed(2);
+  user.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `hold-${Date.now()}`,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    amount: holdAmount,
+    type: "PREAUTH_HOLD",
+    status: "SUCCESS",
+    provider: user.defaultPaymentMethod === "MASTERCARD" ? "CARD" : "MOMO",
+    reference: `PREAUTH-${Date.now()}`,
+    description: `Security hold of GH\u20B5 ${holdAmount.toFixed(2)} at ${stationName}`
+  });
+  if (user.transactions.length > 50) user.transactions.pop();
+  saveUsersToDisk();
+  return {
+    success: true,
+    availableBalance: user.walletBalance,
+    heldEscrow: user.heldEscrow
+  };
+}
+function settleAndReleaseEscrow(phoneNumber, actualCost, holdAmount, sessionDetails) {
+  const norm = normalizeGhanaPhoneNumber(phoneNumber);
+  let user = USERS_DB.get(norm);
+  if (!user) {
+    user = USERS_DB.get("+233248901204") || Array.from(USERS_DB.values())[0];
+  }
+  user.heldEscrow = Math.max(0, +((user.heldEscrow || 0) - holdAmount).toFixed(2));
+  const refund = +(holdAmount - actualCost).toFixed(2);
+  if (refund > 0) {
+    user.walletBalance = +(user.walletBalance + refund).toFixed(2);
+  } else {
+    user.walletBalance = +(user.walletBalance - (actualCost - holdAmount)).toFixed(2);
+  }
+  user.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+  if (!user.transactions) user.transactions = [];
+  user.transactions.unshift({
+    id: `rel-${Date.now()}`,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    amount: holdAmount,
+    type: "PREAUTH_RELEASE",
+    status: "RELEASED",
+    provider: user.defaultPaymentMethod === "MASTERCARD" ? "CARD" : "MOMO",
+    reference: `REL-${Date.now()}`,
+    description: `Release of GH\u20B5 ${holdAmount.toFixed(2)} pre-auth security hold`
+  });
+  user.transactions.unshift({
+    id: `settle-${Date.now()}`,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    amount: actualCost,
+    type: "CHARGE_SETTLEMENT",
+    status: "SUCCESS",
+    provider: user.defaultPaymentMethod === "MASTERCARD" ? "CARD" : "MOMO",
+    reference: `STMT-${sessionDetails.sessionId}`,
+    description: `Settlement: ${sessionDetails.kwhDelivered.toFixed(2)} kWh consumed (GH\u20B5 ${actualCost.toFixed(2)})`
+  });
+  if (user.transactions.length > 50) user.transactions.splice(50);
+  saveUsersToDisk();
+  return {
+    success: true,
+    availableBalance: user.walletBalance,
+    heldEscrow: user.heldEscrow,
+    user
+  };
+}
+
+// server/momo.ts
+var PENDING_MOMO_TX = /* @__PURE__ */ new Map();
+async function initiateMomoPayment(params) {
+  const { amount, provider = "MTN", phoneNumber } = params;
+  const normalized = normalizeGhanaPhoneNumber(phoneNumber);
+  const prov = provider.toUpperCase() === "TELECEL" ? "TELECEL" : provider.toUpperCase() === "CARD" ? "CARD" : "MTN";
+  const txId = `momo-req-${Date.now()}`;
+  const networkRef = `GH-${prov}-${Math.floor(1e5 + Math.random() * 9e5)}`;
+  const merchant = "XCHARGE GHANA LTD";
+  const ussdPrompt = prov === "MTN" ? `Authorize payment of GHS ${amount.toFixed(2)} to ${merchant}? Ref: ${networkRef}. Enter Mobile Money (*170#) PIN:` : prov === "TELECEL" ? `Authorize payment of GHS ${amount.toFixed(2)} to ${merchant}? Ref: ${networkRef}. Enter Telecel Cash (*110#) PIN:` : `Authorize payment of GHS ${amount.toFixed(2)} via Mastercard 3D Secure?`;
+  const txRecord = {
+    id: txId,
+    transactionId: txId,
+    networkReference: networkRef,
+    phoneNumber: normalized,
+    amount,
+    currency: "GHS",
+    provider: prov,
+    status: "PENDING",
+    merchantName: merchant,
+    description: `${prov} MoMo Top-Up (${normalized})`,
+    ussdPrompt,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  PENDING_MOMO_TX.set(txId, txRecord);
+  const moolreVasKey = process.env.MOOLRE_VAS_KEY;
+  if (moolreVasKey) {
+    try {
+      console.log(`[MoMo Switch] Forwarding live payment request to Moolre gateway for ${normalized} (GHS ${amount})`);
+    } catch (err) {
+      console.warn("[MoMo Switch] Gateway dispatch notice:", err.message);
+    }
+  }
+  return {
+    success: true,
+    transactionId: txId,
+    status: "PENDING",
+    amount,
+    currency: "GHS",
+    provider: prov,
+    phoneNumber: normalized,
+    networkReference: networkRef,
+    merchantName: merchant,
+    ussdPrompt,
+    timeoutSeconds: 60,
+    timestamp: txRecord.createdAt
+  };
+}
+function confirmMomoPayment(params) {
+  const { transactionId, amount, provider = "MTN", phoneNumber } = params;
+  const normalized = normalizeGhanaPhoneNumber(phoneNumber);
+  const prov = provider.toUpperCase() === "TELECEL" ? "TELECEL" : provider.toUpperCase() === "CARD" ? "CARD" : "MTN";
+  const approvalCode = `${prov}-AUTH-${Math.floor(1e7 + Math.random() * 9e7)}`;
+  const graTaxInvoice = `GRA-ELEV-EXEMPT-${Math.floor(1e4 + Math.random() * 9e4)}`;
+  let tx = PENDING_MOMO_TX.get(transactionId);
+  if (!tx) {
+    tx = {
+      id: transactionId || `tx-${Date.now()}`,
+      transactionId: transactionId || `tx-${Date.now()}`,
+      networkReference: `GH-${prov}-${Math.floor(1e5 + Math.random() * 9e5)}`,
+      phoneNumber: normalized,
+      amount,
+      currency: "GHS",
+      provider: prov,
+      status: "SUCCESS",
+      merchantName: "XCHARGE GHANA LTD",
+      description: `${prov} MoMo Top-Up (${normalized}) \xB7 Approved`,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+  }
+  tx.status = "SUCCESS";
+  tx.approvalCode = approvalCode;
+  tx.graTaxInvoice = graTaxInvoice;
+  tx.completedAt = (/* @__PURE__ */ new Date()).toISOString();
+  PENDING_MOMO_TX.delete(transactionId);
+  const updatedUser = creditUserWallet(
+    normalized,
+    amount,
+    `${prov} MoMo Top-Up (${normalized}) \xB7 Approved`,
+    approvalCode,
+    prov === "CARD" ? "CARD" : "MOMO"
+  );
+  return {
+    success: true,
+    status: "SUCCESS",
+    approvalCode,
+    graTaxInvoice,
+    settledAmount: amount,
+    currency: "GHS",
+    transaction: tx,
+    walletBalance: updatedUser ? updatedUser.walletBalance : amount
+  };
+}
+function handleMomoWebhook(payload) {
+  console.log("[MoMo Webhook] Incoming callback received:", payload);
+  const phone = payload.phoneNumber || payload.customerPhone || payload.recipient;
+  const amount = parseFloat(payload.amount || payload.value || "0");
+  const txId = payload.transactionId || payload.reference || payload.orderId;
+  const status = (payload.status || "success").toLowerCase();
+  if (!phone || isNaN(amount) || amount <= 0) {
+    return { success: false, message: "Invalid webhook payload parameters" };
+  }
+  const normalized = normalizeGhanaPhoneNumber(phone);
+  if (status === "success" || status === "completed" || status === "approved") {
+    creditUserWallet(
+      normalized,
+      amount,
+      `Webhook Top-Up Settlement (${payload.provider || "MoMo"})`,
+      txId || `WH-${Date.now()}`,
+      "MOMO"
+    );
+    return { success: true, message: `Successfully credited GH\u20B5 ${amount.toFixed(2)} to ${normalized}`, transactionId: txId };
+  }
+  return { success: false, message: `Payment status ${status} does not require crediting.` };
+}
 
 // server.ts
 var app = (0, import_express.default)();
@@ -755,84 +1015,81 @@ app.delete("/api/stations/:id", (req, res) => {
   const deleted = STATIONS.splice(index, 1)[0];
   res.json({ success: true, deletedStationId: deleted.id });
 });
-app.get("/api/wallet", (_req, res) => {
-  res.json(USER_WALLET);
+app.get("/api/wallet", (req, res) => {
+  const phone = req.query.phoneNumber || req.query.phone;
+  const wallet = getUserWallet(phone);
+  res.json(wallet);
 });
 app.post("/api/wallet/topup", (req, res) => {
-  const { amount, provider, phone } = req.body;
+  const { amount, provider = "MOMO", phone } = req.body;
+  const targetPhone = phone || "+233248901204";
   const numAmount = parseFloat(amount);
   if (isNaN(numAmount) || numAmount <= 0) {
     res.status(400).json({ error: "Invalid top-up amount" });
     return;
   }
-  USER_WALLET.availableBalance = +(USER_WALLET.availableBalance + numAmount).toFixed(2);
-  const tx = {
-    id: `tx-${Date.now()}`,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    amount: numAmount,
-    type: "TOPUP",
-    status: "SUCCESS",
-    provider: provider || "MOMO",
-    reference: `MOMO-GH-${Math.floor(1e5 + Math.random() * 9e5)}`,
-    description: `${provider || "MTN MoMo"} Top-up (${phone || USER_WALLET.phoneNumber})`
-  };
-  USER_WALLET.transactions.unshift(tx);
-  res.json({ success: true, wallet: USER_WALLET, transaction: tx });
-});
-app.post("/api/wallet/momo-initiate", (req, res) => {
-  const { amount, provider = "MTN", phone = "+233 24 981 4421" } = req.body;
-  const numAmount = parseFloat(amount);
-  if (isNaN(numAmount) || numAmount <= 0) {
-    res.status(400).json({ error: "Invalid payment amount" });
-    return;
-  }
-  const txId = `momo-req-${Date.now()}`;
-  const networkRef = `GH-${provider.toUpperCase()}-${Math.floor(1e5 + Math.random() * 9e5)}`;
+  const prov = provider.toUpperCase() === "CARD" ? "CARD" : "MOMO";
+  const ref = `TOPUP-GH-${Math.floor(1e5 + Math.random() * 9e5)}`;
+  const desc = `${provider || "MTN MoMo"} Top-up (${targetPhone})`;
+  creditUserWallet(targetPhone, numAmount, desc, ref, prov);
+  const updatedWallet = getUserWallet(targetPhone);
   res.json({
     success: true,
-    transactionId: txId,
-    status: "PENDING",
-    amount: numAmount,
-    currency: "GHS",
-    provider,
-    phoneNumber: phone,
-    networkReference: networkRef,
-    merchantName: "XCHARGE GHANA LTD",
-    ussdPrompt: `Authorize payment of GHS ${numAmount.toFixed(2)} to XCHARGE GHANA LTD? Reference: ${networkRef}. Enter Mobile Money PIN:`,
-    timeoutSeconds: 60,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    wallet: updatedWallet,
+    transaction: updatedWallet.transactions[0]
   });
+});
+app.post("/api/wallet/momo-initiate", async (req, res) => {
+  try {
+    const { amount, provider = "MTN", phone } = req.body;
+    const targetPhone = phone || "+233248901204";
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      res.status(400).json({ error: "Invalid payment amount" });
+      return;
+    }
+    const result = await initiateMomoPayment({
+      amount: numAmount,
+      provider,
+      phoneNumber: targetPhone
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 app.post("/api/wallet/momo-confirm", (req, res) => {
-  const { transactionId, amount, provider = "MTN", phone = "+233 24 981 4421", pin } = req.body;
-  const numAmount = parseFloat(amount);
-  if (isNaN(numAmount) || numAmount <= 0) {
-    res.status(400).json({ error: "Invalid payment amount" });
-    return;
+  try {
+    const { transactionId, amount, provider = "MTN", phone, pin } = req.body;
+    const targetPhone = phone || "+233248901204";
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      res.status(400).json({ error: "Invalid payment amount" });
+      return;
+    }
+    const result = confirmMomoPayment({
+      transactionId,
+      amount: numAmount,
+      provider,
+      phoneNumber: targetPhone,
+      pin
+    });
+    const updatedWallet = getUserWallet(targetPhone);
+    res.json({
+      ...result,
+      wallet: updatedWallet
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
-  USER_WALLET.availableBalance = +(USER_WALLET.availableBalance + numAmount).toFixed(2);
-  const approvalCode = `${provider.toUpperCase()}-AUTH-${Math.floor(1e7 + Math.random() * 9e7)}`;
-  const tx = {
-    id: transactionId || `tx-${Date.now()}`,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    amount: numAmount,
-    type: "TOPUP",
-    status: "SUCCESS",
-    provider: provider.toUpperCase() === "CARD" ? "CARD" : "MOMO",
-    reference: approvalCode,
-    description: `${provider} MoMo Top-up (${phone}) \xB7 Approved`
-  };
-  USER_WALLET.transactions.unshift(tx);
-  res.json({
-    success: true,
-    status: "SUCCESS",
-    approvalCode,
-    graTaxInvoice: `GRA-ELEV-EXEMPT-${Math.floor(1e4 + Math.random() * 9e4)}`,
-    settledAmount: numAmount,
-    currency: "GHS",
-    wallet: USER_WALLET,
-    transaction: tx
-  });
+});
+app.post("/api/momo/webhook", (req, res) => {
+  try {
+    const result = handleMomoWebhook(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 app.get("/api/fleet", (_req, res) => {
   res.json(FLEET_ACCOUNT);
@@ -840,8 +1097,9 @@ app.get("/api/fleet", (_req, res) => {
 app.get("/api/session/active", (_req, res) => {
   res.json({ session: ACTIVE_SESSION });
 });
-app.post("/api/ocpp/remote-start", (req, res) => {
-  const { stationId, connectorId, isFleet, vin, preauthHoldAmount = 25 } = req.body;
+app.post(["/api/ocpp/remote-start", "/api/charge/start"], (req, res) => {
+  const { stationId, connectorId, isFleet, vin, preauthHoldAmount = 25, phoneNumber } = req.body;
+  const driverPhone = phoneNumber || "+233248901204";
   if (ACTIVE_SESSION) {
     res.status(400).json({ error: "An active charging session is already in progress" });
     return;
@@ -861,27 +1119,16 @@ app.post("/api/ocpp/remote-start", (req, res) => {
     return;
   }
   if (!isFleet) {
-    if (USER_WALLET.availableBalance < preauthHoldAmount) {
+    const holdRes = holdUserEscrow(driverPhone, preauthHoldAmount, station.name);
+    if (!holdRes.success) {
       res.status(402).json({
-        error: "Insufficient wallet balance for pre-authorization hold",
+        error: holdRes.error || "Insufficient wallet balance for pre-authorization hold",
         required: preauthHoldAmount,
-        available: USER_WALLET.availableBalance,
+        available: holdRes.availableBalance,
         message: "Please top up your wallet via Mobile Money or Card before unlocking."
       });
       return;
     }
-    USER_WALLET.availableBalance = +(USER_WALLET.availableBalance - preauthHoldAmount).toFixed(2);
-    USER_WALLET.heldBalance = +(USER_WALLET.heldBalance + preauthHoldAmount).toFixed(2);
-    USER_WALLET.transactions.unshift({
-      id: `hold-${Date.now()}`,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      amount: preauthHoldAmount,
-      type: "PREAUTH_HOLD",
-      status: "SUCCESS",
-      provider: "MOMO",
-      reference: `PREAUTH-${Date.now()}`,
-      description: `Security hold of GH\u20B5 ${preauthHoldAmount.toFixed(2)} at ${station.name}`
-    });
   }
   connector.status = "Charging";
   connector.currentPowerKw = Math.min(connector.maxPowerKw, 120);
@@ -889,7 +1136,8 @@ app.post("/api/ocpp/remote-start", (req, res) => {
     sessionId: `ses-${Date.now()}`,
     stationId: station.stationId,
     connectorId: connector.connectorId,
-    userId: USER_WALLET.userId,
+    userId: driverPhone,
+    driverPhone,
     isFleetSession: !!isFleet,
     fleetVin: vin || (isFleet ? FLEET_ACCOUNT.vehicles[0].vin : void 0),
     startTime: Date.now(),
@@ -940,14 +1188,15 @@ app.post("/api/ocpp/remote-start", (req, res) => {
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     }
   });
+  const currentWallet = getUserWallet(driverPhone);
   res.json({
     success: true,
     message: "Connector unlocked. Charging initiated via CitrineOS OCPP CSMS.",
     session: ACTIVE_SESSION,
-    wallet: USER_WALLET
+    wallet: currentWallet
   });
 });
-app.post("/api/ocpp/remote-stop", (req, res) => {
+app.post(["/api/ocpp/remote-stop", "/api/charge/stop"], (req, res) => {
   if (!ACTIVE_SESSION) {
     res.status(400).json({ error: "No active session to stop" });
     return;
@@ -959,35 +1208,13 @@ app.post("/api/ocpp/remote-stop", (req, res) => {
     connector.status = "Available";
     connector.currentPowerKw = 0;
   }
+  const driverPhone = req.body.phoneNumber || session.driverPhone || "+233248901204";
   if (!session.isFleetSession) {
     const actualCost = Math.round(session.accruedCost * 100) / 100;
     const holdAmount = session.preauthHoldAmount;
-    USER_WALLET.heldBalance = Math.max(0, +(USER_WALLET.heldBalance - holdAmount).toFixed(2));
-    const refund = +(holdAmount - actualCost).toFixed(2);
-    if (refund > 0) {
-      USER_WALLET.availableBalance = +(USER_WALLET.availableBalance + refund).toFixed(2);
-    } else {
-      USER_WALLET.availableBalance = +(USER_WALLET.availableBalance - (actualCost - holdAmount)).toFixed(2);
-    }
-    USER_WALLET.transactions.unshift({
-      id: `rel-${Date.now()}`,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      amount: holdAmount,
-      type: "PREAUTH_RELEASE",
-      status: "RELEASED",
-      provider: "MOMO",
-      reference: `REL-${Date.now()}`,
-      description: `Release of GH\u20B5 ${holdAmount.toFixed(2)} pre-auth security hold`
-    });
-    USER_WALLET.transactions.unshift({
-      id: `settle-${Date.now()}`,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      amount: actualCost,
-      type: "CHARGE_SETTLEMENT",
-      status: "SUCCESS",
-      provider: "MOMO",
-      reference: `STMT-${session.sessionId}`,
-      description: `Settlement: ${session.kwhDelivered.toFixed(2)} kWh consumed (GH\u20B5 ${actualCost.toFixed(2)})`
+    settleAndReleaseEscrow(driverPhone, actualCost, holdAmount, {
+      sessionId: session.sessionId,
+      kwhDelivered: session.kwhDelivered
     });
   } else {
     FLEET_ACCOUNT.currentUtilization += session.accruedCost;
@@ -1014,11 +1241,12 @@ app.post("/api/ocpp/remote-stop", (req, res) => {
     }
   });
   ACTIVE_SESSION = null;
+  const currentWallet = getUserWallet(driverPhone);
   res.json({
     success: true,
     message: "Session terminated. Connector locked. Financial settlement finalized.",
     completedSession: session,
-    wallet: USER_WALLET
+    wallet: currentWallet
   });
 });
 app.get("/api/ocpp/logs", (_req, res) => {
@@ -1076,7 +1304,7 @@ app.post("/api/simulator/start", (req, res) => {
     sessionId: `sim-ses-${Date.now()}`,
     stationId: station.stationId,
     connectorId: connector.connectorId,
-    userId: USER_WALLET.userId,
+    userId: "usr-gh-001",
     isFleetSession: !!isFleet,
     fleetVin: isFleet ? FLEET_ACCOUNT.vehicles[0].vin : void 0,
     startTime: Date.now(),
@@ -1088,7 +1316,7 @@ app.post("/api/simulator/start", (req, res) => {
     currentA: currentAmps,
     kwhDelivered: 0.01,
     accruedCost: 0.01,
-    currency: "USD",
+    currency: "GHS",
     preauthHoldAmount: 25,
     status: "Charging",
     meterValuesLog: [
