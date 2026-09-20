@@ -127,8 +127,10 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - Completely removed all em-dashes (`—`) and en-dashes (`–`) across all UI text, hubs, and documentation, ensuring crisp typography.
 - **Unnecessary Glow Elimination**:
   - Replaced arcade-style neon glow drop shadows (`glow-cyan`, `glow-cyan-sm`, `glow-emerald`) with clean, high-contrast automotive elevation shadows (`shadow-md shadow-black/40`, `shadow-xl`) across buttons, modals, logo emblems, and gauges.
-- **AI Icon Elimination**:
-  - Replaced all non-functional AI/chatbot icons (`Sparkles`) with domain-specific automotive telemetry icons (`Zap` for fast-charging power, `ShieldCheck` for cryptographic security).
+- **Login Screen Refinements**:
+  - Replaced the generic `Ghana EV Telemetry Network` text with the official `XCHARGE NETWORK · ACCRA` status pill containing an animated green live pulse dot.
+  - Replaced lightning bolt (`Zap`) on the "SEND VERIFICATION CODE" button with a security `ShieldCheck` icon.
+  - Replaced lightning bolt on the quick demo button with a `User` profile icon.
 - **Motion & Transition Engine ([`motion/react`](file:///d:/xcharge-ev-platform/package.json))**:
   - **Screen & Tab Transitions**: Wrapped top-level tabs (`map`, `charge`, `wallet`, `fleet`) in `<AnimatePresence mode="wait">` with subtle vertical entrance slides (`y: 8` -> `y: 0`) and opacity fades.
   - **Authentication Screen Transitions**: Wrapped auth flow views (`login`, `signup`, `otp`, `otp_success`) in `<AnimatePresence mode="wait">` for fluid step transitions.

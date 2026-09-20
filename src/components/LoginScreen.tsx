@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Smartphone,
   ShieldCheck,
-  Zap,
   ArrowRight,
   Lock,
   Building2,
@@ -85,9 +84,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="p-2.5 rounded-2xl bg-[#10141a] border border-white/10 shadow-xl mb-1">
             <XChargeLogo size="md" variant="full" />
           </div>
-          <span className="px-2.5 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff] uppercase tracking-wider">
-            Ghana EV Telemetry Network
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00e699] animate-pulse" />
+            <span>XCHARGE NETWORK · ACCRA</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             Driver Authentication
           </h1>
@@ -173,15 +173,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           type="button"
           onClick={() => handleSendCode()}
           disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
         >
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              <Zap className="w-4 h-4 fill-black" />
+              <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
               <span>SEND VERIFICATION CODE</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </>
           )}
         </button>
@@ -190,9 +190,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <button
           type="button"
           onClick={handleFillDemoDriver}
-          className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-all group"
+          className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-all group cursor-pointer active:scale-[0.99]"
         >
-          <Zap className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+          <User className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
           <span>Quick Demo Login (Kofi Mensah · BYD Atto 3)</span>
         </button>
 
