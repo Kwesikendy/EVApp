@@ -11,7 +11,8 @@ import { LoginScreen } from './components/LoginScreen';
 import { SignUpScreen } from './components/SignUpScreen';
 import { OtpVerificationScreen } from './components/OtpVerificationScreen';
 import { OtpSuccessScreen } from './components/OtpSuccessScreen';
-import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Sparkles } from 'lucide-react';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Sparkles, Download } from 'lucide-react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
@@ -45,8 +46,20 @@ export default function App() {
   // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
   const [activeTab, setActiveTab] = useState<TabKey>('map');
 
-  // Viewport mode: 'phone' shell (~420px luxury chassis) or 'fluid' fullscreen
-  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>('phone');
+  // Viewport mode: 'phone' shell (~420px luxury chassis on desktop) or 'fluid' fullscreen on mobile/PWA
+  const [deviceMode, setDeviceMode] = useState<'phone' | 'fluid'>(() => {
+    if (typeof window !== 'undefined') {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://');
+      const isMobileScreen = window.innerWidth < 768;
+      if (isStandalone || isMobileScreen) {
+        return 'fluid';
+      }
+    }
+    return 'phone';
+  });
 
   // Backend state for real telemetry & admin
   const [stations, setStations] = useState<ChargingStation[]>([]);
@@ -358,6 +371,21 @@ export default function App() {
 
               <button
                 type="button"
+                onClick={() => {
+                  setIsProfileModalOpen(false);
+                  window.dispatchEvent(new CustomEvent('xcharge-open-pwa-install'));
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-[#00f0ff]/30 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-2">
+                  <Download className="w-4 h-4 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+                  <span>Install Mobile App (PWA)</span>
+                </div>
+                <span className="text-[10px] font-mono text-[#00f0ff]">INSTALL →</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleSignOut}
                 className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
               >
@@ -450,6 +478,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Progressive Web App (PWA) Mobile Install Prompt */}
+      <PwaInstallPrompt />
     </div>
   );
 }

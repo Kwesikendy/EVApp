@@ -19,8 +19,8 @@
 | **Ghana MoMo Payment Switch** | **100%** | **Live & Verified** | USSD push prompts (`*170#`, `*110#`), PIN authorization, persistent multi-user wallet, and pre-auth escrow refunds. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
-| **Store Distribution (EAS)** | **50%** | **Configured** | `eas.json` generated; ready for standalone APK/AAB build generation. |
-| **Overall Commercial Progress** | **~88%** | **Production Ready** | Core telephony, auth, payments, escrow, and telemetry complete; entering hardware ingress & standalone builds. |
+| **Store Distribution & PWA** | **80%** | **PWA Live / EAS Ready** | PWA installable on iOS & Android with offline caching; eas.json configured for standalone APK. |
+| **Overall Commercial Progress** | **~92%** | **Production Ready** | PWA, telephony, auth, payments, escrow, and telemetry complete; entering hardware ingress. |
 
 ---
 
@@ -96,12 +96,16 @@ Phase 1: Real Telephony & Auth  ──►  Phase 2: Live Payment Switch  ──�
 > **Status: Configured; Ready for App Store Asset Assembly**  
 > **Primary Goal:** Deliver standalone installable mobile apps to the public.
 
-#### Planned Engineering:
-1. **EAS Standalone App Builds**:
+#### Planned & Delivered Engineering:
+1. **Progressive Web App (PWA) Distribution (Complete & Live)**:
+   - Full Web App Manifest ([`public/manifest.json`](file:///d:/xcharge-ev-platform/public/manifest.json)) and Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js)).
+   - Native installation banners with 1-tap Android install and iOS Safari Share guidance.
+   - High-resolution aerodynamic X-blade app icons in [`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/).
+2. **EAS Standalone App Builds**:
    - Run `eas build -p android --profile production` to generate Google Play Store `.aab` bundles.
    - Run `eas build -p ios --profile production` to build Apple iOS `.ipa` binaries.
-2. **App Store & Google Play Console Submission**:
+3. **App Store & Google Play Console Submission**:
    - Package high-resolution app icons (1024x1024) and splash screens generated from [`public/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/public/xcharge-logo.svg).
    - Configure privacy policies, Ghana telecom disclosures, and location permission declarations.
-3. **Station Owner Web Admin Portal**:
+4. **Station Owner Web Admin Portal**:
    - Real-time management dashboard for station operators to inspect revenue (GH₵), active charging kilowatts, charger uptime, and tariff schedules.
