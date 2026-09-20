@@ -19,8 +19,8 @@
 | **Ghana MoMo Payment Switch** | **100%** | **Live & Verified** | USSD push prompts (`*170#`, `*110#`), PIN authorization, persistent multi-user wallet, and pre-auth escrow refunds. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
-| **Store Distribution & PWA** | **80%** | **PWA Live / EAS Ready** | PWA installable on iOS & Android with offline caching; eas.json configured for standalone APK. |
-| **Overall Commercial Progress** | **~92%** | **Production Ready** | PWA, telephony, auth, payments, escrow, and telemetry complete; entering hardware ingress. |
+| **Store Distribution & PWA** | **85%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, and offline caching; eas.json configured. |
+| **Overall Commercial Progress** | **~93%** | **Production Ready** | PWA, telephony, auth, payments, escrow, and telemetry complete; entering hardware ingress. |
 
 ---
 

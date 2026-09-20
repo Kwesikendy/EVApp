@@ -1,6 +1,8 @@
 # XCHARGE EV Platform — Complete Project Context & Architecture
 
-> **Notice:** This document is the single source of truth for the XCHARGE project. Any AI assistant or developer picking up this repository should read this document first to get up to speed instantly.
+> **Notice & Mandatory Instruction:** This document is the single source of truth for the XCHARGE project. 
+> 1. Any AI assistant or developer picking up this repository MUST read this document first to get up to speed instantly.
+> 2. **CRITICAL WORKSPACE RULE:** You MUST always update this project context file (`PROJECT_CONTEXT.md`) and `ROADMAP.md` whenever you build, modify, or add features, endpoints, components, or architectural changes. Never complete a task without recording your work here.
 
 ---
 
@@ -103,6 +105,23 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
 - Port migrated from conflicting 3000 to `5173`.
 - Deployed and live on GitHub Pages and ready for Vercel.
 
+### D. Phase 4: Progressive Web App (PWA) Engine (100% Complete & Verified)
+- **Web App Manifest ([`public/manifest.json`](file:///d:/xcharge-ev-platform/public/manifest.json))**:
+  - Configured standalone display mode, `portrait-primary` orientation, and Hypercharge OS `#10141a` theme.
+- **Authentic Brand App Icons ([`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/))**:
+  - Replaced generic placeholder "X" with the authentic XCHARGE aerodynamic wing blade emblem (white wing, glowing cyan diagonal blade, and electric cyan backlight) generated with `sharp` at `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, and `expo-mobile/assets/icon.png`.
+- **Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js)) & Registration ([`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts))**:
+  - Pre-caches core app shell for offline resilience with stale-while-revalidate for static assets and network-first for live APIs.
+- **Mobile Installation Prompts ([`src/components/PwaInstallPrompt.tsx`](file:///d:/xcharge-ev-platform/src/components/PwaInstallPrompt.tsx))**:
+  - 1-tap installation on Android/Chrome via `beforeinstallprompt`.
+  - Animated step-by-step iOS Safari visual guide (*Tap Share ⎋ → Add to Home Screen*).
+  - On-demand "Install Mobile App (PWA)" button in the Driver Profile modal.
+- **Mobile Responsiveness & Safe-Area Overhaul**:
+  - **Dynamic Viewport**: Switched from `100vh` to `h-[100dvh]` to prevent mobile toolbar jump and notch clipping.
+  - **iOS Safe Areas**: Integrated `env(safe-area-inset-top)` into [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) and `env(safe-area-inset-bottom)` into [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) for notch and home-bar collision immunity.
+  - **Soft Keyboard & Short Screen Scroll**: Replaced `my-auto` flex centering with `py-6 sm:my-auto` in [`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx), [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx), and [`OtpVerificationScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpVerificationScreen.tsx).
+  - **Orientation & Resize Engine**: Added active `resize` and standalone detection to dynamically adjust between `'phone'` chassis and full-screen `'fluid'` mode.
+
 ---
 
 ## 5. File & Directory Map
@@ -132,11 +151,15 @@ d:\xcharge-ev-platform\
 │   └── users.json                      # Persistent driver accounts, EV fleet & ledger database
 │
 ├── src/                                # Web Application
-│   ├── components/                     # Web components (Login, Signup, OTP, Map, Header, Admin)
+│   ├── components/                     # Web components (PwaInstallPrompt, Login, Signup, OTP, Map, Header, Admin)
+│   ├── registerServiceWorker.ts        # PWA Service Worker lifecycle registration
 │   ├── firebase.ts                     # Cloud Firestore client initialization
 │   └── types.ts                        # TypeScript models (OCPP, Station, Wallet, Fleet)
 │
-├── public/                             # Public static assets
+├── public/                             # Public static assets & PWA files
+│   ├── manifest.json                   # PWA Web App Manifest
+│   ├── sw.js                           # Offline Service Worker
+│   ├── icons/                          # High-res PWA & Apple touch icons
 │   ├── xcharge-logo.svg                # Authentic master brand vector
 │   └── electric_vehicle_charging.mp4   # Splash charging footage
 │

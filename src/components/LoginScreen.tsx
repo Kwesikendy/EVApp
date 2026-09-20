@@ -80,7 +80,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#0a0e14] text-slate-100 overflow-y-auto no-scrollbar select-none">
-      <div className="w-full max-w-sm space-y-5 my-auto">
+      <div className="w-full max-w-sm space-y-5 py-6 sm:my-auto">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="p-2.5 rounded-2xl bg-[#10141a] border border-white/10 shadow-xl mb-1">

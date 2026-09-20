@@ -6,6 +6,7 @@ These rules apply across the entire `xcharge-ev-platform` repository. All agenti
 
 ## 1. Single Source of Truth
 - Prioritize [`PROJECT_CONTEXT.md`](file:///d:/xcharge-ev-platform/PROJECT_CONTEXT.md) and [`ROADMAP.md`](file:///d:/xcharge-ev-platform/ROADMAP.md) before making architectural decisions.
+- **Mandatory Synchronous Update**: Whenever you build, modify, or add features, endpoints, or architectural changes, you MUST update [`PROJECT_CONTEXT.md`](file:///d:/xcharge-ev-platform/PROJECT_CONTEXT.md) and [`ROADMAP.md`](file:///d:/xcharge-ev-platform/ROADMAP.md) before concluding your turn.
 - Project skill: [`xcharge-platform`](file:///.agents/skills/xcharge-platform/SKILL.md).
 
 ---

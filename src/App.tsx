@@ -98,6 +98,20 @@ export default function App() {
 
   useEffect(() => {
     loadData();
+
+    // Dynamically adjust device mode on screen resize/orientation change
+    const handleResize = () => {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://');
+      if (isStandalone || window.innerWidth < 768) {
+        setDeviceMode('fluid');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleStopCharging = async () => {
@@ -120,7 +134,11 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#070a0e] text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans select-none relative p-0 sm:p-4">
+    <div
+      className={`w-full h-[100dvh] min-h-[100dvh] bg-[#070a0e] text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans select-none relative ${
+        deviceMode === 'phone' ? 'p-0 sm:p-4' : 'p-0'
+      }`}
+    >
       {/* Ambient background glow for desktop showcase */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(0,240,255,0.08),transparent_60%)]" />
 

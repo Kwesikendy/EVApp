@@ -187,7 +187,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#0a0e14] text-slate-100 overflow-y-auto no-scrollbar select-none">
-      <div className="w-full max-w-sm space-y-5 my-auto">
+      <div className="w-full max-w-sm space-y-5 py-6 sm:my-auto">
         {/* Top Back Nav */}
         <div className="flex items-center justify-between">
           <button

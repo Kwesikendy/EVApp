@@ -1,4 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+
+const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="cyanBlade" x1="0%" y1="100%" x2="100%" y2="0%">
@@ -41,4 +45,30 @@
       fill="url(#cyanBlade)"
     />
   </g>
-</svg>
+</svg>`;
+
+async function run() {
+  const buf = Buffer.from(svgContent, 'utf-8');
+  
+  // Write the master SVG
+  fs.writeFileSync(path.join(__dirname, '..', 'public', 'icons', 'xcharge-mark.svg'), svgContent);
+
+  const targets = [
+    { file: path.join(__dirname, '..', 'public', 'icons', 'icon-512.png'), size: 512 },
+    { file: path.join(__dirname, '..', 'public', 'icons', 'icon-192.png'), size: 192 },
+    { file: path.join(__dirname, '..', 'public', 'icons', 'icon-maskable-512.png'), size: 512 },
+    { file: path.join(__dirname, '..', 'public', 'icons', 'apple-touch-icon.png'), size: 180 },
+    { file: path.join(__dirname, '..', 'expo-mobile', 'assets', 'icon.png'), size: 1024 },
+    { file: path.join(__dirname, '..', 'expo-mobile', 'assets', 'adaptive-icon.png'), size: 1024 },
+  ];
+
+  for (const t of targets) {
+    await sharp(buf)
+      .resize(t.size, t.size)
+      .png()
+      .toFile(t.file);
+    console.log(`Rendered: ${t.file} (${t.size}x${t.size})`);
+  }
+}
+
+run().catch(console.error);
