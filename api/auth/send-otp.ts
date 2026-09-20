@@ -15,7 +15,15 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch {}
+    } else if (Buffer.isBuffer(body)) {
+      try { body = JSON.parse(body.toString('utf-8')); } catch {}
+    } else if (!body) {
+      body = {};
+    }
+
     const phoneNumber = body.phoneNumber || body.phone;
     if (!phoneNumber) {
       return res.status(200).json({ success: true, message: 'Default demo phone code generated', devCode: '123456' });

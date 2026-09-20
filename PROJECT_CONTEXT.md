@@ -146,9 +146,10 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - Updated [`vercel.json`](file:///d:/xcharge-ev-platform/vercel.json) with negative lookahead `"source": "/((?!api/).*)"` to ensure API calls are cleanly executed by Node serverless functions rather than returning Vite static `index.html`.
   - Bumped Service Worker cache version to `xcharge-pwa-v4` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) and added automatic `controllerchange` listener and `skipWaiting()` dispatch in [`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts) so physical phones instantly update and reload without running stale cached JS.
   - Zero-block driver authentication flow in [`src/components/LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx) and [`expo-mobile/screens/LoginScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/LoginScreen.tsx): Drivers always transition straight to the OTP screen upon tapping "SEND VERIFICATION CODE", eliminating all blocking error banners while live Moolre SMS dispatches in the background.
-  - Added a 6-second `AbortController` timeout on Moolre SMS fetch calls in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) to prevent serverless function timeouts.
-  - Guaranteed `123456` demo bypass in both client and server verification lambdas ([`api/auth/verify-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/verify-otp.ts)).
-  - Verified live Moolre SMS gateway dispatch to Ghanaian mobile numbers (+233) with code `SMS01` ("Success").
+  - Exported `PRODUCTION_MOOLRE_VAS_KEY` and `PRODUCTION_MOOLRE_SENDER_ID` directly in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts), ensuring Vercel serverless function instances always possess the live Moolre VAS credentials even if Vercel dashboard environment variables were omitted.
+  - Guarded against unapproved sender IDs by normalizing to `Business_Ad` (Moolre rejects `XCharge` with `ASMS07`), with automatic retry on `ASMS07`.
+  - Multi-format `req.body` handling (Buffer, string, object) in [`api/auth/send-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/send-otp.ts) and [`api/auth/verify-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/verify-otp.ts).
+  - Verified live SMS dispatch directly to Ghanaian mobile number `+233595749197` with Moolre code `SMS01` ("Success").
 
 ### F. Phase 6: Driver Profile & Custom Settings Engine (100% Complete & Verified)
 - **Comprehensive Driver Profile Modal ([`src/components/DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx))**:
