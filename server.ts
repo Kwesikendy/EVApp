@@ -32,6 +32,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Ensure /api prefix is preserved if Vercel serverless strips it
+app.use((req, _res, next) => {
+  if (process.env.VERCEL && !req.url.startsWith('/api') && !req.url.startsWith('/electric')) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // Serve static assets from /public folder with full MIME type and byte-range support
 const publicDir = path.join(process.cwd(), 'public');
 app.use(express.static(publicDir));
