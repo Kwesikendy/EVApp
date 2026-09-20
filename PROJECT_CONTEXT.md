@@ -113,9 +113,12 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
 - **Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js)) & Registration ([`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts))**:
   - Pre-caches core app shell for offline resilience with stale-while-revalidate for static assets and network-first for live APIs.
 - **Mobile Installation Prompts ([`src/components/PwaInstallPrompt.tsx`](file:///d:/xcharge-ev-platform/src/components/PwaInstallPrompt.tsx))**:
-  - 1-tap installation on Android/Chrome via `beforeinstallprompt`.
-  - Animated step-by-step iOS Safari visual guide (*Tap Share ⎋ → Add to Home Screen*).
-  - On-demand "Install Mobile App (PWA)" button in the Driver Profile modal.
+  - **Persistent Browser Display**: Always presents the installation banner whenever the user opens the web application in a mobile/desktop browser (Safari, Chrome, etc.) until installed in standalone mode.
+  - **Zero Lockout on Accidental Cancel**: Eliminated the legacy 24-hour `localStorage` lockout. If the driver accidentally clicks the "✕" (cancel) button, the prompt collapses into an accessible, non-intrusive floating `Install on iPhone` / `Install App` pill in the bottom corner so they can tap it anytime without having to hunt through menus.
+  - **Auto-Re-Arm**: Automatically re-presents the banner on every browser open/refresh or after 90 seconds if still browsing outside standalone mode.
+  - **iOS Safari Visual Guide**: Step-by-step interactive sheet with authentic icons (*Tap Share ⎋ → Add to Home Screen ⊞*).
+  - **Android/Chrome 1-Tap**: Direct integration with `beforeinstallprompt` for native 1-tap installation.
+  - **On-Demand Trigger**: Available from the Driver Profile modal via the `xcharge-open-pwa-install` custom event.
 - **Mobile Responsiveness & Safe-Area Overhaul**:
   - **Dynamic Viewport**: Switched from `100vh` to `h-[100dvh]` to prevent mobile toolbar jump and notch clipping.
   - **iOS Safe Areas**: Integrated `env(safe-area-inset-top)` into [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) and `env(safe-area-inset-bottom)` into [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) for notch and home-bar collision immunity.

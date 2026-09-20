@@ -15,7 +15,12 @@ export const PwaInstallPrompt: React.FC = () => {
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Check if already running in standalone PWA mode
+    // 1. Purge any legacy 24-hour dismissal lockout so users never lose the prompt
+    try {
+      localStorage.removeItem('xcharge_pwa_dismissed');
+    } catch {}
+
+    // 2. Check if already running in standalone PWA mode (added to home screen)
     const checkStandalone = () => {
       const isStandaloneMode =
         window.matchMedia('(display-mode: standalone)').matches ||
@@ -27,59 +32,51 @@ export const PwaInstallPrompt: React.FC = () => {
 
     if (checkStandalone()) return;
 
-    // 2. Detect iOS device
+    // 3. Detect iOS device
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setIsIos(isIosDevice);
 
-    // 3. Check dismissed cache (wait 24 hours if dismissed)
-    const dismissedUntil = localStorage.getItem('xcharge_pwa_dismissed');
-    const isDismissed = dismissedUntil && Number(dismissedUntil) > Date.now();
+    // 4. Always present the installation banner on browser open after a brief 1.2s delay
+    const initialTimer = setTimeout(() => {
+      setShowBanner(true);
+    }, 1200);
 
-    // 4. Capture Android/Chrome beforeinstallprompt event
+    // 5. Capture Android/Chrome beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      if (!isDismissed) {
-        setShowBanner(true);
-      }
+      setShowBanner(true);
     };
 
-    // 5. Custom event to trigger install UI from any button/menu
+    // 6. Custom event to trigger install UI from any button/menu
     const handleOpenRequest = () => {
       if (isIosDevice) {
         setShowIosGuide(true);
+      } else if (deferredPrompt) {
+        handleInstallClick();
       } else {
-        setShowBanner(true);
+        setShowIosGuide(true);
       }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('xcharge-open-pwa-install', handleOpenRequest);
 
-    // If iOS and not dismissed, show banner after a short delay
-    if (isIosDevice && !isDismissed) {
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 2500);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        window.removeEventListener('xcharge-open-pwa-install', handleOpenRequest);
-      };
-    }
-
     // App installed handler
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setShowBanner(false);
+      setShowIosGuide(false);
       setDeferredPrompt(null);
       console.log('[XCharge PWA] Successfully installed on device!');
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      clearTimeout(initialTimer);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('xcharge-open-pwa-install', handleOpenRequest);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -99,18 +96,22 @@ export const PwaInstallPrompt: React.FC = () => {
       }
       setDeferredPrompt(null);
     } else {
-      // Fallback for non-iOS browsers without beforeinstallprompt
+      // Fallback for browsers without beforeinstallprompt (Safari, Firefox, etc.)
       setShowIosGuide(true);
     }
   };
 
   const handleDismiss = () => {
     setShowBanner(false);
-    // Dismiss for 24 hours
-    localStorage.setItem('xcharge_pwa_dismissed', (Date.now() + 86400000).toString());
+    // Dismiss only for the current moment, but gentle reminder re-arms after 90 seconds if still browsing
+    setTimeout(() => {
+      if (!isStandalone && !isInstalled) {
+        setShowBanner(true);
+      }
+    }, 90000);
   };
 
-  if (isStandalone || isInstalled || (!showBanner && !showIosGuide)) {
+  if (isStandalone || isInstalled) {
     return null;
   }
 
@@ -119,7 +120,7 @@ export const PwaInstallPrompt: React.FC = () => {
       {/* 1. Bottom Floating Installation Banner */}
       {showBanner && !showIosGuide && (
         <div className="fixed bottom-20 sm:bottom-6 inset-x-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-[#141922]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/80 flex items-center gap-3 relative">
+          <div className="bg-[#141922]/95 backdrop-blur-xl border border-[#00f0ff]/30 rounded-2xl p-4 shadow-2xl shadow-black/80 flex items-center gap-3 relative ring-1 ring-[#00f0ff]/20">
             {/* App Icon */}
             <div className="w-12 h-12 rounded-xl bg-[#10141a] border border-white/10 p-1.5 shrink-0 flex items-center justify-center shadow-inner">
               <img src="/icons/xcharge-mark.svg" alt="XCHARGE" className="w-full h-full object-contain" />
@@ -128,20 +129,22 @@ export const PwaInstallPrompt: React.FC = () => {
             {/* Information */}
             <div className="flex-1 min-w-0 pr-6">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold text-white tracking-wide">Install XCHARGE App</span>
+                <span className="text-sm font-bold text-white tracking-wide">
+                  {isIos ? 'Install XCHARGE on iPhone' : 'Install XCHARGE App'}
+                </span>
                 <span className="px-1.5 py-0.2 rounded bg-[#00f0ff]/20 text-[#00f0ff] text-[9px] font-mono font-bold uppercase">
                   PWA
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 truncate mt-0.5">
-                Add to your home screen for instant 1-tap charging
+                {isIos ? 'Tap Share → Add to Home Screen' : 'Add to home screen for 1-tap instant charging'}
               </p>
             </div>
 
             {/* Install CTA */}
             <button
               onClick={handleInstallClick}
-              className="px-3.5 py-2 rounded-xl bg-[#00f0ff] hover:bg-[#55f5ff] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 shadow-md shadow-black/40 transition-all shrink-0 active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-[#00f0ff] hover:bg-[#55f5ff] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 shadow-md shadow-black/40 transition-all shrink-0 active:scale-95 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Install</span>
@@ -150,12 +153,36 @@ export const PwaInstallPrompt: React.FC = () => {
             {/* Dismiss Button */}
             <button
               onClick={handleDismiss}
-              className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+              className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+              title="Close for now"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
+      )}
+
+      {/* 2. Compact Floating Pill (Shown if user mistakenly dismissed the banner so they never have to search for it) */}
+      {!showBanner && !showIosGuide && (
+        <button
+          onClick={() => {
+            if (isIos) {
+              setShowIosGuide(true);
+            } else if (deferredPrompt) {
+              handleInstallClick();
+            } else {
+              setShowIosGuide(true);
+            }
+          }}
+          className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-40 px-3.5 py-2 rounded-full bg-[#141922]/95 backdrop-blur-xl border border-[#00f0ff]/50 text-white shadow-xl flex items-center gap-2 text-xs font-bold hover:bg-[#181c24] hover:border-[#00f0ff] active:scale-95 transition-all cursor-pointer group"
+          title="Install XCHARGE App on your device"
+        >
+          <div className="w-2 h-2 rounded-full bg-[#00f0ff] animate-ping" />
+          <Download className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-mono font-bold text-white">
+            {isIos ? 'Install on iPhone' : 'Install App'}
+          </span>
+        </button>
       )}
 
       {/* 2. iOS Safari Installation Modal Guide */}
