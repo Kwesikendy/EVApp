@@ -50,8 +50,44 @@ export interface UserProfile {
 import fs from 'fs';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const SEED_FILE = path.join(process.cwd(), 'data', 'users.json');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'xcharge-data')
+  : path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const OTP_FILE = path.join(DATA_DIR, 'otps.json');
+
+function saveOtpToStorage(normalized: string, record: OtpRecord): void {
+  OTP_STORE.set(normalized, record);
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    let map: Record<string, OtpRecord> = {};
+    if (fs.existsSync(OTP_FILE)) {
+      try {
+        map = JSON.parse(fs.readFileSync(OTP_FILE, 'utf-8'));
+      } catch {}
+    }
+    map[normalized] = record;
+    fs.writeFileSync(OTP_FILE, JSON.stringify(map), 'utf-8');
+  } catch {}
+}
+
+function getOtpFromStorage(normalized: string): OtpRecord | undefined {
+  const mem = OTP_STORE.get(normalized);
+  if (mem) return mem;
+  try {
+    if (fs.existsSync(OTP_FILE)) {
+      const map: Record<string, OtpRecord> = JSON.parse(fs.readFileSync(OTP_FILE, 'utf-8'));
+      if (map[normalized]) {
+        OTP_STORE.set(normalized, map[normalized]);
+        return map[normalized];
+      }
+    }
+  } catch {}
+  return undefined;
+}
 
 function loadUsersFromDisk(): Map<string, UserProfile> {
   const map = new Map<string, UserProfile>();
@@ -91,8 +127,12 @@ function loadUsersFromDisk(): Map<string, UserProfile> {
   map.set(defaultDriver.phoneNumber, defaultDriver);
 
   try {
-    if (fs.existsSync(USERS_FILE)) {
-      const content = fs.readFileSync(USERS_FILE, 'utf-8');
+    const fileToRead = fs.existsSync(USERS_FILE)
+      ? USERS_FILE
+      : (fs.existsSync(SEED_FILE) ? SEED_FILE : null);
+
+    if (fileToRead) {
+      const content = fs.readFileSync(fileToRead, 'utf-8');
       const records: UserProfile[] = JSON.parse(content);
       if (Array.isArray(records)) {
         for (const user of records) {
@@ -151,14 +191,14 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes validity
 
-  OTP_STORE.set(normalized, {
+  saveOtpToStorage(normalized, {
     code,
     expiresAt,
     attempts: 0,
   });
 
   const moolreVasKey = process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY;
-  const moolreSenderId = process.env.MOOLRE_SENDER_ID || 'XCharge';
+  const moolreSenderId = process.env.MOOLRE_SENDER_ID || 'Business_Ad';
   const rawRecipient = normalized.startsWith('+') ? normalized.substring(1) : normalized;
 
   // If live Moolre API/VAS key is configured, dispatch live SMS via Moolre
@@ -217,7 +257,7 @@ export function verifyOtp(
   metadata?: VerifyOtpMetadata
 ): { success: boolean; error?: string; user?: UserProfile } {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
-  const record = OTP_STORE.get(normalized);
+  const record = getOtpFromStorage(normalized);
 
   // Allow standard developer test bypass code '123456' for rapid testing
   const isDevBypass = inputCode === '123456';

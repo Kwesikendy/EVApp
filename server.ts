@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
 import type { ChargingStation, Connector, ActiveTelemetrySession, UserWallet, FleetAccount, OcppMessage } from './src/types';
 import {
   sendOtp,
@@ -1105,6 +1104,7 @@ app.put('/api/user/profile', (req, res) => {
 // --- VITE & SERVER STARTUP ---
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
@@ -1123,4 +1123,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

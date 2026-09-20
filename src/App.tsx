@@ -40,7 +40,7 @@ export default function App() {
   });
 
   const [authPhone, setAuthPhone] = useState<string>('+233248901204');
-  const [authDevCode, setAuthDevCode] = useState<string | undefined>('123456');
+  const [authDevCode, setAuthDevCode] = useState<string | undefined>(undefined);
   const [authRegistration, setAuthRegistration] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 

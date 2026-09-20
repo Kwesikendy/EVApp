@@ -59,13 +59,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       if (res.ok && data.success) {
         onSendCode(fullPhone, accountType, data.devCode);
       } else {
-        // Fallback for offline/demo if API unreachable
-        onSendCode(fullPhone, accountType, data.devCode || '123456');
+        setErrorMessage(data.error || 'Failed to send SMS code. Please check your phone number.');
       }
     } catch {
       setIsLoading(false);
-      // Offline fallback: allow seamless testing with default sandbox code
-      onSendCode(fullPhone, accountType, '123456');
+      setErrorMessage('Network connection error. Unable to reach SMS gateway.');
     }
   };
 
@@ -73,7 +71,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const demoPhone = '0248901204';
     setPhoneNumber(demoPhone);
     setAccountType('personal');
-    handleSendCode(demoPhone);
+    onSendCode('+233248901204', 'personal', '123456');
   };
 
   return (

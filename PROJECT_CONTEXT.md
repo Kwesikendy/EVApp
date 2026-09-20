@@ -136,7 +136,11 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - **Authentication Screen Transitions**: Wrapped auth flow views (`login`, `signup`, `otp`, `otp_success`) in `<AnimatePresence mode="wait">` for fluid step transitions.
   - **Modal Sheet Animations**: Upgraded Profile modal, Vehicle selector modal, and Station Admin drawer with spring physics (`type: 'spring', damping: 28, stiffness: 350`) and smooth backdrop fades.
   - **Sliding Tab Indicator**: Implemented a smooth sliding accent indicator in [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) using `layoutId="bottomNavIndicator"` and `whileTap={{ scale: 0.92 }}` tactile touch response.
-  - **Tactile Header Micro-Interactions**: Added `active:scale-95` tactile response to vehicle badge, viewport switcher, video replay, and avatar controls in [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx).
+- **Vercel Serverless API Architecture & Live OTP**:
+  - Created [`api/index.ts`](file:///d:/xcharge-ev-platform/api/index.ts) exporting the Express backend as a Vercel Serverless Function.
+  - Updated [`vercel.json`](file:///d:/xcharge-ev-platform/vercel.json) with `/api/(.*)` rewrite to route all backend API calls to the serverless function.
+  - Adapted [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) with dynamic `/tmp` data directory support and persistent OTP storage (`otps.json`) across serverless function instances.
+  - Updated [`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx) and [`App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx) to strictly enforce real Moolre SMS dispatch for manual phone number inputs, reserving the `123456` sandbox code exclusively for the Quick Demo button.
 
 ---
 
