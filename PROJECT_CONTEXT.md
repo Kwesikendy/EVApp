@@ -122,6 +122,20 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - **Soft Keyboard & Short Screen Scroll**: Replaced `my-auto` flex centering with `py-6 sm:my-auto` in [`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx), [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx), and [`OtpVerificationScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpVerificationScreen.tsx).
   - **Orientation & Resize Engine**: Added active `resize` and standalone detection to dynamically adjust between `'phone'` chassis and full-screen `'fluid'` mode.
 
+### E. Phase 5: Aesthetic Polish & Motion Engine (100% Complete & Verified)
+- **Em-Dash & En-Dash Clean-up**:
+  - Completely removed all em-dashes (`—`) and en-dashes (`–`) across all UI text, hubs, and documentation, ensuring crisp typography.
+- **Unnecessary Glow Elimination**:
+  - Replaced arcade-style neon glow drop shadows (`glow-cyan`, `glow-cyan-sm`, `glow-emerald`) with clean, high-contrast automotive elevation shadows (`shadow-md shadow-black/40`, `shadow-xl`) across buttons, modals, logo emblems, and gauges.
+- **AI Icon Elimination**:
+  - Replaced all non-functional AI/chatbot icons (`Sparkles`) with domain-specific automotive telemetry icons (`Zap` for fast-charging power, `ShieldCheck` for cryptographic security).
+- **Motion & Transition Engine ([`motion/react`](file:///d:/xcharge-ev-platform/package.json))**:
+  - **Screen & Tab Transitions**: Wrapped top-level tabs (`map`, `charge`, `wallet`, `fleet`) in `<AnimatePresence mode="wait">` with subtle vertical entrance slides (`y: 8` -> `y: 0`) and opacity fades.
+  - **Authentication Screen Transitions**: Wrapped auth flow views (`login`, `signup`, `otp`, `otp_success`) in `<AnimatePresence mode="wait">` for fluid step transitions.
+  - **Modal Sheet Animations**: Upgraded Profile modal, Vehicle selector modal, and Station Admin drawer with spring physics (`type: 'spring', damping: 28, stiffness: 350`) and smooth backdrop fades.
+  - **Sliding Tab Indicator**: Implemented a smooth sliding accent indicator in [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) using `layoutId="bottomNavIndicator"` and `whileTap={{ scale: 0.92 }}` tactile touch response.
+  - **Tactile Header Micro-Interactions**: Added `active:scale-95` tactile response to vehicle badge, viewport switcher, video replay, and avatar controls in [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx).
+
 ---
 
 ## 5. File & Directory Map

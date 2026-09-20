@@ -26,17 +26,11 @@
   }
 }
 
-/* Custom glow and automotive styling */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), 0 0 40px rgba(0, 240, 255, 0.1);
-}
-
-.glow-cyan-sm {
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
-}
-
+/* Clean automotive elevation styling */
+.glow-cyan,
+.glow-cyan-sm,
 .glow-emerald {
-  box-shadow: 0 0 15px rgba(0, 230, 153, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
 .border-subtle {

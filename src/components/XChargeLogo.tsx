@@ -31,7 +31,7 @@ export const XChargeLogo: React.FC<XChargeLogoProps> = ({
       <div className={`relative flex items-center justify-center shrink-0 ${markSizeMap[size]}`}>
         <svg
           viewBox="0 0 100 100"
-          className="w-full h-full drop-shadow-[0_0_12px_rgba(0,240,255,0.7)]"
+          className="w-full h-full"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -79,7 +79,7 @@ export const XChargeLogo: React.FC<XChargeLogoProps> = ({
 
       {variant === 'full' && (
         <div className={`flex items-center font-extrabold font-sans leading-none ${fontSizeMap[size]}`}>
-          <span className="text-[#00f0ff] drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">X</span>
+          <span className="text-[#00f0ff]">X</span>
           <span className="text-white ml-0.5">CHARGE</span>
         </div>
       )}

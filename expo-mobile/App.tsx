@@ -39,7 +39,6 @@ import {
   Unlock,
   Radio,
   ChevronRight,
-  Sparkles,
   PhoneCall,
   Check,
   List,
@@ -122,7 +121,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-01',
     stationId: 'XC-ACC-001',
-    name: 'XCharge Superhub – Airport City',
+    name: 'XCharge Superhub - Airport City',
     address: 'Liberation Rd, Terminal 3 District, Accra',
     distanceKm: 1.2,
     etaMins: 4,
@@ -139,7 +138,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-02',
     stationId: 'XC-ACC-002',
-    name: 'XCharge Express – Financial Plaza',
+    name: 'XCharge Express - Financial Plaza',
     address: 'High Street Commercial Core, Accra Central',
     distanceKm: 3.8,
     etaMins: 9,
@@ -154,7 +153,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-03',
     stationId: 'XC-ACC-003',
-    name: 'XCharge Hub – Ridge Tech Zone',
+    name: 'XCharge Hub - Ridge Tech Zone',
     address: 'GIMPA Bypass, Ridge Ambassadorial Enclave',
     distanceKm: 2.4,
     etaMins: 6,
@@ -170,7 +169,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-04',
     stationId: 'XC-ACC-004',
-    name: 'XCharge Fleet Depot – Heavy Logistics Hub',
+    name: 'XCharge Fleet Depot - Heavy Logistics Hub',
     address: 'Industrial Ring Rd West, Heavy Transport Corridor',
     distanceKm: 5.1,
     etaMins: 12,
@@ -224,7 +223,7 @@ const DEFAULT_FLEET: FleetVehicle[] = [
 const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   {
     id: 'tx-01',
-    title: 'XCharge Superhub – Airport City',
+    title: 'XCharge Superhub - Airport City',
     subtitle: 'CCS2 #1 · 350 kW Ultra-Fast',
     timestamp: 'Today, 11:20 AM',
     amount: 93.48,
@@ -241,7 +240,7 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   },
   {
     id: 'tx-03',
-    title: 'XCharge Express – Financial Plaza',
+    title: 'XCharge Express - Financial Plaza',
     subtitle: 'CCS2 #2 · 200 kW Fast',
     timestamp: 'Yesterday, 16:15 PM',
     amount: 76.44,
@@ -342,7 +341,7 @@ function AppContent() {
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(872);
   const [packVoltage, setPackVoltage] = useState<number>(412.8);
   const [packCurrent, setPackCurrent] = useState<number>(335.2);
-  const [activeStationName, setActiveStationName] = useState<string>('XCharge Superhub – Airport City');
+  const [activeStationName, setActiveStationName] = useState<string>('XCharge Superhub - Airport City');
   const [activeConnectorType, setActiveConnectorType] = useState<string>('CCS2 · 350 kW Ultra-Fast');
 
   // Real-time Station Hardware Simulator state

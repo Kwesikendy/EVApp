@@ -213,7 +213,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
                 onClick={() => setSelectedEv(ev.id)}
                 className={`p-2.5 rounded-xl border text-left transition-all ${
                   selectedEv === ev.id
-                    ? 'bg-[#181c24] border-[#00f0ff] glow-cyan-sm'
+                    ? 'bg-[#181c24] border-[#00f0ff] shadow-sm'
                     : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
                 }`}
               >
@@ -288,7 +288,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
           type="button"
           onClick={handleRegister}
           disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 shadow-lg"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
         >
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />

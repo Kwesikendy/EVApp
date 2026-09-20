@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, ArrowRight, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import { Check, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { XChargeLogo } from './XChargeLogo';
 
 interface OtpSuccessScreenProps {
@@ -18,17 +18,16 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#0a0e14] text-slate-100 overflow-y-auto no-scrollbar select-none">
-      <div className="w-full max-w-sm space-y-6 my-auto text-center">
+      <div className="w-full max-w-sm space-y-6 py-6 sm:my-auto text-center">
         {/* Top Protocol Status Pill */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>256-BIT TELEMETRY AUTHENTICATED</span>
         </div>
 
-        {/* Animated Success Emblem */}
-        <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-[#00f0ff]/15 animate-ping" />
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#10141a] to-[#181c24] border-2 border-[#00f0ff] flex items-center justify-center shadow-[0_0_30px_rgba(0,240,255,0.4)]">
+        {/* Success Emblem */}
+        <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#10141a] to-[#181c24] border-2 border-[#00f0ff] flex items-center justify-center shadow-lg shadow-black/60">
             <Check className="w-12 h-12 text-[#00f0ff] stroke-[3]" />
           </div>
         </div>
@@ -77,7 +76,7 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
         <button
           type="button"
           onClick={onEnterDashboard}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2 active:scale-[0.99] shadow-xl"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-md shadow-black/40"
         >
           <span>ENTER HYPERCHARGE OS</span>
           <ArrowRight className="w-4 h-4 stroke-[3]" />

@@ -98,7 +98,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
         <button
           id="btn-fleet-add-vehicle"
           onClick={handleAddVehicle}
-          className="min-h-[44px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-1.5 active:scale-[0.98]"
+          className="min-h-[44px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-[0.98]"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>Add Vehicle</span>
@@ -148,7 +148,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
           <div className="space-y-1">
             <div className="w-full h-2 bg-[#181c24] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#00f0ff] rounded-full shadow-[0_0_10px_#00f0ff]"
+                className="h-full bg-[#00f0ff] rounded-full"
                 style={{ width: '68%' }}
               />
             </div>
@@ -209,7 +209,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
           <div className="space-y-1">
             <div className="w-full h-2 bg-[#181c24] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#00e699] rounded-full shadow-[0_0_10px_#00e699]"
+                className="h-full bg-[#00e699] rounded-full"
                 style={{ width: '92%' }}
               />
             </div>
@@ -270,7 +270,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
           <div className="space-y-1">
             <div className="w-full h-2 bg-[#181c24] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#00f0ff] rounded-full shadow-[0_0_10px_#00f0ff]"
+                className="h-full bg-[#00f0ff] rounded-full"
                 style={{ width: '41%' }}
               />
             </div>

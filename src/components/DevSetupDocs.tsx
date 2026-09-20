@@ -281,7 +281,7 @@ npm start`}
               <div className="bg-slate-950 border border-slate-800 rounded-xl p-3">
                 <span className="text-emerald-400 font-mono font-bold">3. [MeterValues Ticker]</span>
                 <p className="text-slate-400 mt-1">
-                  Broadcasting every 5–10s with <code>measurand: "Energy.Active.Import.Register"</code> (kWh) and <code>"Power.Active.Import"</code> (kW) to fuel the app's ticking countdown.
+                  Broadcasting every 5-10s with <code>measurand: "Energy.Active.Import.Register"</code> (kWh) and <code>"Power.Active.Import"</code> (kW) to fuel the app's ticking countdown.
                 </p>
               </div>
             </div>

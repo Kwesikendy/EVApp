@@ -130,7 +130,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               onClick={() => setSelectedPreset(amt)}
               className={`py-2 rounded-xl text-xs font-mono font-bold transition-all border ${
                 selectedPreset === amt
-                  ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+                  ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] shadow-sm'
                   : 'bg-[#181c24] border-white/[0.08] text-slate-300 hover:border-white/20'
               }`}
             >
@@ -179,7 +179,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           id="btn-wallet-topup"
           onClick={handleTopUp}
           disabled={isProcessing}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2.5 active:scale-[0.99] disabled:opacity-60 shadow-lg"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] disabled:opacity-60 shadow-md shadow-black/40"
         >
           <Wallet className="w-4 h-4 fill-current" />
           <span>
@@ -213,7 +213,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('mtn')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'mtn'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
@@ -240,7 +240,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('telecel')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'telecel' || selectedMethod === 'vodafone'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
@@ -269,7 +269,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('card')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'card'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >

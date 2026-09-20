@@ -46,7 +46,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             id="btn-replay-splash"
             onClick={onReplaySplash}
             title="Replay Charging Video Splash"
-            className="w-7 h-7 rounded-lg bg-[#181c24] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:text-[#00f0ff] transition-colors"
+            className="w-7 h-7 rounded-lg bg-[#181c24] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:text-[#00f0ff] transition-colors cursor-pointer active:scale-95"
           >
             <Video className="w-3.5 h-3.5" />
           </button>
@@ -57,7 +57,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           id="btn-header-viewport"
           onClick={onToggleDeviceMode}
           title="Toggle Fullscreen or Mobile Shell"
-          className="hidden md:flex items-center gap-1 px-2 py-1 rounded-lg bg-[#181c24] border border-white/[0.08] text-[11px] font-mono text-slate-300 hover:text-white transition-colors"
+          className="hidden md:flex items-center gap-1 px-2 py-1 rounded-lg bg-[#181c24] border border-white/[0.08] text-[11px] font-mono text-slate-300 hover:text-white transition-colors cursor-pointer active:scale-95"
         >
           {deviceMode === 'phone' ? (
             <>
@@ -76,7 +76,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
         <button
           id="header-vehicle-pill"
           onClick={onOpenVehicleSelect}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] transition-colors cursor-pointer active:scale-95"
         >
           <Car className="w-3.5 h-3.5 text-[#00f0ff]" />
           <span className="text-xs font-mono font-semibold text-slate-200">{vehicleBadge}</span>
@@ -87,7 +87,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           id="header-profile-btn"
           onClick={onOpenProfile || onOpenAdmin}
           title="Driver Profile & Operator Portal"
-          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group"
+          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group cursor-pointer active:scale-95"
         >
           <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
         </button>

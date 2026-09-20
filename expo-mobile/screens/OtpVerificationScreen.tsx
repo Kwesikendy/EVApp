@@ -15,7 +15,6 @@ import {
   KeyRound,
   RotateCw,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react-native';
 import { Theme } from '../theme';
 import { api } from '../api';

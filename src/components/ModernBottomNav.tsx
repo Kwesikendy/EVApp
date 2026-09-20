@@ -1,5 +1,6 @@
 import React from 'react';
 import { Compass, Plug, Wallet, Truck } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export type TabKey = 'map' | 'charge' | 'wallet' | 'fleet';
 
@@ -32,17 +33,18 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
         const Icon = tab.icon;
 
         return (
-          <button
+          <motion.button
             key={tab.key}
             id={`nav-tab-${tab.key}`}
             onClick={() => onSelectTab(tab.key)}
-            className="flex flex-col items-center justify-center min-h-[44px] py-1 transition-all relative group"
+            whileTap={{ scale: 0.92 }}
+            className="flex flex-col items-center justify-center min-h-[44px] py-1 transition-all relative group cursor-pointer"
           >
             <div className="relative flex items-center justify-center">
               <Icon
                 className={`w-5 h-5 transition-colors ${
                   isActive
-                    ? 'text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]'
+                    ? 'text-[#00f0ff]'
                     : 'text-[#64748b] group-hover:text-slate-300'
                 }`}
               />
@@ -61,11 +63,15 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
               {tab.label}
             </span>
 
-            {/* Glowing accent dot beneath active tab */}
+            {/* Smooth sliding accent dot beneath active tab */}
             {isActive && (
-              <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />
+              <motion.span
+                layoutId="bottomNavIndicator"
+                className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#00f0ff]"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
             )}
-          </button>
+          </motion.button>
         );
       })}
       </div>

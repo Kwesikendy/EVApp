@@ -39,7 +39,7 @@ const ACCRA_STATIONS: WebStation[] = [
   {
     id: 'airport-superhub',
     stationId: 'XC-ACC-01',
-    name: 'XCharge Superhub – Airport City',
+    name: 'XCharge Superhub - Airport City',
     subline: 'Liberation Rd, Airport Residential Area',
     address: 'Liberation Rd, Opposite Marina Mall, Accra',
     power: 'Up to 350 kW Ultra-Fast',
@@ -60,7 +60,7 @@ const ACCRA_STATIONS: WebStation[] = [
   {
     id: 'spintex-corridor',
     stationId: 'XC-ACC-02',
-    name: 'XCharge Express – Spintex Road',
+    name: 'XCharge Express - Spintex Road',
     subline: 'Kasapreko Junction, Spintex Industrial',
     address: 'Spintex Rd, Near Palace Mall, Accra',
     power: 'Up to 240 kW DC Fast',
@@ -81,7 +81,7 @@ const ACCRA_STATIONS: WebStation[] = [
   {
     id: 'east-legon-hub',
     stationId: 'XC-ACC-03',
-    name: 'XCharge Hub – East Legon',
+    name: 'XCharge Hub - East Legon',
     subline: 'Lagos Avenue, Near American House',
     address: 'Lagos Ave, East Legon, Accra',
     power: 'Up to 180 kW High-Speed',
@@ -102,7 +102,7 @@ const ACCRA_STATIONS: WebStation[] = [
   {
     id: 'financial-plaza',
     stationId: 'XC-ACC-04',
-    name: 'XCharge Central – Financial Plaza',
+    name: 'XCharge Central - Financial Plaza',
     subline: 'Independence Ave, Ridge Commercial Hub',
     address: 'Ridge Towers, Independence Ave, Accra',
     power: 'Up to 300 kW Ultra-Fast',
@@ -123,7 +123,7 @@ const ACCRA_STATIONS: WebStation[] = [
   {
     id: 'tema-harbour',
     stationId: 'XC-ACC-05',
-    name: 'XCharge Heavy Depot – Tema Harbour',
+    name: 'XCharge Heavy Depot - Tema Harbour',
     subline: 'Port Access Expressway, Industrial Zone',
     address: 'Berth 11 Corridor, Tema Port',
     power: 'Up to 160 kW Commercial Fleet',
@@ -343,7 +343,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
               onClick={() => setActiveFilter(f.id as any)}
               className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-tight transition-all shrink-0 border ${
                 activeFilter === f.id
-                  ? 'bg-[#00f0ff] text-black border-[#00f0ff] shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  ? 'bg-[#00f0ff] text-black border-[#00f0ff] shadow-sm'
                   : 'bg-[#10141a]/85 backdrop-blur-md text-[#94a3b8] border-white/10 hover:border-white/20'
               }`}
             >
@@ -449,7 +449,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
               onClick={() => {
                 if (onNavigateToCharge) onNavigateToCharge();
               }}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-[#00f0ff] hover:bg-[#00d2ff] text-black text-xs font-extrabold transition-all shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center justify-center gap-1.5 active:scale-95"
+              className="flex-1 py-2.5 px-3 rounded-xl bg-[#00f0ff] hover:bg-[#00d2ff] text-black text-xs font-extrabold transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-95"
             >
               <Zap className="w-3.5 h-3.5 fill-black" />
               Plug & Charge

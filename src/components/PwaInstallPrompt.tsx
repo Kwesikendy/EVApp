@@ -119,7 +119,7 @@ export const PwaInstallPrompt: React.FC = () => {
       {/* 1. Bottom Floating Installation Banner */}
       {showBanner && !showIosGuide && (
         <div className="fixed bottom-20 sm:bottom-6 inset-x-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-[#141922]/95 backdrop-blur-xl border border-[#00f0ff]/30 rounded-2xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.85),0_0_30px_rgba(0,240,255,0.15)] flex items-center gap-3 relative">
+          <div className="bg-[#141922]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/80 flex items-center gap-3 relative">
             {/* App Icon */}
             <div className="w-12 h-12 rounded-xl bg-[#10141a] border border-white/10 p-1.5 shrink-0 flex items-center justify-center shadow-inner">
               <img src="/icons/xcharge-mark.svg" alt="XCHARGE" className="w-full h-full object-contain" />
@@ -141,7 +141,7 @@ export const PwaInstallPrompt: React.FC = () => {
             {/* Install CTA */}
             <button
               onClick={handleInstallClick}
-              className="px-3.5 py-2 rounded-xl bg-[#00f0ff] hover:bg-[#55f5ff] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all shrink-0 active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-[#00f0ff] hover:bg-[#55f5ff] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 shadow-md shadow-black/40 transition-all shrink-0 active:scale-95"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Install</span>

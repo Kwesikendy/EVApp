@@ -8,7 +8,6 @@ import {
   Building2,
   Check,
   User,
-  Sparkles
 } from 'lucide-react';
 import { XChargeLogo } from './XChargeLogo';
 
@@ -138,7 +137,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             Mobile Number
           </label>
 
-          <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#00f0ff]/60 focus-within:shadow-[0_0_12px_rgba(0,240,255,0.2)] transition-all">
+          <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#00f0ff] transition-all">
             {/* Ghana Flag Indicator */}
             <div className="flex items-center gap-1.5 pr-2 border-r border-white/10 shrink-0">
               <span className="text-base leading-none">🇬🇭</span>
@@ -174,7 +173,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           type="button"
           onClick={() => handleSendCode()}
           disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 shadow-lg"
+          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
         >
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -193,7 +192,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           onClick={handleFillDemoDriver}
           className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-all group"
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+          <Zap className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
           <span>Quick Demo Login (Kofi Mensah · BYD Atto 3)</span>
         </button>
 

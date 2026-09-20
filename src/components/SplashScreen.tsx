@@ -327,7 +327,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         <button
           id="btn-enter-application"
           onClick={onComplete}
-          className="w-full h-13 py-3.5 bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-sm tracking-wider rounded-2xl flex items-center justify-center gap-2.5 transition-all glow-cyan active:scale-[0.98] shadow-2xl"
+          className="w-full h-13 py-3.5 bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-sm tracking-wider rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] shadow-xl"
         >
           <span>ENTER APPLICATION</span>
           <ArrowRight className="w-4 h-4 stroke-[2.5]" />

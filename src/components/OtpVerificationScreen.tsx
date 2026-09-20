@@ -4,9 +4,6 @@ import {
   KeyRound,
   RotateCw,
   ShieldCheck,
-  Zap,
-  Sparkles,
-  Check
 } from 'lucide-react';
 import { XChargeLogo } from './XChargeLogo';
 
@@ -206,7 +203,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
 
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-[#00f0ff]/10 border border-[#00f0ff]/30 mx-auto flex items-center justify-center text-[#00f0ff] shadow-[0_0_20px_rgba(0,240,255,0.2)]">
+          <div className="w-12 h-12 rounded-2xl bg-[#00f0ff]/10 border border-[#00f0ff]/30 mx-auto flex items-center justify-center text-[#00f0ff] shadow-md shadow-black/40">
             <KeyRound className="w-6 h-6" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
@@ -250,7 +247,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 className={`w-11 h-13 sm:w-12 sm:h-14 rounded-xl text-center font-mono text-xl font-bold transition-all border ${
                   d
-                    ? 'bg-[#181c24] border-[#00f0ff] text-white shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+                    ? 'bg-[#181c24] border-[#00f0ff] text-white shadow-sm'
                     : 'bg-[#141820] border-white/10 text-slate-400 focus:border-[#00f0ff]/60 focus:bg-[#181c24]'
                 } focus:outline-none`}
               />
@@ -278,7 +275,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             type="button"
             onClick={() => submitCode()}
             disabled={isVerifying || digits.includes('')}
-            className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all glow-cyan-sm flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 shadow-lg"
+            className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
           >
             {isVerifying ? (
               <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />

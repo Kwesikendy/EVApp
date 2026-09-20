@@ -12,7 +12,8 @@ import { SignUpScreen } from './components/SignUpScreen';
 import { OtpVerificationScreen } from './components/OtpVerificationScreen';
 import { OtpSuccessScreen } from './components/OtpSuccessScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
-import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Sparkles, Download } from 'lucide-react';
+import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
@@ -197,55 +198,66 @@ export default function App() {
         {/* Render Authentication Suite or Main Dashboard */}
         {authView !== 'authenticated' ? (
           <div className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
-            {authView === 'login' && (
-              <LoginScreen
-                onSendCode={(phone, type, devCode) => {
-                  setAuthPhone(phone);
-                  setAuthDevCode(devCode);
-                  setAuthView('otp');
-                }}
-                onNavigateToSignUp={() => setAuthView('signup')}
-                onGuestExplore={() => setAuthView('authenticated')}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={authView}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col overflow-hidden w-full h-full"
+              >
+                {authView === 'login' && (
+                  <LoginScreen
+                    onSendCode={(phone, type, devCode) => {
+                      setAuthPhone(phone);
+                      setAuthDevCode(devCode);
+                      setAuthView('otp');
+                    }}
+                    onNavigateToSignUp={() => setAuthView('signup')}
+                    onGuestExplore={() => setAuthView('authenticated')}
+                  />
+                )}
 
-            {authView === 'signup' && (
-              <SignUpScreen
-                onContinue={(data) => {
-                  setAuthPhone(data.phoneNumber);
-                  setAuthDevCode(data.devCode);
-                  setAuthRegistration(data);
-                  setAuthView('otp');
-                }}
-                onBackToLogin={() => setAuthView('login')}
-              />
-            )}
+                {authView === 'signup' && (
+                  <SignUpScreen
+                    onContinue={(data) => {
+                      setAuthPhone(data.phoneNumber);
+                      setAuthDevCode(data.devCode);
+                      setAuthRegistration(data);
+                      setAuthView('otp');
+                    }}
+                    onBackToLogin={() => setAuthView('login')}
+                  />
+                )}
 
-            {authView === 'otp' && (
-              <OtpVerificationScreen
-                phoneNumber={authPhone}
-                devCode={authDevCode}
-                registrationMetadata={authRegistration}
-                onVerified={(user) => {
-                  setCurrentUser(user);
-                  try {
-                    localStorage.setItem('xcharge_user_session', JSON.stringify(user));
-                  } catch {}
-                  if (user?.registeredVehicles?.[0]?.model) {
-                    setSelectedVehicle(`${user.registeredVehicles[0].make} ${user.registeredVehicles[0].model}`);
-                  }
-                  setAuthView('otp_success');
-                }}
-                onBackToLogin={() => setAuthView('login')}
-              />
-            )}
+                {authView === 'otp' && (
+                  <OtpVerificationScreen
+                    phoneNumber={authPhone}
+                    devCode={authDevCode}
+                    registrationMetadata={authRegistration}
+                    onVerified={(user) => {
+                      setCurrentUser(user);
+                      try {
+                        localStorage.setItem('xcharge_user_session', JSON.stringify(user));
+                      } catch {}
+                      if (user?.registeredVehicles?.[0]?.model) {
+                        setSelectedVehicle(`${user.registeredVehicles[0].make} ${user.registeredVehicles[0].model}`);
+                      }
+                      setAuthView('otp_success');
+                    }}
+                    onBackToLogin={() => setAuthView('login')}
+                  />
+                )}
 
-            {authView === 'otp_success' && (
-              <OtpSuccessScreen
-                user={currentUser}
-                onEnterDashboard={() => setAuthView('authenticated')}
-              />
-            )}
+                {authView === 'otp_success' && (
+                  <OtpSuccessScreen
+                    user={currentUser}
+                    onEnterDashboard={() => setAuthView('authenticated')}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         ) : (
           <>
@@ -262,30 +274,41 @@ export default function App() {
 
             {/* Main Content Area (4 Modernized Screens) */}
             <main className="flex-1 flex flex-col overflow-hidden relative bg-[#0a0e14]">
-              {activeTab === 'map' && (
-                <StationMapScreen
-                  onNavigateToCharge={() => setActiveTab('charge')}
-                />
-              )}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18, ease: [0.25, 1, 0.5, 1] }}
+                  className="flex-1 flex flex-col overflow-hidden w-full h-full"
+                >
+                  {activeTab === 'map' && (
+                    <StationMapScreen
+                      onNavigateToCharge={() => setActiveTab('charge')}
+                    />
+                  )}
 
-              {activeTab === 'charge' && (
-                <LiveChargeScreen
-                  session={activeSession}
-                  onStopCharging={handleStopCharging}
-                />
-              )}
+                  {activeTab === 'charge' && (
+                    <LiveChargeScreen
+                      session={activeSession}
+                      onStopCharging={handleStopCharging}
+                    />
+                  )}
 
-              {activeTab === 'wallet' && (
-                <WalletScreen />
-              )}
+                  {activeTab === 'wallet' && (
+                    <WalletScreen />
+                  )}
 
-              {activeTab === 'fleet' && (
-                <FleetScreen
-                  onLocateVehicle={(vin) => {
-                    setActiveTab('map');
-                  }}
-                />
-              )}
+                  {activeTab === 'fleet' && (
+                    <FleetScreen
+                      onLocateVehicle={(vin) => {
+                        setActiveTab('map');
+                      }}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </main>
 
             {/* Persistent Bottom Navigation (4 Tabs) */}
@@ -299,203 +322,254 @@ export default function App() {
       </div>
 
       {/* Driver Profile Modal with Sign Out & Switch Account */}
-      {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
-          <div className="w-full max-w-md bg-[#10141a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-[#00f0ff]" />
-                <h3 className="text-sm font-bold text-white">Driver Account & Telemetry Profile</h3>
-              </div>
-              <button
-                onClick={() => setIsProfileModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Driver Identity Card */}
-            <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#141820] to-[#181c24] border border-white/[0.08] space-y-3">
+      <AnimatePresence>
+        {isProfileModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsProfileModalOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+              className="w-full max-w-md bg-[#10141a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl"
+            >
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] font-bold text-base font-mono">
-                    {(currentUser?.displayName || 'Kofi Mensah').charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white leading-tight">
-                      {currentUser?.displayName || 'Kofi Mensah'}
-                    </h4>
-                    <p className="text-xs text-[#94a3b8] font-mono mt-0.5">
-                      {currentUser?.phoneNumber || '+233 24 890 1204'}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-[#00f0ff]" />
+                  <h3 className="text-sm font-bold text-white">Driver Account & Telemetry Profile</h3>
                 </div>
-
-                <span className="px-2 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
-                  ACTIVE DRIVER
-                </span>
+                <button
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Wallet & Vehicle Sub-Row */}
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06] text-xs font-mono">
-                <div className="bg-[#10141a] p-2.5 rounded-xl">
-                  <span className="text-[10px] text-[#64748b] block">MOMO WALLET</span>
-                  <span className="text-sm font-bold text-[#00f0ff]">
-                    GH₵ {currentUser?.walletBalance !== undefined ? Number(currentUser.walletBalance).toFixed(2) : '245.50'}
+              {/* Driver Identity Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#141820] to-[#181c24] border border-white/[0.08] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] font-bold text-base font-mono">
+                      {(currentUser?.displayName || 'Kofi Mensah').charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white leading-tight">
+                        {currentUser?.displayName || 'Kofi Mensah'}
+                      </h4>
+                      <p className="text-xs text-[#94a3b8] font-mono mt-0.5">
+                        {currentUser?.phoneNumber || '+233 24 890 1204'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
+                    ACTIVE DRIVER
                   </span>
                 </div>
-                <div className="bg-[#10141a] p-2.5 rounded-xl">
-                  <span className="text-[10px] text-[#64748b] block">ACTIVE VEHICLE</span>
-                  <span className="text-sm font-bold text-white truncate block">
-                    {selectedVehicle}
-                  </span>
+
+                {/* Wallet & Vehicle Sub-Row */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06] text-xs font-mono">
+                  <div className="bg-[#10141a] p-2.5 rounded-xl">
+                    <span className="text-[10px] text-[#64748b] block">MOMO WALLET</span>
+                    <span className="text-sm font-bold text-[#00f0ff]">
+                      GH₵ {currentUser?.walletBalance !== undefined ? Number(currentUser.walletBalance).toFixed(2) : '245.50'}
+                    </span>
+                  </div>
+                  <div className="bg-[#10141a] p-2.5 rounded-xl">
+                    <span className="text-[10px] text-[#64748b] block">ACTIVE VEHICLE</span>
+                    <span className="text-sm font-bold text-white truncate block">
+                      {selectedVehicle}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileModalOpen(false);
-                  setIsVehicleModalOpen(true);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Car className="w-4 h-4 text-[#00f0ff]" />
-                  <span>Switch Vehicle Profile</span>
-                </div>
-                <span className="text-[10px] font-mono text-[#00f0ff]">CHANGE →</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileModalOpen(false);
+                    setIsVehicleModalOpen(true);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Car className="w-4 h-4 text-[#00f0ff]" />
+                    <span>Switch Vehicle Profile</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#00f0ff]">CHANGE →</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileModalOpen(false);
-                  setIsAdminOpen(true);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-[#00e699]" />
-                  <span>Station Admin & CSMS Monitor</span>
-                </div>
-                <span className="text-[10px] font-mono text-[#00e699]">ADMIN →</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileModalOpen(false);
+                    setIsAdminOpen(true);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#00e699]" />
+                    <span>Station Admin & CSMS Monitor</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#00e699]">ADMIN →</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileModalOpen(false);
-                  window.dispatchEvent(new CustomEvent('xcharge-open-pwa-install'));
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-[#00f0ff]/30 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all group"
-              >
-                <div className="flex items-center gap-2">
-                  <Download className="w-4 h-4 text-[#00f0ff] group-hover:scale-110 transition-transform" />
-                  <span>Install Mobile App (PWA)</span>
-                </div>
-                <span className="text-[10px] font-mono text-[#00f0ff]">INSTALL →</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileModalOpen(false);
+                    window.dispatchEvent(new CustomEvent('xcharge-open-pwa-install'));
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-[#00f0ff]/30 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Download className="w-4 h-4 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+                    <span>Install Mobile App (PWA)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#00f0ff]">INSTALL →</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out / Switch Account</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out / Switch Account</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Vehicle Selector Modal */}
-      {isVehicleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
-          <div className="w-full max-w-md bg-[#10141a] border border-white/[0.08] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Car className="w-5 h-5 text-[#00f0ff]" />
-                <h3 className="text-sm font-bold text-white">Select Active Vehicle Profile</h3>
-              </div>
-              <button
-                onClick={() => setIsVehicleModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { name: 'FL-08 Nordic', model: 'Polestar 3 Performance', soc: '68%', status: 'Charging' },
-                { name: 'HV-04 Nordic', model: 'Volvo FH Electric Truck', soc: '92%', status: 'Ready' },
-                { name: 'VN-12 Nordic', model: 'Ford E-Transit Cargo', soc: '41%', status: 'On Route' },
-              ].map(veh => (
+      <AnimatePresence>
+        {isVehicleModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsVehicleModalOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+              className="w-full max-w-md bg-[#10141a] border border-white/[0.08] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Car className="w-5 h-5 text-[#00f0ff]" />
+                  <h3 className="text-sm font-bold text-white">Select Active Vehicle Profile</h3>
+                </div>
                 <button
-                  key={veh.name}
-                  onClick={() => {
-                    setSelectedVehicle(veh.name);
-                    setIsVehicleModalOpen(false);
-                  }}
-                  className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
-                    selectedVehicle === veh.name
-                      ? 'bg-[#181c24] border-[#00f0ff] glow-cyan-sm'
-                      : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
-                  }`}
+                  onClick={() => setIsVehicleModalOpen(false)}
+                  className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                 >
-                  <div>
-                    <span className="text-xs font-bold text-white font-mono">{veh.name}</span>
-                    <p className="text-[11px] text-[#94a3b8]">{veh.model}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-mono font-bold text-[#00f0ff]">{veh.soc}</span>
-                    <p className="text-[10px] text-[#00e699] font-mono">{veh.status}</p>
-                  </div>
+                  <X className="w-4 h-4" />
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  { name: 'FL-08 Nordic', model: 'Polestar 3 Performance', soc: '68%', status: 'Charging' },
+                  { name: 'HV-04 Nordic', model: 'Volvo FH Electric Truck', soc: '92%', status: 'Ready' },
+                  { name: 'VN-12 Nordic', model: 'Ford E-Transit Cargo', soc: '41%', status: 'On Route' },
+                ].map(veh => (
+                  <button
+                    key={veh.name}
+                    onClick={() => {
+                      setSelectedVehicle(veh.name);
+                      setIsVehicleModalOpen(false);
+                    }}
+                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      selectedVehicle === veh.name
+                        ? 'bg-[#181c24] border-[#00f0ff] shadow-md shadow-black/40'
+                        : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-bold text-white font-mono">{veh.name}</span>
+                      <p className="text-[11px] text-[#94a3b8]">{veh.model}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-mono font-bold text-[#00f0ff]">{veh.soc}</span>
+                      <p className="text-[10px] text-[#00e699] font-mono">{veh.status}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Admin Station Management Sheet / Drawer */}
-      {isAdminOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
-          <div className="w-full max-w-2xl h-[90vh] bg-[#10141a] border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-4 bg-[#141820] border-b border-white/[0.08] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#00f0ff]" />
-                <h3 className="text-sm font-bold text-white">XCharge Operator & Station Admin</h3>
+      <AnimatePresence>
+        {isAdminOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsAdminOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+              className="w-full max-w-2xl h-[90vh] bg-[#10141a] border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl"
+            >
+              <div className="p-4 bg-[#141820] border-b border-white/[0.08] flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-[#00f0ff]" />
+                  <h3 className="text-sm font-bold text-white">XCharge Operator & Station Admin</h3>
+                </div>
+                <button
+                  id="btn-close-admin-modal"
+                  onClick={() => setIsAdminOpen(false)}
+                  className="w-8 h-8 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                id="btn-close-admin-modal"
-                onClick={() => setIsAdminOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="flex-1 overflow-y-auto">
-              <AdminStationManager
-                stations={stations}
-                onRefreshStations={loadData}
-                onSwitchToMap={() => {
-                  setIsAdminOpen(false);
-                  setActiveTab('map');
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex-1 overflow-y-auto">
+                <AdminStationManager
+                  stations={stations}
+                  onRefreshStations={loadData}
+                  onSwitchToMap={() => {
+                    setIsAdminOpen(false);
+                    setActiveTab('map');
+                  }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Progressive Web App (PWA) Mobile Install Prompt */}
       <PwaInstallPrompt />

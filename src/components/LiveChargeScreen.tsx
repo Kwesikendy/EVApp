@@ -65,8 +65,6 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
 
       {/* 2. Hero Telemetry Gauge */}
       <div className="bg-gradient-to-b from-[#10141a] to-[#141820] border border-white/[0.08] rounded-3xl p-6 flex flex-col items-center justify-center relative shadow-lg">
-        {/* Ambient background glow */}
-        <div className="absolute w-48 h-48 rounded-full bg-[#00f0ff]/10 blur-2xl pointer-events-none" />
 
         {/* Circular Progress Meter */}
         <div className="relative w-64 h-64 flex items-center justify-center">
@@ -103,7 +101,6 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
               strokeDashoffset={strokeDashoffset}
               fill="transparent"
               style={{
-                filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.75))',
                 transition: 'stroke-dashoffset 0.8s ease-in-out',
               }}
             />
