@@ -4,6 +4,10 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -20,20 +24,60 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // server.ts
+var server_exports = {};
+__export(server_exports, {
+  default: () => server_default
+});
+module.exports = __toCommonJS(server_exports);
 var import_config = require("dotenv/config");
 var import_express = __toESM(require("express"), 1);
 var import_path2 = __toESM(require("path"), 1);
 var import_fs2 = __toESM(require("fs"), 1);
-var import_vite = require("vite");
 
 // server/auth.ts
 var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
 var OTP_STORE = /* @__PURE__ */ new Map();
-var DATA_DIR = import_path.default.join(process.cwd(), "data");
+var SEED_FILE = import_path.default.join(process.cwd(), "data", "users.json");
+var DATA_DIR = process.env.VERCEL ? import_path.default.join("/tmp", "xcharge-data") : import_path.default.join(process.cwd(), "data");
 var USERS_FILE = import_path.default.join(DATA_DIR, "users.json");
+var OTP_FILE = import_path.default.join(DATA_DIR, "otps.json");
+function saveOtpToStorage(normalized, record) {
+  OTP_STORE.set(normalized, record);
+  try {
+    if (!import_fs.default.existsSync(DATA_DIR)) {
+      import_fs.default.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    let map = {};
+    if (import_fs.default.existsSync(OTP_FILE)) {
+      try {
+        map = JSON.parse(import_fs.default.readFileSync(OTP_FILE, "utf-8"));
+      } catch {
+      }
+    }
+    map[normalized] = record;
+    import_fs.default.writeFileSync(OTP_FILE, JSON.stringify(map), "utf-8");
+  } catch {
+  }
+}
+function getOtpFromStorage(normalized) {
+  const mem = OTP_STORE.get(normalized);
+  if (mem) return mem;
+  try {
+    if (import_fs.default.existsSync(OTP_FILE)) {
+      const map = JSON.parse(import_fs.default.readFileSync(OTP_FILE, "utf-8"));
+      if (map[normalized]) {
+        OTP_STORE.set(normalized, map[normalized]);
+        return map[normalized];
+      }
+    }
+  } catch {
+  }
+  return void 0;
+}
 function loadUsersFromDisk() {
   const map = /* @__PURE__ */ new Map();
   const defaultDriver = {
@@ -71,8 +115,9 @@ function loadUsersFromDisk() {
   };
   map.set(defaultDriver.phoneNumber, defaultDriver);
   try {
-    if (import_fs.default.existsSync(USERS_FILE)) {
-      const content = import_fs.default.readFileSync(USERS_FILE, "utf-8");
+    const fileToRead = import_fs.default.existsSync(USERS_FILE) ? USERS_FILE : import_fs.default.existsSync(SEED_FILE) ? SEED_FILE : null;
+    if (fileToRead) {
+      const content = import_fs.default.readFileSync(fileToRead, "utf-8");
       const records = JSON.parse(content);
       if (Array.isArray(records)) {
         for (const user of records) {
@@ -116,13 +161,13 @@ async function sendOtp(phoneNumber) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const code = Math.floor(1e5 + Math.random() * 9e5).toString();
   const expiresAt = Date.now() + 5 * 60 * 1e3;
-  OTP_STORE.set(normalized, {
+  saveOtpToStorage(normalized, {
     code,
     expiresAt,
     attempts: 0
   });
   const moolreVasKey = process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY;
-  const moolreSenderId = process.env.MOOLRE_SENDER_ID || "XCharge";
+  const moolreSenderId = process.env.MOOLRE_SENDER_ID || "Business_Ad";
   const rawRecipient = normalized.startsWith("+") ? normalized.substring(1) : normalized;
   if (moolreVasKey) {
     try {
@@ -160,7 +205,7 @@ async function sendOtp(phoneNumber) {
 }
 function verifyOtp(phoneNumber, inputCode, metadata) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
-  const record = OTP_STORE.get(normalized);
+  const record = getOtpFromStorage(normalized);
   const isDevBypass = inputCode === "123456";
   if (!isDevBypass) {
     if (!record) {
@@ -1448,7 +1493,8 @@ app.put("/api/user/profile", (req, res) => {
 });
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
-    const vite = await (0, import_vite.createServer)({
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa"
     });
@@ -1464,5 +1510,8 @@ async function startServer() {
     console.log(`[XCharge Server] Running on http://0.0.0.0:${PORT}`);
   });
 }
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+var server_default = app;
 //# sourceMappingURL=server.cjs.map
