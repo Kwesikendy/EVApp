@@ -574,6 +574,12 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use((req, _res, next) => {
+  if (process.env.VERCEL && !req.url.startsWith("/api") && !req.url.startsWith("/electric")) {
+    req.url = "/api" + req.url;
+  }
+  next();
+});
 var publicDir = import_path2.default.join(process.cwd(), "public");
 app.use(import_express.default.static(publicDir));
 app.get(["/electric_vehicle_charging.mp4", "/electric%20vehical%20charging.mp4", "/electric vehical charging.mp4"], (req, res) => {
