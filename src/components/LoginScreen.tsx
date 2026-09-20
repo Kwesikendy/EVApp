@@ -11,7 +11,7 @@ import {
 import { XChargeLogo } from './XChargeLogo';
 
 interface LoginScreenProps {
-  onSendCode: (phoneNumber: string, accountType: 'personal' | 'fleet', devCode?: string) => void;
+  onSendCode: (phoneNumber: string, accountType: 'personal' | 'fleet', devCode?: string, gatewayNotice?: string) => void;
   onNavigateToSignUp: () => void;
   onGuestExplore: () => void;
 }
@@ -48,15 +48,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const fullPhone = formatGhanaPhone(raw);
 
     try {
-      await fetch('/api/auth/send-otp', {
+      const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: fullPhone }),
       });
 
+      const data = await res.json().catch(() => ({}));
       setIsLoading(false);
-      // Real phone number verification — navigate to OTP to await real SMS code
-      onSendCode(fullPhone, accountType, undefined);
+      const gatewayNotice = !data.success ? (data.error || 'SMS Gateway Notice') : undefined;
+      onSendCode(fullPhone, accountType, undefined, gatewayNotice);
     } catch {
       setIsLoading(false);
       onSendCode(fullPhone, accountType, undefined);

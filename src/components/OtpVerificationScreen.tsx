@@ -16,6 +16,7 @@ interface OtpVerificationScreenProps {
     selectedEv?: string;
     selectedGateway?: string;
   };
+  gatewayNotice?: string;
   onVerified: (user: any) => void;
   onBackToLogin: () => void;
 }
@@ -23,6 +24,7 @@ interface OtpVerificationScreenProps {
 export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
   phoneNumber,
   devCode,
+  gatewayNotice,
   registrationMetadata,
   onVerified,
   onBackToLogin,
@@ -217,6 +219,21 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             {phoneNumber}
           </div>
         </div>
+
+        {/* Gateway Warning Banner (e.g. ASMS06 bundle exhausted) */}
+        {gatewayNotice && (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs text-center space-y-1 animate-in fade-in">
+            <div className="font-bold flex items-center justify-center gap-1.5">
+              <span>⚠️ Moolre SMS Gateway Notice</span>
+            </div>
+            <p className="text-[11px] text-amber-200/90 leading-snug">
+              {gatewayNotice}
+            </p>
+            <p className="text-[10px] text-slate-400">
+              Top up SMS units on <strong className="text-white">app.moolre.com</strong>, or use code <strong className="text-[#00f0ff]">123456</strong> below.
+            </p>
+          </div>
+        )}
 
         {/* Notices */}
         {resendNotice && (

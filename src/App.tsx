@@ -42,6 +42,7 @@ export default function App() {
 
   const [authPhone, setAuthPhone] = useState<string>('+233248901204');
   const [authDevCode, setAuthDevCode] = useState<string | undefined>(undefined);
+  const [authGatewayNotice, setAuthGatewayNotice] = useState<string | undefined>(undefined);
   const [authRegistration, setAuthRegistration] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
@@ -210,9 +211,10 @@ export default function App() {
               >
                 {authView === 'login' && (
                   <LoginScreen
-                    onSendCode={(phone, type, devCode) => {
+                    onSendCode={(phone, type, devCode, gatewayNotice) => {
                       setAuthPhone(phone);
                       setAuthDevCode(devCode);
+                      setAuthGatewayNotice(gatewayNotice);
                       setAuthView('otp');
                     }}
                     onNavigateToSignUp={() => setAuthView('signup')}
@@ -236,6 +238,7 @@ export default function App() {
                   <OtpVerificationScreen
                     phoneNumber={authPhone}
                     devCode={authDevCode}
+                    gatewayNotice={authGatewayNotice}
                     registrationMetadata={authRegistration}
                     onVerified={(user) => {
                       setCurrentUser(user);

@@ -289,10 +289,12 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
         };
       }
 
-      console.warn(`[Moolre SMS Gateway] Status not 1:`, data);
+      // Moolre error reporting (e.g. ASMS06 bundle exhausted)
+      console.warn(`[Moolre SMS Gateway Error]:`, data);
       return {
-        success: true,
-        message: `OTP generated (Moolre response: ${data?.message || data?.code || 'queued'})`,
+        success: false,
+        error: data?.message || `Moolre SMS Gateway error (${data?.code || 'ASMS06'})`,
+        code: data?.code || 'ASMS06',
         devCode: code,
       };
     } catch (err: any) {

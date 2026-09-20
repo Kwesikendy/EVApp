@@ -149,7 +149,7 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - Exported `PRODUCTION_MOOLRE_VAS_KEY` and `PRODUCTION_MOOLRE_SENDER_ID` directly in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts), ensuring Vercel serverless function instances always possess the live Moolre VAS credentials even if Vercel dashboard environment variables were omitted.
   - Guarded against unapproved sender IDs by normalizing to `Business_Ad` (Moolre rejects `XCharge` with `ASMS07`), with automatic retry on `ASMS07`.
   - Pure Real-Time SMS Flow: Removed all testing passcodes and auto-fill hints on standard phone entry across both Web and Mobile (`src/components/LoginScreen.tsx`, `src/components/OtpVerificationScreen.tsx`, `expo-mobile/screens/LoginScreen.tsx`, `expo-mobile/screens/OtpVerificationScreen.tsx`). Drivers enter the live 6-digit passcode delivered to their phone via Moolre SMS (`Business_Ad`).
-  - Verified live SMS dispatch directly to Ghanaian mobile number `+233595749197` with Moolre code `SMS01` ("Success").
+  - Moolre SMS Bundle Balance Tracking (`ASMS06`): Direct live query to `https://api.moolre.com/open/sms/send` verified that Moolre currently returns `ASMS06` ("SMS Bundle Balance Insufficient, Please login on app.moolre.com to top up your balance."). Added transparent `gatewayNotice` banner display on `OtpVerificationScreen.tsx` so users and admins know immediately when Moolre account credits need topping up.
 
 ### F. Phase 6: Driver Profile & Custom Settings Engine (100% Complete & Verified)
 - **Comprehensive Driver Profile Modal ([`src/components/DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx))**:
