@@ -76,10 +76,12 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
 - **Web Authentication Suite ([`src/components/`](file:///d:/xcharge-ev-platform/src/components/)):**
   - Fully mirrors the mobile auth experience with web-optimized components ([`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx), [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx), [`OtpVerificationScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpVerificationScreen.tsx), [`OtpSuccessScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpSuccessScreen.tsx)).
   - Driver Profile & Sign Out modal in [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) with session persistence in `localStorage`.
-- **Live Moolre SMS Gateway:**
+- **Live Moolre SMS Gateway & Stateless Deterministic Verification**:
   - Integrated in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) with `MOOLRE_VAS_KEY` and Sender ID `Business_Ad`.
-  - Dispatches real SMS verification codes to Ghanaian phone numbers (`+233...`).
-  - Developer bypass code `123456` retained for rapid offline testing.
+  - **Stateless HMAC-SHA256 OTP Engine**: Resolved the serverless lambda cross-instance gap where `send-otp` and `verify-otp` run on separate microVMs. Codes are generated and verified deterministically via `getDeterministicOtp(phone, windowOffset)` across sliding 5-minute time windows (`[0, -1, -2, -3, +1]`), providing up to 20 minutes of validity to absorb telecom carrier SMS delays.
+  - **Comprehensive MSISDN Normalization**: Normalizes standard Ghanaian phone numbers into strict `+233XXXXXXXXX` format across all variants, including 13-digit inputs with accidental zero prefixes (`+233 024...` -> `+23324...`).
+  - **Universal Instant Demo Passcode**: Retains developer bypass code `123456` across all web and mobile screens with one-tap Auto-fill pills on both Web PWA and Expo Mobile (`OtpVerificationScreen.tsx`).
+  - **Safe Serverless Body Parsing**: Explicitly parses JSON payloads in all Vercel serverless endpoints (`api/auth/*`, `api/user/*`, `api/wallet/*`) to support both stringified and parsed request bodies without middleware dependency.
 - **Multi-User Persistent Database ([`data/users.json`](file:///d:/xcharge-ev-platform/data/users.json)):**
   - Stores multiple real drivers (e.g. Kofi Mensah `+233248901204`, Ekow Mensah `+233241234567`), registered vehicle profiles, wallet balances, and full transaction history across reboots.
 

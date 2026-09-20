@@ -19,11 +19,12 @@ export default async function handler(req: any, res: any) {
   }
 
   if (req.method === 'PUT') {
-    const phone = req.body?.phoneNumber;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const phone = body?.phoneNumber;
     if (!phone) {
       return res.status(400).json({ error: 'Phone number required' });
     }
-    const updated = updateUserProfile(phone, req.body);
+    const updated = updateUserProfile(phone, body);
     if (!updated) {
       return res.status(404).json({ error: 'User not found' });
     }

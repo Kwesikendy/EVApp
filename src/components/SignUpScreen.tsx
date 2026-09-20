@@ -52,6 +52,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
   const formatGhanaPhone = (input: string) => {
     const digits = input.replace(/\D/g, '');
+    if (digits.startsWith('2330') && digits.length === 13) return `+233${digits.slice(4)}`;
     if (digits.startsWith('233')) return `+${digits}`;
     if (digits.startsWith('0')) return `+233${digits.slice(1)}`;
     return digits ? `+233${digits}` : '';

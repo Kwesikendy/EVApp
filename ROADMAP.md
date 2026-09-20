@@ -14,7 +14,7 @@
 | :--- | :---: | :---: | :--- |
 | **Mobile UI & UX Engine** | **100%** | **Production Ready** | Full driver auth, charging HUD, map explorer, split-wallet, and fleet controls. |
 | **Motion & Transition Engine** | **100%** | **Production Ready** | AnimatePresence tab and auth switches, spring modals, sliding bottom nav indicator, and zero em-dashes/glows. |
-| **Ghana SMS OTP Telephony** | **100%** | **Live Active** | Moolre SMS gateway delivering real verification codes to Ghanaian networks (+233) via native serverless functions. |
+| **Ghana SMS OTP Telephony** | **100%** | **Live Active** | Moolre SMS gateway delivering real verification codes to Ghanaian networks (+233) with stateless HMAC-SHA256 deterministic validation across sliding 20-minute windows and instant demo bypass. |
 | **Driver Profile & Garage Suite**| **100%** | **Production Ready** | Photo upload, 4 avatar presets, personal info, multi-vehicle garage management, and charging preferences. |
 | **Mobile Session Persistence** | **100%** | **Production Ready** | `SessionStorage` auto-login via `@react-native-async-storage/async-storage` + clean Sign Out. |
 | **Database & Vehicle VIN Storage**| **100%** | **Production Ready** | Multi-user persistent store (`data/users.json`) active across server restarts with transaction audit logs. |

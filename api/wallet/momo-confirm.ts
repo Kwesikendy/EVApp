@@ -10,7 +10,8 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { transactionId, amount, provider = 'MTN', phone, pin } = req.body || {};
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const { transactionId, amount, provider = 'MTN', phone, pin } = body;
     const targetPhone = phone || '+233248901204';
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {

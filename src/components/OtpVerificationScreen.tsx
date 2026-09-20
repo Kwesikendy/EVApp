@@ -118,10 +118,10 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
       if (res.ok && data.success && data.user) {
         onVerified(data.user);
       } else {
-        // If code matches devCode or fallback
-        if (devCode && code === devCode) {
+        // If code matches devCode or 123456 bypass
+        if ((devCode && code === devCode) || code === '123456') {
           const fallbackUser = {
-            id: 'usr-sim-01',
+            id: 'usr-sim-' + Date.now().toString(36),
             phoneNumber,
             displayName: registrationMetadata?.fullName || 'EV Driver',
             email: registrationMetadata?.email || 'driver@xcharge.africa',
@@ -134,6 +134,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
                 model: registrationMetadata?.selectedEv === 'tesla' ? 'Model Y' : 'Atto 3',
                 batteryCapacityKwh: 75.0,
                 connectorType: 'CCS2',
+                isDefault: true,
               }
             ],
           };
@@ -254,21 +255,20 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             ))}
           </div>
 
-          {/* Dev Code Quick Auto-Fill Hint */}
-          {devCode && (
-            <div className="p-2.5 rounded-xl bg-[#00f0ff]/5 border border-[#00f0ff]/20 flex items-center justify-between">
-              <span className="text-[11px] font-mono text-[#94a3b8]">
-                Sandbox Code: <span className="text-[#00f0ff] font-bold">{devCode}</span>
-              </span>
-              <button
-                type="button"
-                onClick={handleAutoFillDevCode}
-                className="text-[10px] font-mono font-bold text-[#00f0ff] hover:underline"
-              >
-                Auto-fill
-              </button>
-            </div>
-          )}
+          {/* Quick Auto-Fill Hint */}
+          <div className="p-2.5 rounded-xl bg-[#00f0ff]/5 border border-[#00f0ff]/20 flex items-center justify-between">
+            <span className="text-[11px] font-mono text-[#94a3b8]">
+              {devCode ? 'Passcode: ' : 'Demo Bypass: '}
+              <span className="text-[#00f0ff] font-bold">{devCode || '123456'}</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleAutoFillDevCode}
+              className="text-[10px] font-mono font-bold text-[#00f0ff] hover:underline"
+            >
+              Auto-fill
+            </button>
+          </div>
 
           {/* Verify CTA */}
           <button
