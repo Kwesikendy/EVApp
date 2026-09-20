@@ -54,34 +54,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         body: JSON.stringify({ phoneNumber: fullPhone }),
       });
 
+      let devCode = '123456';
       const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        // Vercel cold-start or SPA HTML fallback — still proceed to OTP
-        setIsLoading(false);
-        onSendCode(fullPhone, accountType, '123456');
-        return;
-      }
-
-      const data = await res.json().catch(() => ({ success: true, devCode: '123456' }));
-      setIsLoading(false);
-
-      // Always proceed to OTP; if sending failed due to API issue the user
-      // can still use the code from their SMS or the bypass code 123456
-      if (data.success || res.ok) {
-        onSendCode(fullPhone, accountType, data.devCode || '123456');
-      } else {
-        // Only block if we get an explicit server-side phone validation error
-        const isPhoneError = (data.error || '').toLowerCase().includes('phone');
-        if (isPhoneError) {
-          setErrorMessage(data.error);
-        } else {
-          // Server/SMS gateway issue — still let the user proceed
-          onSendCode(fullPhone, accountType, data.devCode || '123456');
+      if (contentType.includes('application/json')) {
+        const data = await res.json().catch(() => ({}));
+        if (data && data.devCode) {
+          devCode = data.devCode;
         }
       }
+      setIsLoading(false);
+      // Always proceed directly to OTP screen — never block the driver
+      onSendCode(fullPhone, accountType, devCode);
     } catch {
       setIsLoading(false);
-      // Network error — still let the user try the OTP screen
+      // Network issue or offline — proceed to OTP screen with demo bypass code
       onSendCode(fullPhone, accountType, '123456');
     }
   };

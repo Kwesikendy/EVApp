@@ -237,13 +237,18 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
       url.searchParams.append('recipient', rawRecipient);
       url.searchParams.append('message', messageText);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
           'X-API-VASKEY': moolreVasKey,
           'Accept': 'application/json',
         },
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const data = await response.json();
       console.log(`[Moolre SMS Gateway] Dispatched to ${normalized}:`, data);

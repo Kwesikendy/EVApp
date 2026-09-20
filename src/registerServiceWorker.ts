@@ -4,6 +4,15 @@
 
 export function registerServiceWorker() {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        console.log('[XCharge PWA] Controller changed; reloading to activate latest version.');
+        window.location.reload();
+      }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/sw.js')
@@ -19,7 +28,7 @@ export function registerServiceWorker() {
               installingWorker.onstatechange = () => {
                 if (installingWorker.state === 'installed') {
                   if (navigator.serviceWorker.controller) {
-                    console.log('[XCharge PWA] New content available; updating to latest version.');
+                    console.log('[XCharge PWA] New content installed; activating immediately.');
                   } else {
                     console.log('[XCharge PWA] Content cached for offline use.');
                   }
