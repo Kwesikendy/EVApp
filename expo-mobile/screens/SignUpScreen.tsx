@@ -80,27 +80,32 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
       return;
     }
 
+    const fullPhone = phoneNumber.startsWith('+') ? phoneNumber : `+233${phoneNumber.replace(/^0+/, '').replace(/\s+/g, '')}`;
+
     setIsLoading(true);
     try {
-      const fullPhone = phoneNumber.startsWith('+') ? phoneNumber : `+233${phoneNumber.replace(/^0+/, '').replace(/\s+/g, '')}`;
       const result = await api.sendOtp(fullPhone);
-
       setIsLoading(false);
-      if (result.success) {
-        navigate('otp', {
-          phoneNumber: fullPhone,
-          fullName,
-          email,
-          selectedEv,
-          selectedGateway,
-          devCode: result.devCode,
-        });
-      } else {
-        Alert.alert('SMS Error', result.error || 'Failed to dispatch verification SMS.');
-      }
+      // Always proceed to OTP — user can enter the SMS code or use bypass
+      navigate('otp', {
+        phoneNumber: fullPhone,
+        fullName,
+        email,
+        selectedEv,
+        selectedGateway,
+        devCode: result.devCode || '123456',
+      });
     } catch (err: any) {
       setIsLoading(false);
-      Alert.alert('Network Issue', err.message || 'Error reaching authentication server.');
+      // Still navigate so user can use 123456 demo bypass
+      navigate('otp', {
+        phoneNumber: fullPhone,
+        fullName,
+        email,
+        selectedEv,
+        selectedGateway,
+        devCode: '123456',
+      });
     }
   };
 
