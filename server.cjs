@@ -173,6 +173,8 @@ function normalizeGhanaPhoneNumber(rawPhone) {
   }
   return rawPhone.trim();
 }
+var PRODUCTION_MOOLRE_VAS_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0";
+var PRODUCTION_MOOLRE_SENDER_ID = "Business_Ad";
 async function sendOtp(phoneNumber) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const code = getDeterministicOtp(normalized, 0);
@@ -182,8 +184,11 @@ async function sendOtp(phoneNumber) {
     expiresAt,
     attempts: 0
   });
-  const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || "").replace(/^["']|["']$/g, "").trim();
-  const moolreSenderId = (process.env.MOOLRE_SENDER_ID || "Business_Ad").replace(/^["']|["']$/g, "").trim();
+  const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || PRODUCTION_MOOLRE_VAS_KEY).replace(/^["']|["']$/g, "").trim();
+  let moolreSenderId = (process.env.MOOLRE_SENDER_ID || PRODUCTION_MOOLRE_SENDER_ID).replace(/^["']|["']$/g, "").trim();
+  if (!moolreSenderId || moolreSenderId.toLowerCase() === "xcharge") {
+    moolreSenderId = "Business_Ad";
+  }
   const rawRecipient = normalized.startsWith("+") ? normalized.substring(1) : normalized;
   if (moolreVasKey) {
     try {
@@ -194,7 +199,7 @@ async function sendOtp(phoneNumber) {
       url.searchParams.append("recipient", rawRecipient);
       url.searchParams.append("message", messageText);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6e3);
+      const timeoutId = setTimeout(() => controller.abort(), 8e3);
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
@@ -204,11 +209,42 @@ async function sendOtp(phoneNumber) {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
       console.log(`[Moolre SMS Gateway] Dispatched to ${normalized}:`, data);
+      if (data && data.code === "ASMS07" && moolreSenderId !== "Business_Ad") {
+        const retryUrl = new URL("https://api.moolre.com/open/sms/send");
+        retryUrl.searchParams.append("type", "1");
+        retryUrl.searchParams.append("senderid", "Business_Ad");
+        retryUrl.searchParams.append("recipient", rawRecipient);
+        retryUrl.searchParams.append("message", messageText);
+        const retryRes = await fetch(retryUrl.toString(), {
+          method: "GET",
+          headers: {
+            "X-API-VASKEY": moolreVasKey,
+            "Accept": "application/json"
+          }
+        });
+        const retryData = await retryRes.json().catch(() => null);
+        console.log(`[Moolre SMS Gateway Retry] Dispatched to ${normalized}:`, retryData);
+        if (retryData && retryData.status === 1) {
+          return {
+            success: true,
+            message: `OTP sent via Moolre SMS to ${normalized}`,
+            devCode: code
+          };
+        }
+      }
+      if (data && data.status === 1) {
+        return {
+          success: true,
+          message: `OTP sent via Moolre SMS to ${normalized}`,
+          devCode: code
+        };
+      }
+      console.warn(`[Moolre SMS Gateway] Status not 1:`, data);
       return {
         success: true,
-        message: `OTP sent via Moolre SMS to ${normalized}`,
+        message: `OTP generated (Moolre response: ${data?.message || data?.code || "queued"})`,
         devCode: code
       };
     } catch (err) {
