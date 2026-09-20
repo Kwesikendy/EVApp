@@ -227,10 +227,7 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
   });
 
   const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || PRODUCTION_MOOLRE_VAS_KEY).replace(/^["']|["']$/g, '').trim();
-  let moolreSenderId = (process.env.MOOLRE_SENDER_ID || PRODUCTION_MOOLRE_SENDER_ID).replace(/^["']|["']$/g, '').trim();
-  if (!moolreSenderId || moolreSenderId.toLowerCase() === 'xcharge') {
-    moolreSenderId = 'Business_Ad';
-  }
+  const moolreSenderId = 'Business_Ad';
   const rawRecipient = normalized.startsWith('+') ? normalized.substring(1) : normalized;
 
   // If live Moolre API/VAS key is configured, dispatch live SMS via Moolre
