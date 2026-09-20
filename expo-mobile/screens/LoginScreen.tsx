@@ -65,20 +65,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation, onNavigate
 
       setIsLoading(false);
 
-      // Always navigate to OTP screen — SMS may still arrive even if result.success is false
-      // The user can use the code from SMS or the bypass code shown on OTP screen
+      // Navigate to OTP screen for real SMS code entry
       navigate('otp', {
         phoneNumber: fullPhone,
-        devCode: result.devCode || '123456',
+        devCode: undefined,
         accountType,
       });
     } catch (err: any) {
       setIsLoading(false);
-      // Navigation still proceeds so the user can use 123456 bypass
       const fullPhone = phoneNumber.startsWith('+') ? phoneNumber : `+233${phoneNumber.replace(/^0+/, '').replace(/\s+/g, '')}`;
       navigate('otp', {
         phoneNumber: fullPhone,
-        devCode: '123456',
+        devCode: undefined,
         accountType,
       });
     }

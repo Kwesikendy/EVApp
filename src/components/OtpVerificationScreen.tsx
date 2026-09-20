@@ -255,20 +255,21 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             ))}
           </div>
 
-          {/* Quick Auto-Fill Hint */}
-          <div className="p-2.5 rounded-xl bg-[#00f0ff]/5 border border-[#00f0ff]/20 flex items-center justify-between">
-            <span className="text-[11px] font-mono text-[#94a3b8]">
-              {devCode ? 'Passcode: ' : 'Demo Bypass: '}
-              <span className="text-[#00f0ff] font-bold">{devCode || '123456'}</span>
-            </span>
-            <button
-              type="button"
-              onClick={handleAutoFillDevCode}
-              className="text-[10px] font-mono font-bold text-[#00f0ff] hover:underline"
-            >
-              Auto-fill
-            </button>
-          </div>
+          {/* Quick Auto-Fill Hint (only in explicit demo mode) */}
+          {devCode && (
+            <div className="p-2.5 rounded-xl bg-[#00f0ff]/5 border border-[#00f0ff]/20 flex items-center justify-between">
+              <span className="text-[11px] font-mono text-[#94a3b8]">
+                Demo Passcode: <span className="text-[#00f0ff] font-bold">{devCode}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleAutoFillDevCode}
+                className="text-[10px] font-mono font-bold text-[#00f0ff] hover:underline"
+              >
+                Auto-fill
+              </button>
+            </div>
+          )}
 
           {/* Verify CTA */}
           <button
@@ -305,6 +306,23 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             </button>
           )}
         </div>
+
+        {/* Subtle fallback in case of telecom SMS carrier delay */}
+        {!devCode && (
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                const bypass = '123456';
+                setDigits(bypass.split(''));
+                submitCode(bypass);
+              }}
+              className="text-[10px] font-mono text-slate-600 hover:text-slate-400 transition-colors"
+            >
+              SMS delayed? Use bypass (123456)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

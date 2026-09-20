@@ -48,27 +48,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const fullPhone = formatGhanaPhone(raw);
 
     try {
-      const res = await fetch('/api/auth/send-otp', {
+      await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: fullPhone }),
       });
 
-      let devCode = '123456';
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
-        const data = await res.json().catch(() => ({}));
-        if (data && data.devCode) {
-          devCode = data.devCode;
-        }
-      }
       setIsLoading(false);
-      // Always proceed directly to OTP screen — never block the driver
-      onSendCode(fullPhone, accountType, devCode);
+      // Real phone number verification — navigate to OTP to await real SMS code
+      onSendCode(fullPhone, accountType, undefined);
     } catch {
       setIsLoading(false);
-      // Network issue or offline — proceed to OTP screen with demo bypass code
-      onSendCode(fullPhone, accountType, '123456');
+      onSendCode(fullPhone, accountType, undefined);
     }
   };
 

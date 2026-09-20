@@ -268,23 +268,25 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Demo Passcode Quick-Fill Pill */}
-      <TouchableOpacity
-        style={styles.demoPill}
-        onPress={() => {
-          const bypassCode = devCode || '123456';
-          setDigits(bypassCode.split(''));
-          verifyCode(bypassCode);
-        }}
-        activeOpacity={0.8}
-        disabled={isVerifying}
-      >
-        <ShieldCheck size={14} color={Theme.colors.primary} />
-        <Text style={styles.demoPillText}>
-          {devCode ? `Passcode: ${devCode}` : 'Demo Bypass: 123456'}
-        </Text>
-        <Text style={styles.demoPillAction}>Tap to Fill</Text>
-      </TouchableOpacity>
+      {/* Demo Passcode Quick-Fill Pill (only in demo mode) */}
+      {devCode ? (
+        <TouchableOpacity
+          style={styles.demoPill}
+          onPress={() => {
+            const bypassCode = devCode;
+            setDigits(bypassCode.split(''));
+            verifyCode(bypassCode);
+          }}
+          activeOpacity={0.8}
+          disabled={isVerifying}
+        >
+          <ShieldCheck size={14} color={Theme.colors.primary} />
+          <Text style={styles.demoPillText}>
+            Demo Passcode: {devCode}
+          </Text>
+          <Text style={styles.demoPillAction}>Tap to Fill</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {/* Ergonomic Numerical Keypad */}
       <View style={styles.keypad}>
