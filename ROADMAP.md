@@ -14,14 +14,15 @@
 | :--- | :---: | :---: | :--- |
 | **Mobile UI & UX Engine** | **100%** | **Production Ready** | Full driver auth, charging HUD, map explorer, split-wallet, and fleet controls. |
 | **Motion & Transition Engine** | **100%** | **Production Ready** | AnimatePresence tab and auth switches, spring modals, sliding bottom nav indicator, and zero em-dashes/glows. |
-| **Ghana SMS OTP Telephony** | **100%** | **Live Active** | Moolre SMS gateway delivering real verification codes to Ghanaian networks (+233). |
+| **Ghana SMS OTP Telephony** | **100%** | **Live Active** | Moolre SMS gateway delivering real verification codes to Ghanaian networks (+233) via native serverless functions. |
+| **Driver Profile & Garage Suite**| **100%** | **Production Ready** | Photo upload, 4 avatar presets, personal info, multi-vehicle garage management, and charging preferences. |
 | **Mobile Session Persistence** | **100%** | **Production Ready** | `SessionStorage` auto-login via `@react-native-async-storage/async-storage` + clean Sign Out. |
 | **Database & Vehicle VIN Storage**| **100%** | **Production Ready** | Multi-user persistent store (`data/users.json`) active across server restarts with transaction audit logs. |
 | **Ghana MoMo Payment Switch** | **100%** | **Live & Verified** | USSD push prompts (`*170#`, `*110#`), PIN authorization, persistent multi-user wallet, and pre-auth escrow refunds. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
-| **Store Distribution & PWA** | **90%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, and offline caching; eas.json configured. |
-| **Overall Commercial Progress** | **~95%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, and motion complete; entering hardware ingress. |
+| **Store Distribution & PWA** | **95%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, native Vercel serverless API routing, and offline caching v2. |
+| **Overall Commercial Progress** | **~96%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, and driver profile suite complete; entering hardware ingress. |
 
 ---
 

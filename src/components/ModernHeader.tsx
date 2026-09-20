@@ -11,6 +11,8 @@ interface ModernHeaderProps {
   onOpenVehicleSelect?: () => void;
   onReplaySplash?: () => void;
   onOpenAdmin?: () => void;
+  avatarUrl?: string;
+  driverName?: string;
 }
 
 export const ModernHeader: React.FC<ModernHeaderProps> = ({
@@ -21,7 +23,9 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   onOpenProfile,
   onOpenVehicleSelect,
   onReplaySplash,
-  onOpenAdmin
+  onOpenAdmin,
+  avatarUrl,
+  driverName
 }) => {
   return (
     <header
@@ -87,9 +91,17 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           id="header-profile-btn"
           onClick={onOpenProfile || onOpenAdmin}
           title="Driver Profile & Operator Portal"
-          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group cursor-pointer active:scale-95"
+          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group cursor-pointer active:scale-95 overflow-hidden ring-1 ring-white/5"
         >
-          <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={driverName || 'Driver'}
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
+          )}
         </button>
       </div>
       </div>

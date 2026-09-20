@@ -12,6 +12,7 @@ import { SignUpScreen } from './components/SignUpScreen';
 import { OtpVerificationScreen } from './components/OtpVerificationScreen';
 import { OtpSuccessScreen } from './components/OtpSuccessScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { DriverProfileModal } from './components/DriverProfileModal';
 import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
@@ -270,6 +271,8 @@ export default function App() {
               onOpenProfile={() => setIsProfileModalOpen(true)}
               onOpenVehicleSelect={() => setIsVehicleModalOpen(true)}
               onOpenAdmin={() => setIsAdminOpen(true)}
+              avatarUrl={currentUser?.avatarUrl}
+              driverName={currentUser?.displayName}
             />
 
             {/* Main Content Area (4 Modernized Screens) */}
@@ -321,139 +324,25 @@ export default function App() {
         )}
       </div>
 
-      {/* Driver Profile Modal with Sign Out & Switch Account */}
-      <AnimatePresence>
-        {isProfileModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsProfileModalOpen(false);
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-              className="w-full max-w-md bg-[#10141a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-[#00f0ff]" />
-                  <h3 className="text-sm font-bold text-white">Driver Account & Telemetry Profile</h3>
-                </div>
-                <button
-                  onClick={() => setIsProfileModalOpen(false)}
-                  className="w-7 h-7 rounded-full bg-[#181c24] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Driver Identity Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#141820] to-[#181c24] border border-white/[0.08] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] font-bold text-base font-mono">
-                      {(currentUser?.displayName || 'Kofi Mensah').charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-white leading-tight">
-                        {currentUser?.displayName || 'Kofi Mensah'}
-                      </h4>
-                      <p className="text-xs text-[#94a3b8] font-mono mt-0.5">
-                        {currentUser?.phoneNumber || '+233 24 890 1204'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="px-2 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
-                    ACTIVE DRIVER
-                  </span>
-                </div>
-
-                {/* Wallet & Vehicle Sub-Row */}
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06] text-xs font-mono">
-                  <div className="bg-[#10141a] p-2.5 rounded-xl">
-                    <span className="text-[10px] text-[#64748b] block">MOMO WALLET</span>
-                    <span className="text-sm font-bold text-[#00f0ff]">
-                      GH₵ {currentUser?.walletBalance !== undefined ? Number(currentUser.walletBalance).toFixed(2) : '245.50'}
-                    </span>
-                  </div>
-                  <div className="bg-[#10141a] p-2.5 rounded-xl">
-                    <span className="text-[10px] text-[#64748b] block">ACTIVE VEHICLE</span>
-                    <span className="text-sm font-bold text-white truncate block">
-                      {selectedVehicle}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsProfileModalOpen(false);
-                    setIsVehicleModalOpen(true);
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <Car className="w-4 h-4 text-[#00f0ff]" />
-                    <span>Switch Vehicle Profile</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#00f0ff]">CHANGE →</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsProfileModalOpen(false);
-                    setIsAdminOpen(true);
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#00e699]" />
-                    <span>Station Admin & CSMS Monitor</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#00e699]">ADMIN →</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsProfileModalOpen(false);
-                    window.dispatchEvent(new CustomEvent('xcharge-open-pwa-install'));
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-[#00f0ff]/30 text-slate-200 text-xs font-semibold flex items-center justify-between transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <Download className="w-4 h-4 text-[#00f0ff] group-hover:scale-110 transition-transform" />
-                    <span>Install Mobile App (PWA)</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#00f0ff]">INSTALL →</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out / Switch Account</span>
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Driver Profile & Settings Modal */}
+      <DriverProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={currentUser}
+        activeVehicle={selectedVehicle}
+        onSelectVehicle={(vehicleName) => setSelectedVehicle(vehicleName)}
+        onUpdateUser={(updated) => {
+          setCurrentUser(updated);
+          try {
+            localStorage.setItem('xcharge_user_session', JSON.stringify(updated));
+          } catch {}
+        }}
+        onOpenAdmin={() => {
+          setIsProfileModalOpen(false);
+          setIsAdminOpen(true);
+        }}
+        onSignOut={handleSignOut}
+      />
 
       {/* Vehicle Selector Modal */}
       <AnimatePresence>

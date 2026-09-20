@@ -137,10 +137,29 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - **Modal Sheet Animations**: Upgraded Profile modal, Vehicle selector modal, and Station Admin drawer with spring physics (`type: 'spring', damping: 28, stiffness: 350`) and smooth backdrop fades.
   - **Sliding Tab Indicator**: Implemented a smooth sliding accent indicator in [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) using `layoutId="bottomNavIndicator"` and `whileTap={{ scale: 0.92 }}` tactile touch response.
 - **Vercel Serverless API Architecture & Live OTP**:
-  - Created [`api/index.ts`](file:///d:/xcharge-ev-platform/api/index.ts) exporting the Express backend as a Vercel Serverless Function.
-  - Updated [`vercel.json`](file:///d:/xcharge-ev-platform/vercel.json) with `/api/(.*)` rewrite to route all backend API calls to the serverless function.
-  - Adapted [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) with dynamic `/tmp` data directory support and persistent OTP storage (`otps.json`) across serverless function instances.
-  - Updated [`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx) and [`App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx) to strictly enforce real Moolre SMS dispatch for manual phone number inputs, reserving the `123456` sandbox code exclusively for the Quick Demo button.
+  - Created native file-system-based Vercel serverless function routes in [`api/auth/send-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/send-otp.ts), [`api/auth/verify-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/verify-otp.ts), [`api/user/profile.ts`](file:///d:/xcharge-ev-platform/api/user/profile.ts), and [`api/wallet/`](file:///d:/xcharge-ev-platform/api/wallet/) (`index.ts`, `topup.ts`, `momo-initiate.ts`, `momo-confirm.ts`).
+  - Updated [`vercel.json`](file:///d:/xcharge-ev-platform/vercel.json) with negative lookahead `"source": "/((?!api/).*)"` to ensure API calls are cleanly executed by Node serverless functions rather than returning Vite static `index.html`.
+  - Bumped Service Worker cache version to `xcharge-pwa-v2` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) and added automatic `registration.update()` checks in [`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts) so physical phones instantly update cached PWA versions.
+  - Verified live Moolre SMS gateway dispatch to Ghanaian mobile numbers (+233) with code `SMS01` ("Success").
+
+### F. Phase 6: Driver Profile & Custom Settings Engine (100% Complete & Verified)
+- **Comprehensive Driver Profile Modal ([`src/components/DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx))**:
+  - **Tab 1: Personal Info & Custom Avatar**:
+    - Profile picture custom upload with live `FileReader` base64 preview and offline persistence.
+    - 4 instant automotive avatar presets (Sport, Tech, Fleet, Nordic) with gradient badges.
+    - Editable full name, email, verified Ghana phone display (+233), and Ghana Card / Driver ID input.
+  - **Tab 2: My Garage & EV Fleet**:
+    - Active vehicle indicator and instant 1-tap vehicle switcher.
+    - EV fleet cards displaying model, year, battery capacity (kWh), connector type, and license plate.
+    - Integrated "Add EV" drawer form with battery capacity input and connector type selector (CCS2, Type 2, GB/T, CHAdeMO).
+  - **Tab 3: Charging & App Preferences**:
+    - Target charge limit slider (50% to 100%) with quick presets (80% Daily Commute / Battery Care vs. 100% Long Distance Trip).
+    - Default payment method selector with authentic inline vector logos for MTN MoMo, Telecel Cash, and Mastercard.
+    - SMS receipts toggle for instant transaction delivery via Moolre SMS.
+  - **Header Avatar Synchronization ([`src/components/ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx))**:
+    - Updated `#header-profile-btn` to display the driver's custom photo thumbnail or initial with an electric cyan focus ring.
+  - **Seamless State & Storage Persistence**:
+    - All edits persist to both `currentUser` state and `localStorage` (`xcharge_user_session`), synchronizing across the entire app.
 
 ---
 
