@@ -142,6 +142,19 @@ const ACCRA_STATIONS: WebStation[] = [
   },
 ];
 
+// Helper to calculate distance in kilometers using Haversine formula
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 interface StationMapScreenProps {
   onNavigateToCharge?: () => void;
 }
@@ -151,21 +164,95 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
   const routePolylineRef = useRef<L.Polyline | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
-  const [stations] = useState<WebStation[]>(ACCRA_STATIONS);
+  // Live User Location & Geolocation State
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'locating' | 'granted' | 'denied'>('locating');
+
   const [selectedStationId, setSelectedStationId] = useState<string>('airport-superhub');
   const [activeFilter, setActiveFilter] = useState<'all' | 'ultra' | 'available'>('available');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeRoute, setActiveRoute] = useState<boolean>(true);
 
-  const selectedStation = stations.find((s) => s.id === selectedStationId) || stations[0];
+  // Dynamic Station distances & ETAs based on user's live coordinates
+  const computedStations = React.useMemo(() => {
+    return ACCRA_STATIONS.map((st) => {
+      if (!userLocation) {
+        return {
+          ...st,
+          rawDistanceKm: parseFloat(st.distance) || 2.0,
+        };
+      }
 
-  // Initialize Real Leaflet Map centered on Accra
+      const distKm = calculateDistanceKm(userLocation.lat, userLocation.lng, st.lat, st.lng);
+      const distanceStr = distKm < 1 ? `${Math.round(distKm * 1000)} m` : `${distKm.toFixed(1)} km`;
+      // Average city driving speed ~35 km/h in Accra traffic
+      const etaMins = Math.max(1, Math.round((distKm / 35) * 60));
+      const etaStr = `${etaMins} min`;
+
+      return {
+        ...st,
+        distance: distanceStr,
+        eta: etaStr,
+        rawDistanceKm: distKm,
+      };
+    });
+  }, [userLocation]);
+
+  const selectedStation = computedStations.find((s) => s.id === selectedStationId) || computedStations[0];
+
+  // Request & Watch Live Location immediately on mount
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationStatus('denied');
+      return;
+    }
+
+    setLocationStatus('locating');
+
+    // Continuous watch for high-accuracy live driver coordinates
+    const geoId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newLoc = { lat: latitude, lng: longitude };
+
+        setUserLocation((prev) => {
+          // If first time receiving position and map is ready, immediately center map on driver!
+          if (!prev && mapRef.current) {
+            mapRef.current.flyTo([latitude, longitude], 14, { duration: 1.2 });
+          }
+          return newLoc;
+        });
+        setLocationStatus('granted');
+      },
+      (error) => {
+        console.warn('Geolocation unavailable or denied:', error.message);
+        setLocationStatus((prev) => (prev === 'granted' ? prev : 'denied'));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 10000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(geoId);
+    };
+  }, []);
+
+  // Initialize Real Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Initial center: if user location already resolved, use it; else fallback to central Accra
+    const initialCenter: [number, number] = userLocation
+      ? [userLocation.lat, userLocation.lng]
+      : [5.6037, -0.1870];
+
     const map = L.map(mapContainerRef.current, {
-      center: [5.6037, -0.1870],
+      center: initialCenter,
       zoom: 13,
       zoomControl: false,
       attributionControl: false,
@@ -181,24 +268,32 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
     const userGpsIcon = L.divIcon({
       className: 'user-pulse-marker',
       html: `
-        <div style="position: relative; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #00f0ff; opacity: 0.4; animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
-          <div style="width: 12px; height: 12px; border-radius: 50%; background: #00f0ff; border: 2px solid #ffffff; box-shadow: 0 0 10px #00f0ff;"></div>
+        <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: #00f0ff; opacity: 0.4; animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #00f0ff; border: 2.5px solid #ffffff; box-shadow: 0 0 12px #00f0ff;"></div>
         </div>
       `,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
-    L.marker([5.5920, -0.1820], { icon: userGpsIcon }).addTo(map);
+    const marker = L.marker(initialCenter, { icon: userGpsIcon }).addTo(map);
+    userMarkerRef.current = marker;
 
     mapRef.current = map;
 
     return () => {
       map.remove();
       mapRef.current = null;
+      userMarkerRef.current = null;
     };
   }, []);
+
+  // Keep User Marker synced with live GPS
+  useEffect(() => {
+    if (!userLocation || !userMarkerRef.current) return;
+    userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lng]);
+  }, [userLocation]);
 
   // Sync Markers & Availability
   useEffect(() => {
@@ -209,7 +304,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
     Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
 
-    stations.forEach((st) => {
+    computedStations.forEach((st) => {
       const isSelected = st.id === selectedStationId;
       const isAvailable = st.availableStalls > 0;
       const badgeColor = isAvailable ? '#00f0ff' : '#ff4d4d';
@@ -258,9 +353,9 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
 
       markersRef.current[st.id] = marker;
     });
-  }, [stations, selectedStationId]);
+  }, [computedStations, selectedStationId]);
 
-  // Draw Neon Route to Selected Station
+  // Draw Neon Route from User Location to Selected Station
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -271,12 +366,14 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
     }
 
     if (activeRoute && selectedStation) {
-      const userLoc: [number, number] = [5.5920, -0.1820];
+      const userLoc: [number, number] = userLocation
+        ? [userLocation.lat, userLocation.lng]
+        : [5.6037, -0.1870];
       const targetLoc: [number, number] = [selectedStation.lat, selectedStation.lng];
 
-      // Waypoint midpoint curve
+      // Waypoint midpoint curve for aesthetic arc
       const midPoint: [number, number] = [
-        (userLoc[0] + targetLoc[0]) / 2 + 0.003,
+        (userLoc[0] + targetLoc[0]) / 2 + 0.002,
         (userLoc[1] + targetLoc[1]) / 2 - 0.002,
       ];
 
@@ -289,18 +386,53 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
 
       routePolylineRef.current = polyline;
     }
-  }, [selectedStation, activeRoute]);
+  }, [selectedStation, activeRoute, userLocation]);
 
-  const filteredStations = stations.filter((s) => {
+  const filteredStations = computedStations.filter((s) => {
     if (activeFilter === 'ultra') return s.maxKw >= 200;
     if (activeFilter === 'available') return s.availableStalls > 0;
     return true;
   });
 
+  // Recenter map on user's live position or prompt for permission
   const handleRecenter = () => {
-    if (mapRef.current) {
-      mapRef.current.flyTo([5.5920, -0.1820], 14, { duration: 0.6 });
+    if (userLocation && mapRef.current) {
+      mapRef.current.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 0.8 });
+    } else if (navigator.geolocation) {
+      setLocationStatus('locating');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserLocation(loc);
+          setLocationStatus('granted');
+          if (mapRef.current) {
+            mapRef.current.flyTo([loc.lat, loc.lng], 15, { duration: 0.8 });
+          }
+        },
+        () => {
+          setLocationStatus('denied');
+          if (mapRef.current) {
+            mapRef.current.flyTo([5.6037, -0.1870], 14, { duration: 0.8 });
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
     }
+  };
+
+  // Launch Google Maps Turn-by-Turn Navigation
+  const handleOpenGoogleMaps = (station: WebStation) => {
+    const destLat = station.lat;
+    const destLng = station.lng;
+    
+    // Google Maps universal turn-by-turn navigation URL
+    let url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+    if (userLocation) {
+      url += `&origin=${userLocation.lat},${userLocation.lng}`;
+    }
+
+    // Opens native Google Maps app on iOS/Android or browser tab with full directions
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -320,6 +452,39 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-none text-xs text-white placeholder-[#64748b] focus:outline-none font-medium"
           />
+
+          {/* Live GPS Status Indicator */}
+          <div className="shrink-0 flex items-center">
+            {locationStatus === 'locating' && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#00f0ff]/10 text-[10px] font-mono text-[#00f0ff]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] animate-ping" />
+                <span className="hidden xs:inline">Locating...</span>
+              </span>
+            )}
+            {locationStatus === 'granted' && (
+              <button
+                type="button"
+                onClick={handleRecenter}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#00e676]/10 text-[10px] font-mono text-[#00e676] hover:bg-[#00e676]/20 transition-colors cursor-pointer"
+                title="GPS Active · Tap to Recenter"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00e676]" />
+                <span className="hidden xs:inline">Live GPS</span>
+              </button>
+            )}
+            {locationStatus === 'denied' && (
+              <button
+                type="button"
+                onClick={handleRecenter}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-[10px] font-mono text-amber-400 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                title="Location Disabled · Tap to Enable"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="hidden xs:inline">GPS Off</span>
+              </button>
+            )}
+          </div>
+
           <button
             onClick={() => setActiveRoute(!activeRoute)}
             className={`p-1.5 rounded-xl border transition-all ${
@@ -357,7 +522,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
       <div className="absolute right-3 top-28 z-20 flex flex-col gap-2">
         <button
           onClick={handleRecenter}
-          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] hover:border-[#00f0ff]/50 active:scale-95 transition-all"
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] hover:border-[#00f0ff]/50 active:scale-95 transition-all cursor-pointer"
           title="Recenter to My Location"
         >
           <Locate className="w-4 h-4 text-[#00f0ff]" />
@@ -369,7 +534,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
               mapRef.current.setZoom(currentZoom + 1);
             }
           }}
-          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold"
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold cursor-pointer"
         >
           +
         </button>
@@ -380,7 +545,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
               mapRef.current.setZoom(currentZoom - 1);
             }
           }}
-          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold"
+          className="w-9 h-9 rounded-xl bg-[#10141a]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white shadow-xl hover:bg-[#181c22] active:scale-95 transition-all text-base font-bold cursor-pointer"
         >
           −
         </button>
@@ -436,23 +601,23 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
           {/* Action CTAs */}
           <div className="flex items-center gap-2 pt-1">
             <button
-              onClick={() => {
-                alert(`Routing initiated to ${selectedStation.name}. Follow live navigation.`);
-              }}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-[#181c22] hover:bg-[#20252e] border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              id="btn-station-navigate-google"
+              onClick={() => handleOpenGoogleMaps(selectedStation)}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-[#181c22] hover:bg-[#20252e] border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer group"
+              title="Open Google Maps Turn-by-Turn Navigation"
             >
-              <Navigation className="w-3.5 h-3.5 text-[#00f0ff]" />
-              Navigate ({selectedStation.eta})
+              <Navigation className="w-3.5 h-3.5 text-[#00f0ff] group-hover:rotate-45 transition-transform" />
+              <span>Navigate ({selectedStation.eta})</span>
             </button>
 
             <button
               onClick={() => {
                 if (onNavigateToCharge) onNavigateToCharge();
               }}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-[#00f0ff] hover:bg-[#00d2ff] text-black text-xs font-extrabold transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-95"
+              className="flex-1 py-2.5 px-3 rounded-xl bg-[#00f0ff] hover:bg-[#00d2ff] text-black text-xs font-extrabold transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-black" />
-              Plug & Charge
+              <span>Plug & Charge</span>
             </button>
           </div>
         </div>

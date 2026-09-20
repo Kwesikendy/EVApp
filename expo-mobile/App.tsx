@@ -15,6 +15,7 @@ import {
   AppState,
   Switch,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -1251,14 +1252,16 @@ function AppContent() {
                       <TouchableOpacity
                         style={s.navigateBtn}
                         onPress={() => {
-                          Alert.alert(
-                            'Turn-by-Turn Navigation',
-                            `Navigating to ${selectedStation.name} via Liberation Rd.\nEstimated arrival: in ${selectedStation.etaMins} minutes (${selectedStation.distanceKm} km).`
-                          );
+                          const lat = selectedStation.latitude;
+                          const lng = selectedStation.longitude;
+                          const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+                          Linking.openURL(url).catch(() => {
+                            Alert.alert('Navigation Error', 'Could not open Google Maps navigation.');
+                          });
                         }}
                       >
                         <Navigation size={14} color="#38bdf8" />
-                        <Text style={s.navigateBtnText}>Route ({selectedStation.distanceKm} km)</Text>
+                        <Text style={s.navigateBtnText}>Navigate ({selectedStation.distanceKm} km)</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity

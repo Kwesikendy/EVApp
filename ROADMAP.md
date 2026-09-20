@@ -21,8 +21,9 @@
 | **Ghana MoMo Payment Switch** | **100%** | **Live & Verified** | USSD push prompts (`*170#`, `*110#`), PIN authorization, persistent multi-user wallet, and pre-auth escrow refunds. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
+| **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Continuous geolocation tracking, map auto-centering, dynamic Haversine distance/ETA, and 1-tap Google Maps directions. |
 | **Store Distribution & PWA** | **95%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, native Vercel serverless API routing, and offline caching v2. |
-| **Overall Commercial Progress** | **~96%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, and driver profile suite complete; entering hardware ingress. |
+| **Overall Commercial Progress** | **~97%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, and live navigation complete; entering hardware ingress. |
 
 ---
 

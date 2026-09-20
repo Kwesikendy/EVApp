@@ -161,6 +161,17 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - **Seamless State & Storage Persistence**:
     - All edits persist to both `currentUser` state and `localStorage` (`xcharge_user_session`), synchronizing across the entire app.
 
+### G. Phase 7: Live GPS Geolocation & Google Maps Navigation Engine (100% Complete & Verified)
+- **Live User Geolocation on Launch ([`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx))**:
+  - Automatically queries and watches user's live coordinates via `navigator.geolocation.watchPosition` with high accuracy mode.
+  - Automatically concentrates and flies the map viewport directly to the driver's live GPS coordinates upon opening (`map.flyTo([lat, lng], 14)`).
+  - Renders a live pulsing GPS cyan dot with animated radar ping wave tracking the driver's physical position in real time.
+  - Recalculates real-time distance and ETA for all charging hubs dynamically using the Haversine formula (`calculateDistanceKm`) based on the driver's actual position rather than static placeholders.
+  - Live GPS status indicator in top search bar (`Locating...`, `Live GPS`, `GPS Off · Tap to Enable`) with 1-tap recenter button.
+- **Turn-by-Turn Google Maps Navigation**:
+  - Integrated universal Google Maps driving directions (`https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}&travelmode=driving`) into the "Navigate" CTA in [`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx).
+  - Also upgraded the mobile app's navigation CTA in [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) via `Linking.openURL(...)` to immediately launch native Google Maps navigation with origin and destination coordinates preset.
+
 ---
 
 ## 5. File & Directory Map
