@@ -138,6 +138,13 @@ All UI elements strictly follow the **Hypercharge OS** design tokens:
   - Replaced lightning bolt on the quick demo button with a `User` profile icon.
 - **Motion & Transition Engine ([`motion/react`](file:///d:/xcharge-ev-platform/package.json))**:
   - **Screen & Tab Transitions**: Wrapped top-level tabs (`map`, `charge`, `wallet`, `fleet`) in `<AnimatePresence mode="wait">` with subtle vertical entrance slides (`y: 8` -> `y: 0`) and opacity fades.
+
+### F. Phase 6: Vercel Serverless Hardening & Production API Routing (100% Complete & Verified)
+- **Standalone Serverless Functions ([`api/`](file:///d:/xcharge-ev-platform/api/))**:
+  - **Zero-Dependency Handlers**: Hardened `api/auth/send-otp.ts`, `api/auth/verify-otp.ts`, `api/user/profile.ts`, and `api/wallet/index.ts` to be completely self-contained with no relative imports outside the `api/` tree. Eliminates Node ESM `ERR_MODULE_NOT_FOUND` and prevents Vercel `FUNCTION_INVOCATION_FAILED` (HTTP 500) crashes.
+  - **New Core Endpoints**: Added native serverless endpoints [`api/stations.ts`](file:///d:/xcharge-ev-platform/api/stations.ts) (providing full telemetry data for Accra superhubs) and [`api/session/active.ts`](file:///d:/xcharge-ev-platform/api/session/active.ts) (resolving 404s on cloud-hosted PWA).
+  - **PWA v5 Service Worker Cache**: Bumped cache token to `xcharge-pwa-v5` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) to force instant eviction of legacy bundle caches.
+
   - **Authentication Screen Transitions**: Wrapped auth flow views (`login`, `signup`, `otp`, `otp_success`) in `<AnimatePresence mode="wait">` for fluid step transitions.
   - **Modal Sheet Animations**: Upgraded Profile modal, Vehicle selector modal, and Station Admin drawer with spring physics (`type: 'spring', damping: 28, stiffness: 350`) and smooth backdrop fades.
   - **Sliding Tab Indicator**: Implemented a smooth sliding accent indicator in [`ModernBottomNav.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernBottomNav.tsx) using `layoutId="bottomNavIndicator"` and `whileTap={{ scale: 0.92 }}` tactile touch response.

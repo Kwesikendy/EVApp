@@ -22,8 +22,8 @@
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Continuous geolocation tracking, map auto-centering, dynamic Haversine distance/ETA, and 1-tap Google Maps directions. |
-| **Store Distribution & PWA** | **98%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, native Vercel serverless API routing, offline caching v4 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
-| **Overall Commercial Progress** | **~98%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, and live navigation complete; entering hardware ingress. |
+| **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v5 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
+| **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, and cloud serverless routing complete; entering hardware ingress. |
 
 ---
 
