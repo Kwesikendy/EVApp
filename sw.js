@@ -1,5 +1,5 @@
 // XCHARGE Hypercharge OS Service Worker
-const CACHE_NAME = 'xcharge-pwa-v4';
+const CACHE_NAME = 'xcharge-pwa-v5';
 
 const STATIC_ASSETS = [
   '/',
