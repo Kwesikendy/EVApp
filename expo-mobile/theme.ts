@@ -1,13 +1,16 @@
-// theme.ts - Hypercharge OS Design Tokens
+// theme.ts — ChargeLink GH Design Tokens
+// Brand: ChargeLink GH | "Powering a Cleaner Tomorrow"
+// Primary: ChargeLink Green (#22c55e) on Deep Obsidian (#10141a)
 export const Theme = {
   colors: {
     background: '#10141a',
     surface: '#181c22',
-    surfaceBright: '#242a34',
+    surfaceBright: '#1a2818',   // Subtle green-tinted surface for brand warmth
     surfaceContainerLowest: '#0a0e14',
     border: '#2a313d',
-    primary: '#00f0ff',
-    primaryPressed: '#00c8d6',
+    primary: '#22c55e',          // ChargeLink Green (was Electric Cyan #00f0ff)
+    primaryLight: '#4ade80',     // Light green for highlights
+    primaryPressed: '#16a34a',   // Pressed/active state (deeper green)
     onPrimary: '#000000',
     textPrimary: '#ffffff',
     textSecondary: '#94a3b8',
@@ -15,6 +18,7 @@ export const Theme = {
     success: '#00e676',
     error: '#ff4d4d',
     warning: '#f59e0b',
+    underConstruction: '#f59e0b', // Amber for under-construction station status
   },
   typography: {
     fontFamily: undefined,

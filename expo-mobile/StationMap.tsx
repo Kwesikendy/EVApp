@@ -37,7 +37,7 @@ export default function StationMap({
   selectedStation,
   onSelectStation,
   onStartCharge,
-  userLocation = { latitude: 5.5900, longitude: -0.1800 },
+  userLocation = { latitude: 6.6697479, longitude: -1.5995679 },
 }: StationMapProps) {
   const webViewRef = useRef<any>(null);
   const [currentMapStyle, setCurrentMapStyle] = useState<'osm' | 'dark'>('osm');
@@ -57,7 +57,9 @@ export default function StationMap({
         totalConnectors: s.connectors.length,
         address: s.address,
         distanceKm: s.distanceKm,
-        tariff: s.connectors[0]?.tariffPerKwh || 4.20,
+        tariff: s.connectors[0]?.tariffPerKwh || 4.50,
+        isOnline: (s as any).isOnline !== false,
+        constructionStatus: (s as any).constructionStatus || null,
       }))
     );
 
@@ -92,29 +94,41 @@ export default function StationMap({
       padding: 5px 10px;
       border-radius: 20px;
       background: #0b1324;
-      border: 2px solid #0284c7;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(14, 165, 233, 0.3);
+      border: 2px solid #22c55e;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(34, 197, 94, 0.3);
       white-space: nowrap;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .marker-pill.selected {
-      transform: scale(1.15);
-      border-color: #10b981;
-      background: #064e3b;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 16px rgba(16, 185, 129, 0.6);
+      border-color: #22c55e;
+      background: #052e16;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 16px rgba(34, 197, 94, 0.6);
     }
     .marker-pill.available {
-      border-color: #10b981;
+      border-color: #22c55e;
+    }
+    .marker-pill.construction {
+      border-color: #f59e0b;
+      background: #1c1205;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+    .marker-pill.construction.selected {
+      border-color: #fbbf24;
+      background: #291a00;
     }
     .marker-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #0284c7;
+      background: #22c55e;
+    }
+    .marker-dot.amber {
+      background: #f59e0b;
+      box-shadow: 0 0 6px #f59e0b;
     }
     .marker-dot.green {
-      background: #10b981;
-      box-shadow: 0 0 6px #10b981;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
     }
     .marker-kw {
       font-size: 11px;
@@ -125,11 +139,11 @@ export default function StationMap({
     .marker-stem {
       width: 2px;
       height: 7px;
-      background: #0284c7;
+      background: #22c55e;
       margin-top: -1px;
     }
     .marker-pill.selected + .marker-stem {
-      background: #10b981;
+      background: #22c55e;
       height: 9px;
     }
 
@@ -148,12 +162,12 @@ export default function StationMap({
       position: absolute;
       top: 6px;
       left: 6px;
-      box-shadow: 0 0 10px #0284c7;
+      box-shadow: 0 0 10px #22c55e;
     }
     .user-pulse-ring {
       width: 26px;
       height: 26px;
-      border: 2.5px solid #0284c7;
+      border: 2.5px solid #22c55e;
       border-radius: 50%;
       position: absolute;
       top: 0;
@@ -211,9 +225,9 @@ export default function StationMap({
       color: #38bdf8;
     }
     .station-popup-badge.avail {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
     }
     .station-popup-btn {
       display: block;
@@ -230,7 +244,7 @@ export default function StationMap({
       transition: background 0.15s;
     }
     .station-popup-btn:active {
-      background: #0369a1;
+      background: #16a34a;
     }
 
     /* Attribution & Zoom controls */
@@ -261,13 +275,13 @@ export default function StationMap({
     const userLoc = [${userLocation.latitude}, ${userLocation.longitude}];
     let currentTileMode = '${currentMapStyle}';
 
-    // Initialize Map with Accra center
+    // Initialize Map centered on Kumasi (Greenwood Event Center area)
     const map = L.map('map', {
       zoomControl: false,
       attributionControl: true,
       maxZoom: 19,
       minZoom: 10
-    }).setView([5.5900, -0.1800], 13);
+    }).setView([6.6697479, -1.5995679], 14);
 
     // OpenStreetMap Standard Tiles (Actual open-source map with all roads and labels)
     const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -305,8 +319,9 @@ export default function StationMap({
     function renderMarkers() {
       stations.forEach(st => {
         const isSel = st.id === selectedId;
-        const dotColorClass = st.hasAvailable ? 'green' : '';
-        const pillClass = 'marker-pill ' + (isSel ? 'selected' : '') + ' ' + (st.hasAvailable ? 'available' : '');
+        const isConstruction = st.constructionStatus === 'under_construction';
+        const dotColorClass = isConstruction ? 'amber' : (st.hasAvailable ? 'green' : '');
+        const pillClass = 'marker-pill ' + (isConstruction ? 'construction' : '') + ' ' + (isSel ? 'selected' : '') + ' ' + (!isConstruction && st.hasAvailable ? 'available' : '');
 
         const iconHtml = \`
           <div class="ev-marker" onclick="handleStationClick('\${st.id}')">
@@ -330,13 +345,17 @@ export default function StationMap({
             <div class="station-popup-title">\${st.name}</div>
             <div class="station-popup-sub">\${st.address} · \${st.distanceKm} km</div>
             <div class="station-popup-badge-row">
-              <span class="station-popup-badge avail">\${st.availableCount}/\${st.totalConnectors} Available</span>
-              <span class="station-popup-badge">\${st.maxPower} kW CCS2</span>
-              <span class="station-popup-badge">GH₵ \${st.tariff.toFixed(2)}/kWh</span>
+              \${st.isOnline
+                ? \`<span class="station-popup-badge avail">\${st.availableCount}/\${st.totalConnectors} Available</span>\`
+                : \`<span class="station-popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)">Under Construction</span>\`
+              }
+              <span class="station-popup-badge">\${st.maxPower} kW</span>
+              <span class="station-popup-badge">GH₵ \${(st.tariff ?? 4.50).toFixed(2)}/kWh</span>
             </div>
-            <div class="station-popup-btn" onclick="handleChargeClick('\${st.id}')">
-              ⚡ Connect & Charge
-            </div>
+            \${st.isOnline
+              ? \`<div class="station-popup-btn" onclick="handleChargeClick('\${st.id}')">⚡ Connect &amp; Charge</div>\`
+              : \`<div class="station-popup-btn" style="background:#78350f;cursor:not-allowed">🔧 Coming Soon</div>\`
+            }
           </div>
         \`;
 

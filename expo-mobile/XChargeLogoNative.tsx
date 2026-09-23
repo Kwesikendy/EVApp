@@ -6,6 +6,7 @@ import Svg, {
   Stop,
   G,
   Path,
+  Rect,
   Text as SvgText,
   TSpan,
 } from 'react-native-svg';
@@ -16,41 +17,46 @@ interface XChargeMarkProps {
 }
 
 /**
- * Authentic Aerodynamic X blade glyph from public/xcharge-logo.svg
+ * ChargeLink GH official "C + plug + leaf" glyph mark
+ * Derived from the client's official logo (xcharge_logo.jpeg)
  */
 export const XChargeMarkNative: React.FC<XChargeMarkProps> = ({ size = 48, style }) => {
   return (
     <View style={[{ width: size, height: size }, style]}>
-      <Svg viewBox="24 21 52 48" width="100%" height="100%">
+      <Svg viewBox="0 0 120 120" width="100%" height="100%">
         <Defs>
-          <LinearGradient id="cyanBladeMark" x1="0%" y1="100%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#00d2ff" />
-            <Stop offset="60%" stopColor="#00f0ff" />
-            <Stop offset="100%" stopColor="#55f5ff" />
+          <LinearGradient id="clLeafMarkN" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#4ade80" />
+            <Stop offset="100%" stopColor="#16a34a" />
           </LinearGradient>
-          <LinearGradient id="whiteBladeMark" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#ffffff" />
-            <Stop offset="100%" stopColor="#cbd5e1" />
+          <LinearGradient id="clCMarkN" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#22c55e" />
+            <Stop offset="100%" stopColor="#15803d" />
           </LinearGradient>
         </Defs>
 
-        <G>
-          {/* Top-Left White Wing */}
-          <Path
-            d="M 32 24 L 46 24 C 49 24 51 27 49 30 L 44 38 C 42 41 38 41 36 38 L 30 29 C 29 27 30 24 32 24 Z"
-            fill="url(#whiteBladeMark)"
-          />
-          {/* Bottom-Right White Wing */}
-          <Path
-            d="M 52 48 L 57 44 C 59 42 63 43 65 46 L 70 54 C 71 56 70 59 67 59 L 58 59 C 55 59 53 56 55 53 Z"
-            fill="url(#whiteBladeMark)"
-          />
-          {/* Cyan Main Diagonal Blade */}
-          <Path
-            d="M 28 64 L 42 46 C 44 43 47 41 50 39 L 68 25 C 71 23 74 25 73 28 L 68 34 C 66 36 63 38 60 41 L 44 60 C 42 63 38 65 34 66 L 27 67 C 25 67 25 65 28 64 Z"
-            fill="url(#cyanBladeMark)"
-          />
-        </G>
+        {/* Dark rounded background */}
+        <Rect width="120" height="120" rx="24" fill="#0f2318" />
+
+        {/* C-shaped arc */}
+        <Path
+          d="M 68 18 A 42 42 0 1 0 68 102 L 68 86 A 26 26 0 1 1 68 34 Z"
+          fill="url(#clCMarkN)"
+        />
+
+        {/* EV plug body */}
+        <Rect x="60" y="50" width="28" height="18" rx="5" fill="url(#clLeafMarkN)" />
+        <Rect x="88" y="55" width="10" height="3" rx="1.5" fill="url(#clLeafMarkN)" />
+        <Rect x="88" y="62" width="10" height="3" rx="1.5" fill="url(#clLeafMarkN)" />
+        {/* Lightning bolt */}
+        <Path d="M72 54 L69 61 L73 61 L70 68 L77 60 L73 60 Z" fill="#ffffff" />
+
+        {/* Leaf swoosh */}
+        <Path
+          d="M 40 82 Q 58 70 82 76 Q 64 86 46 90 Z"
+          fill="url(#clLeafMarkN)"
+          opacity="0.9"
+        />
       </Svg>
     </View>
   );
@@ -65,7 +71,9 @@ interface XChargeLogoProps {
 }
 
 /**
- * Full authentic XCHARGE native vector logo from public/xcharge-logo.svg
+ * Full ChargeLink GH vector logo
+ * Brand colors: ChargeLink Green (#22c55e / #4ade80) on dark (#0f2318)
+ * Tagline: "Powering a Cleaner Tomorrow"
  */
 export const XChargeLogoNative: React.FC<XChargeLogoProps> = ({
   width,
@@ -75,10 +83,10 @@ export const XChargeLogoNative: React.FC<XChargeLogoProps> = ({
   style,
 }) => {
   const dims = {
-    sm: { w: 140, h: 42 },
-    md: { w: 200, h: 60 },
-    lg: { w: 260, h: 78 },
-    hero: { w: 320, h: 96 },
+    sm: { w: 160, h: 48 },
+    md: { w: 220, h: 66 },
+    lg: { w: 280, h: 84 },
+    hero: { w: 340, h: 102 },
   }[size];
 
   const w = width ?? dims.w;
@@ -86,60 +94,55 @@ export const XChargeLogoNative: React.FC<XChargeLogoProps> = ({
 
   return (
     <View style={[{ width: w, height: h }, style]}>
-      <Svg viewBox="0 0 400 120" width="100%" height="100%">
+      <Svg viewBox="0 0 460 120" width="100%" height="100%">
         <Defs>
-          <LinearGradient id="cyanBladeFull" x1="0%" y1="100%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#00d2ff" />
-            <Stop offset="60%" stopColor="#00f0ff" />
-            <Stop offset="100%" stopColor="#55f5ff" />
+          <LinearGradient id="clLeafFull" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#4ade80" />
+            <Stop offset="100%" stopColor="#16a34a" />
           </LinearGradient>
-          <LinearGradient id="whiteBladeFull" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#ffffff" />
-            <Stop offset="100%" stopColor="#cbd5e1" />
+          <LinearGradient id="clCFull" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#22c55e" />
+            <Stop offset="100%" stopColor="#15803d" />
           </LinearGradient>
         </Defs>
 
-        {/* Aerodynamic X Mark */}
-        <G transform="translate(10, 10) scale(0.9)">
-          {/* Top-Left White Wing */}
-          <Path
-            d="M 32 24 L 46 24 C 49 24 51 27 49 30 L 44 38 C 42 41 38 41 36 38 L 30 29 C 29 27 30 24 32 24 Z"
-            fill="url(#whiteBladeFull)"
-          />
-          {/* Bottom-Right White Wing */}
-          <Path
-            d="M 52 48 L 57 44 C 59 42 63 43 65 46 L 70 54 C 71 56 70 59 67 59 L 58 59 C 55 59 53 56 55 53 Z"
-            fill="url(#whiteBladeFull)"
-          />
-          {/* Cyan Main Diagonal Blade */}
-          <Path
-            d="M 28 64 L 42 46 C 44 43 47 41 50 39 L 68 25 C 71 23 74 25 73 28 L 68 34 C 66 36 63 38 60 41 L 44 60 C 42 63 38 65 34 66 L 27 67 C 25 67 25 65 28 64 Z"
-            fill="url(#cyanBladeFull)"
-          />
-        </G>
+        {/* C-shaped arc */}
+        <Path
+          d="M 80 16 A 44 44 0 1 0 80 104 L 80 88 A 28 28 0 1 1 80 32 Z"
+          fill="url(#clCFull)"
+        />
 
-        {/* Typography */}
-        <SvgText
-          x="110"
-          y="65"
-          fontWeight="800"
-          fontSize="38"
-          letterSpacing="4"
-        >
-          <TSpan fill="#00f0ff">X</TSpan>
-          <TSpan fill="#ffffff">CHARGE</TSpan>
+        {/* EV plug body */}
+        <Rect x="72" y="50" width="28" height="18" rx="5" fill="url(#clLeafFull)" />
+        <Rect x="100" y="55" width="10" height="3" rx="1.5" fill="url(#clLeafFull)" />
+        <Rect x="100" y="60" width="10" height="3" rx="1.5" fill="url(#clLeafFull)" />
+        {/* Lightning bolt on plug */}
+        <Path d="M83 54 L80 60 L84 60 L81 67 L87 59 L83 59 Z" fill="#ffffff" />
+
+        {/* Leaf swoosh */}
+        <Path
+          d="M 52 80 Q 68 68 92 74 Q 76 84 58 88 Z"
+          fill="url(#clLeafFull)"
+          opacity="0.9"
+        />
+
+        {/* Brand Text: ChargeLink GH */}
+        <SvgText x="128" y="63" fontWeight="800" fontSize="34" letterSpacing="1">
+          <TSpan fill="#22c55e">Charge</TSpan>
+          <TSpan fill="#ffffff">Link</TSpan>
+          <TSpan fill="#4ade80"> GH</TSpan>
         </SvgText>
 
         {showSubtitle && (
           <SvgText
-            x="112"
-            y="85"
+            x="130"
+            y="83"
             fontSize="11"
-            fontWeight="600"
-            fill="#64748b"
-            letterSpacing="6"
+            fontWeight="500"
+            fill="#4b7c5a"
+            letterSpacing="3"
           >
-            ENERGY NETWORK
+            POWERING A CLEANER TOMORROW
           </SvgText>
         )}
       </Svg>

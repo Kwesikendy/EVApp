@@ -1,10 +1,11 @@
-# XCHARGE EV Platform — Commercial Production Roadmap
+# ChargeLink GH EV Platform — Commercial Production Roadmap
 
-**Target:** Commercial release of Ghana's premier electric vehicle fast-charging and fleet management network.  
+**Brand:** ChargeLink GH | "Powering a Cleaner Tomorrow"  
+**Target:** Commercial launch of Ghana's premier electric vehicle fast-charging network.  
 **Currency:** Ghana Cedi (`GH₵`)  
-**Design Standard:** Hypercharge OS Dark (`#10141a` base, `#00f0ff` electric cyan)  
-**Hardware Protocol:** OCPP 2.0.1 (CitrineOS CSMS compliant)  
-**SMS & MoMo Provider:** Moolre Ghana Gateway  
+**Design Standard:** ChargeLink OS Dark (`#10141a` base, `#22c55e` ChargeLink Green)  
+**Hardware Protocol:** OCPP 1.6J (MaxPower VCP160 @ Greenwood Event Center, Kumasi)  
+**SMS & MoMo Provider:** Moolre Ghana Gateway | Merchant: CHARGELINK GH LTD  
 
 ---
 

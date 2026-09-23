@@ -1,6 +1,6 @@
-# XCHARGE EV Platform — Complete Project Context & Architecture
+# ChargeLink GH EV Platform — Complete Project Context & Architecture
 
-> **Notice & Mandatory Instruction:** This document is the single source of truth for the XCHARGE project. 
+> **Notice & Mandatory Instruction:** This document is the single source of truth for the ChargeLink GH project. 
 > 1. Any AI assistant or developer picking up this repository MUST read this document first to get up to speed instantly.
 > 2. **CRITICAL WORKSPACE RULE:** You MUST always update this project context file (`PROJECT_CONTEXT.md`) and `ROADMAP.md` whenever you build, modify, or add features, endpoints, components, or architectural changes. Never complete a task without recording your work here.
 
@@ -8,15 +8,20 @@
 
 ## 1. Executive Summary
 
-**XCHARGE** is Ghana's first high-speed electric vehicle charging and commercial fleet operating system. It provides real-time OCPP 2.0.1 telemetry, map navigation across Accra and major Ghanaian corridors, Mobile Money split-wallets (MTN MoMo & Telecel Cash), dynamic pre-authorization escrow, and fleet vehicle management.
+**ChargeLink GH** (formerly XCHARGE) is Ghana's premier high-speed electric vehicle charging and fleet operating system, operating under the tagline **"Powering a Cleaner Tomorrow"**. It provides real-time OCPP telemetry, map navigation, Mobile Money split-wallets (MTN MoMo & Telecel Cash), dynamic pre-authorization escrow, and fleet vehicle management.
 
-- **Primary Market:** Ghana (Accra, Tema, Kumasi, Takoradi).
+- **Client / Operator:** ChargeLink GH
+- **First Station:** Greenwood Event Center, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti (GPS: 6.6697479, -1.5995679)
+- **Station Status:** Under Construction (MaxPower VCP160 charger en route)
+- **Hardware:** MaxPower VCP160 | OCPP 1.6J | 160kW | 2 charging guns (A: GB/T, B: CCS2) | Dynamic power sharing
+- **Pricing:** GH₵ 4.50/kWh | Idle fee: GH₵ 0.50/min (after 5-min grace) | Max idle cap: GH₵ 10.00
+- **Payment:** MTN MoMo, Telecel Cash, Mastercard, Wallet top-up | Merchant: CHARGELINK GH LTD
+- **Primary Market:** Ghana (Kumasi, Ashanti Region — initial; expanding nationally).
 - **Core Currency:** Ghana Cedi (`GH₵`).
-- **Hardware Protocol:** OCPP 2.0.1 (CitrineOS CSMS standard).
+- **Hardware Protocol:** OCPP 1.6J (MaxPower VCP160). Backend CSMS simulator: OCPP 2.0.1.
 - **Driver Mobile Experience:** Built with **Expo 57 (React Native)** in [`expo-mobile/`](file:///d:/xcharge-ev-platform/expo-mobile).
 - **Backend Server & Web Application:** Built with **Node.js 24 / Express / Vite / TypeScript** in root [`server.ts`](file:///d:/xcharge-ev-platform/server.ts) and [`src/`](file:///d:/xcharge-ev-platform/src/).
 - **Git Repository:** [https://github.com/Kwesikendy/EVApp.git](https://github.com/Kwesikendy/EVApp.git) (Branch: `main`).
-- **Web Deployment:** Published to GitHub Pages ([https://kwesikendy.github.io/EVApp/](https://kwesikendy.github.io/EVApp/)) and configured for 1-click Vercel import ([`vercel.json`](file:///d:/xcharge-ev-platform/vercel.json)).
 
 ---
 
@@ -41,26 +46,28 @@
 
 ---
 
-## 3. Brand Identity & Design System (Hypercharge OS)
+## 3. Brand Identity & Design System (ChargeLink OS)
 
-All UI elements strictly follow the **Hypercharge OS** design tokens:
+All UI elements strictly follow the **ChargeLink OS** design tokens:
 
 | Token | Hex Value | Usage |
 | :--- | :--- | :--- |
 | `background` | `#10141a` | Deep obsidian background. |
 | `surface` | `#181c22` | Cards, modal sheets, and input fields. |
-| `surfaceBright` | `#242a34` | Hover states, active buttons, elevated elements. |
+| `surfaceBright` | `#1a2818` | Subtle green-tinted elevated elements. |
 | `border` | `#2a313d` | High-contrast structural dividers. |
-| `primary` | `#00f0ff` | Electric cyan brand accent and primary CTAs. |
-| `primaryPressed` | `#00c8d6` | Touch feedback on primary buttons. |
+| `primary` | `#22c55e` | ChargeLink Green — primary brand accent and CTAs. |
+| `primaryLight` | `#4ade80` | Light green for highlights, "GH" badge in logo. |
+| `primaryPressed` | `#16a34a` | Touch feedback on primary buttons. |
 | `success` | `#00e676` | Battery charging, online node, verified ticks. |
 | `error` | `#ff4d4d` | Disconnected state, validation errors, sign out. |
-| `warning` | `#f59e0b` | Connecting state, low battery, pre-auth alerts. |
+| `warning` | `#f59e0b` | Under construction station status, pre-auth alerts. |
 
 ### Brand Consistency Rules
-1. **Never use plain text "✕" or generic icons for the logo:** Always use `XChargeLogoNative` or `XChargeMarkNative` from [`expo-mobile/XChargeLogoNative.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/XChargeLogoNative.tsx), derived from [`public/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/public/xcharge-logo.svg).
-2. **Never use generic placeholders for payment methods:** Always use authentic inline vector logos from [`expo-mobile/PaymentLogosNative.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/PaymentLogosNative.tsx) (`MtnMomoLogoNative`, `TelecelLogoNative`, `MastercardLogoNative`) and [`src/components/PaymentLogos.tsx`](file:///d:/xcharge-ev-platform/src/components/PaymentLogos.tsx).
+1. **Never use plain text or generic icons for the logo:** Always use `XChargeLogoNative` or `XChargeMarkNative` from [`expo-mobile/XChargeLogoNative.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/XChargeLogoNative.tsx). These now render the official ChargeLink GH green glyph.
+2. **Never use generic placeholders for payment methods:** Always use authentic inline vector logos from [`expo-mobile/PaymentLogosNative.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/PaymentLogosNative.tsx) and [`src/components/PaymentLogos.tsx`](file:///d:/xcharge-ev-platform/src/components/PaymentLogos.tsx).
 3. **Currency is always Ghana Cedi (`GH₵`):** Never display `$` or generic currency symbols.
+4. **Official logo JPEG:** [`public/chargelink-logo.jpeg`](file:///d:/xcharge-ev-platform/public/chargelink-logo.jpeg) is the client's official source of truth for the visual identity.
 
 ---
 

@@ -102,7 +102,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation, onNavigate
         <View style={styles.topBar}>
           <View style={styles.badge}>
             <View style={styles.statusDot} />
-            <Text style={styles.badgeText}>XCHARGE NETWORK</Text>
+            <Text style={styles.badgeText}>CHARGELINK GH · KUMASI</Text>
           </View>
         </View>
 

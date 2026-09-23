@@ -55,7 +55,7 @@ export async function initiateMomoPayment(params: {
 
   const txId = `momo-req-${Date.now()}`;
   const networkRef = `GH-${prov}-${Math.floor(100000 + Math.random() * 900000)}`;
-  const merchant = 'XCHARGE GHANA LTD';
+  const merchant = 'CHARGELINK GH LTD';
 
   const ussdPrompt = prov === 'MTN'
     ? `Authorize payment of GHS ${amount.toFixed(2)} to ${merchant}? Ref: ${networkRef}. Enter Mobile Money (*170#) PIN:`

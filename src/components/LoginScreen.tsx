@@ -81,7 +81,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-bold text-[#00e699]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00e699] animate-pulse" />
-            <span>XCHARGE NETWORK · ACCRA</span>
+            <span>CHARGELINK GH · KUMASI</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             Driver Authentication

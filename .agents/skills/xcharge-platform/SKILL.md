@@ -2,9 +2,11 @@
 name: xcharge-platform
 description: >-
   Comprehensive guide, runbook, and architectural cheatsheet for developing, running,
-  testing, and extending the XCHARGE EV Platform (Expo mobile app, Node/Express/Vite backend,
-  Ghana Mobile Money payment switch, Moolre SMS gateway, and OCPP 2.0.1 charging telemetry).
-  Use this skill whenever working on XCHARGE EV features, mobile HUD, authentication,
+  testing, and extending the ChargeLink GH EV Platform (formerly XCHARGE). Covers Expo
+  mobile app, Node/Express/Vite backend, Ghana Mobile Money payment switch (merchant:
+  CHARGELINK GH LTD), Moolre SMS gateway, and OCPP 1.6J / 2.0.1 charging telemetry.
+  First real station: Greenwood Event Center, Kumasi (MaxPower VCP160, OCPP 1.6J).
+  Use this skill whenever working on ChargeLink GH features, mobile HUD, authentication,
   persistent wallets, station management, escrow settlements, or OCPP charging sessions.
 ---
 

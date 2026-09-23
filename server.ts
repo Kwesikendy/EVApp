@@ -71,28 +71,37 @@ app.post('/api/upload-video', express.raw({ type: '*/*', limit: '100mb' }), (req
   }
 });
 
+// ────────────────────────────────────────────────────────────────────────────
+// ChargeLink GH — Idle Fee Policy (applies to all stations uniformly)
+// ────────────────────────────────────────────────────────────────────────────
+export const IDLE_GRACE_MINUTES = 5;          // Free grace period after session ends
+export const IDLE_FEE_PER_MIN_GHS = 0.50;    // GH₵ 0.50 per minute after grace
+export const MAX_IDLE_FEE_GHS = 10.00;       // Maximum idle overstay cap
+
 // In-memory persistent state representing PostgreSQL / PostGIS database & CitrineOS CSMS state
+// ChargeLink GH: Greenwood Event Center — Kumasi, Ashanti Region
+// Hardware: MaxPower VCP160 | OCPP 1.6J | 2 charging guns (A & B) | 160kW shared
 const STATIONS: ChargingStation[] = [
   {
     id: 'st-01',
-    stationId: 'XC-AFR-001',
-    name: 'XCharge Superhub - Airport City',
-    operator: 'XCharge Grid Network',
-    address: 'Liberation Rd, Airport Residential Area',
-    latitude: 5.6037,
-    longitude: -0.1870,
-    isOnline: true,
-    rating: 4.9,
-    amenities: ['Coffee Lounge', 'Free Wi-Fi', 'Security 24/7', 'Restrooms', 'EV Detailing'],
+    stationId: 'CL-KSI-001',
+    name: 'Greenwood Event Center',
+    operator: 'ChargeLink GH',
+    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    isOnline: false,
+    rating: 5.0,
+    amenities: ['Event Center', 'Parking Bay', 'Security', '24/7 Operation', 'Opoku Bandoh Plaza'],
     connectors: [
       {
         id: 101,
         connectorId: 1,
-        type: 'CCS2',
+        type: 'GB/T',
         maxPowerKw: 160,
         currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 4.20,
+        status: 'Unavailable',
+        tariffPerKwh: 4.50,
         tariffCurrency: 'GHS'
       },
       {
@@ -100,141 +109,9 @@ const STATIONS: ChargingStation[] = [
         connectorId: 2,
         type: 'CCS2',
         maxPowerKw: 160,
-        currentPowerKw: 124,
-        status: 'Charging',
-        tariffPerKwh: 4.20,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 103,
-        connectorId: 3,
-        type: 'CHAdeMO',
-        maxPowerKw: 60,
         currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 3.80,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 104,
-        connectorId: 4,
-        type: 'Type2',
-        maxPowerKw: 22,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 2.80,
-        tariffCurrency: 'GHS'
-      }
-    ]
-  },
-  {
-    id: 'st-02',
-    stationId: 'XC-CBD-002',
-    name: 'XCharge Express - Financial Plaza',
-    operator: 'XCharge Grid Network',
-    address: 'High Street Commercial District',
-    latitude: 5.5489,
-    longitude: -0.2012,
-    isOnline: true,
-    rating: 4.8,
-    amenities: ['Shopping Mall', 'ATM', 'Valet EV Parking'],
-    connectors: [
-      {
-        id: 201,
-        connectorId: 1,
-        type: 'CCS2',
-        maxPowerKw: 200,
-        currentPowerKw: 0,
-        status: 'Available',
+        status: 'Unavailable',
         tariffPerKwh: 4.50,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 202,
-        connectorId: 2,
-        type: 'CCS2',
-        maxPowerKw: 200,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 4.50,
-        tariffCurrency: 'GHS'
-      }
-    ]
-  },
-  {
-    id: 'st-03',
-    stationId: 'XC-LOG-003',
-    name: 'XCharge Fleet Depot - West Logistics Corridor',
-    operator: 'XCharge Commercial Systems',
-    address: 'Industrial Ring Rd, Heavy Transport Hub',
-    latitude: 5.5892,
-    longitude: -0.2450,
-    isOnline: true,
-    rating: 4.7,
-    amenities: ['Fleet Truck Bay', 'Driver Rest Area', 'High Clearance Canopy'],
-    connectors: [
-      {
-        id: 301,
-        connectorId: 1,
-        type: 'CCS2',
-        maxPowerKw: 350,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 4.00,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 302,
-        connectorId: 2,
-        type: 'CCS2',
-        maxPowerKw: 350,
-        currentPowerKw: 280,
-        status: 'Charging',
-        tariffPerKwh: 4.00,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 303,
-        connectorId: 3,
-        type: 'GB/T',
-        maxPowerKw: 120,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 3.50,
-        tariffCurrency: 'GHS'
-      }
-    ]
-  },
-  {
-    id: 'st-04',
-    stationId: 'XC-RES-004',
-    name: 'XCharge Urban Oasis - Cantonments',
-    operator: 'XCharge Grid Network',
-    address: '8th Circular Rd, Cantonments',
-    latitude: 5.5780,
-    longitude: -0.1720,
-    isOnline: true,
-    rating: 4.9,
-    amenities: ['Cafe & Bakery', 'Parkside Seating', 'Pet Friendly'],
-    connectors: [
-      {
-        id: 401,
-        connectorId: 1,
-        type: 'CCS2',
-        maxPowerKw: 120,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 3.90,
-        tariffCurrency: 'GHS'
-      },
-      {
-        id: 402,
-        connectorId: 2,
-        type: 'Type2',
-        maxPowerKw: 22,
-        currentPowerKw: 0,
-        status: 'Available',
-        tariffPerKwh: 2.80,
         tariffCurrency: 'GHS'
       }
     ]
@@ -316,6 +193,7 @@ const FLEET_ACCOUNT: FleetAccount = {
 let ACTIVE_SESSION: ActiveTelemetrySession | null = null;
 
 // Real-time OCPP Messages Audit Trail
+// ChargeLink GH — MaxPower VCP160 @ Greenwood Event Center, Kumasi
 const OCPP_LOGS: OcppMessage[] = [
   {
     id: 'ocpp-01',
@@ -323,10 +201,12 @@ const OCPP_LOGS: OcppMessage[] = [
     direction: 'INCOMING',
     action: 'BootNotification',
     payload: {
-      chargePointVendor: 'XCharge Tech',
-      chargePointModel: 'C9-Pro-160kW',
-      chargePointSerialNumber: 'XC-2024-00188',
-      firmwareVersion: 'v3.8.4-citrineos'
+      chargePointVendor: 'MaxPower',
+      chargePointModel: 'VCP160',
+      chargePointSerialNumber: 'TBD-ON-ARRIVAL',
+      firmwareVersion: 'OCPP-1.6J',
+      chargeBoxId: 'CL-KSI-001',
+      location: 'Greenwood Event Center, Kumasi'
     }
   },
   {
@@ -347,8 +227,10 @@ const OCPP_LOGS: OcppMessage[] = [
     action: 'StatusNotification',
     payload: {
       connectorId: 1,
+      connectorLabel: 'A',
       errorCode: 'NoError',
-      status: 'Available',
+      status: 'Unavailable',
+      info: 'Under construction — hardware en route',
       timestamp: new Date().toISOString()
     }
   }
@@ -386,10 +268,10 @@ setInterval(() => {
       );
     }
 
-    // Accrued cost calculation
+    // Accrued cost calculation — ChargeLink GH standard tariff: GH₵ 4.50/kWh
     const currentStation = STATIONS.find(s => s.stationId === ACTIVE_SESSION?.stationId);
     const connector = currentStation?.connectors.find(c => c.connectorId === ACTIVE_SESSION?.connectorId);
-    const rate = connector?.tariffPerKwh || 4.20;
+    const rate = connector?.tariffPerKwh || 4.50;
     ACTIVE_SESSION.accruedCost = +(ACTIVE_SESSION.kwhDelivered * rate).toFixed(2);
 
     // Add periodic MeterValue packet to telemetry log every 3 seconds

@@ -82,7 +82,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           onClick={onOpenVehicleSelect}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] transition-colors cursor-pointer active:scale-95"
         >
-          <Car className="w-3.5 h-3.5 text-[#00f0ff]" />
+          <Car className="w-3.5 h-3.5 text-[#22c55e]" />
           <span className="text-xs font-mono font-semibold text-slate-200">{vehicleBadge}</span>
         </button>
 
@@ -91,7 +91,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           id="header-profile-btn"
           onClick={onOpenProfile || onOpenAdmin}
           title="Driver Profile & Operator Portal"
-          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#00f0ff]/50 flex items-center justify-center transition-all group cursor-pointer active:scale-95 overflow-hidden ring-1 ring-white/5"
+          className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#181c24] to-[#1f2632] border border-white/10 hover:border-[#22c55e]/50 flex items-center justify-center transition-all group cursor-pointer active:scale-95 overflow-hidden ring-1 ring-white/5"
         >
           {avatarUrl ? (
             <img
@@ -100,7 +100,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
               className="w-full h-full object-cover rounded-full"
             />
           ) : (
-            <User className="w-4 h-4 text-slate-300 group-hover:text-[#00f0ff]" />
+            <User className="w-4 h-4 text-slate-300 group-hover:text-[#22c55e]" />
           )}
         </button>
       </div>

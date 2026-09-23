@@ -1,3 +1,5 @@
+// ChargeLink GH — Vercel Serverless Stations API
+// Returns the live ChargeLink GH station registry with real GPS coordinates and hardware specs.
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -7,160 +9,62 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
+  // ChargeLink GH Station Registry
+  // Station 1: Greenwood Event Center, Kumasi (Under Construction — hardware arriving soon)
   const STATIONS = [
     {
       id: 'st-01',
-      stationId: 'XC-AFR-001',
-      name: 'XCharge Superhub - Airport City',
-      operator: 'XCharge Grid Network',
-      address: 'Liberation Rd, Airport Residential Area',
-      latitude: 5.6037,
-      longitude: -0.1870,
-      isOnline: true,
-      rating: 4.9,
-      amenities: ['Coffee Lounge', 'Free Wi-Fi', 'Security 24/7', 'Restrooms', 'EV Detailing'],
+      stationId: 'CL-KSI-001',
+      name: 'Greenwood Event Center',
+      operator: 'ChargeLink GH',
+      address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti',
+      city: 'Kumasi',
+      region: 'Ashanti',
+      landmark: 'Opoku Bandoh Plaza / Greenwood Event Center',
+      latitude: 6.6697479,
+      longitude: -1.5995679,
+      isOnline: false,
+      constructionStatus: 'under_construction',
+      operatingHours: '24 hours',
+      parkingBays: 2,
+      rating: 5.0,
+      hardware: {
+        brand: 'MaxPower',
+        model: 'VCP160',
+        protocol: 'OCPP 1.6J',
+        chargingUnits: 1,
+        chargingGuns: 2,
+        dynamicPowerSharing: true
+      },
+      amenities: ['Event Center', 'Parking Bay', 'Security', '24/7 Operation', 'Opoku Bandoh Plaza'],
       connectors: [
         {
           id: 101,
           connectorId: 1,
-          type: 'CCS2',
+          connectorLabel: 'A',
+          type: 'GB/T',
           maxPowerKw: 160,
           currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 4.20,
-          tariffCurrency: 'GHS'
+          status: 'Unavailable',
+          tariffPerKwh: 4.50,
+          tariffCurrency: 'GHS',
+          idleFeePerMin: 0.50,
+          idleGraceMinutes: 5,
+          maxIdleFeeCap: 10.00
         },
         {
           id: 102,
           connectorId: 2,
+          connectorLabel: 'B',
           type: 'CCS2',
           maxPowerKw: 160,
-          currentPowerKw: 142,
-          status: 'Occupied',
-          tariffPerKwh: 4.20,
-          tariffCurrency: 'GHS'
-        },
-        {
-          id: 103,
-          connectorId: 3,
-          type: 'CHAdeMO',
-          maxPowerKw: 60,
           currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 3.80,
-          tariffCurrency: 'GHS'
-        }
-      ]
-    },
-    {
-      id: 'st-02',
-      stationId: 'XC-MALL-002',
-      name: 'XCharge Destination - Accra Mall',
-      operator: 'XCharge Grid Network',
-      address: 'Tetteh Quarshie Interchange',
-      latitude: 5.6225,
-      longitude: -0.1740,
-      isOnline: true,
-      rating: 4.8,
-      amenities: ['Shopping Mall', 'Cinema', 'Food Court', 'Valet Parking'],
-      connectors: [
-        {
-          id: 201,
-          connectorId: 1,
-          type: 'CCS2',
-          maxPowerKw: 120,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 4.10,
-          tariffCurrency: 'GHS'
-        },
-        {
-          id: 202,
-          connectorId: 2,
-          type: 'Type2',
-          maxPowerKw: 22,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 2.90,
-          tariffCurrency: 'GHS'
-        }
-      ]
-    },
-    {
-      id: 'st-03',
-      stationId: 'XC-IND-003',
-      name: 'XCharge Freight Hub - Tema Port',
-      operator: 'XCharge Fleet Logistics',
-      address: 'Harbour Rd, Commercial Port Area, Tema',
-      latitude: 5.5892,
-      longitude: -0.2450,
-      isOnline: true,
-      rating: 4.7,
-      amenities: ['Fleet Truck Bay', 'Driver Rest Area', 'High Clearance Canopy'],
-      connectors: [
-        {
-          id: 301,
-          connectorId: 1,
-          type: 'CCS2',
-          maxPowerKw: 350,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 4.00,
-          tariffCurrency: 'GHS'
-        },
-        {
-          id: 302,
-          connectorId: 2,
-          type: 'CCS2',
-          maxPowerKw: 350,
-          currentPowerKw: 280,
-          status: 'Charging',
-          tariffPerKwh: 4.00,
-          tariffCurrency: 'GHS'
-        },
-        {
-          id: 303,
-          connectorId: 3,
-          type: 'GB/T',
-          maxPowerKw: 120,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 3.50,
-          tariffCurrency: 'GHS'
-        }
-      ]
-    },
-    {
-      id: 'st-04',
-      stationId: 'XC-RES-004',
-      name: 'XCharge Urban Oasis - Cantonments',
-      operator: 'XCharge Grid Network',
-      address: '8th Circular Rd, Cantonments',
-      latitude: 5.5780,
-      longitude: -0.1720,
-      isOnline: true,
-      rating: 4.9,
-      amenities: ['Cafe & Bakery', 'Parkside Seating', 'Pet Friendly'],
-      connectors: [
-        {
-          id: 401,
-          connectorId: 1,
-          type: 'CCS2',
-          maxPowerKw: 120,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 3.90,
-          tariffCurrency: 'GHS'
-        },
-        {
-          id: 402,
-          connectorId: 2,
-          type: 'Type2',
-          maxPowerKw: 22,
-          currentPowerKw: 0,
-          status: 'Available',
-          tariffPerKwh: 2.80,
-          tariffCurrency: 'GHS'
+          status: 'Unavailable',
+          tariffPerKwh: 4.50,
+          tariffCurrency: 'GHS',
+          idleFeePerMin: 0.50,
+          idleGraceMinutes: 5,
+          maxIdleFeeCap: 10.00
         }
       ]
     }
