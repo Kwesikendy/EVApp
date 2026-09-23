@@ -1,13 +1,13 @@
 {
-  "name": "XCHARGE EV Platform",
-  "short_name": "XCHARGE",
-  "description": "Ghana's premier high-speed EV charging and commercial fleet operating system.",
+  "name": "ChargeLink GH",
+  "short_name": "ChargeLink",
+  "description": "Ghana's premier EV charging network. Find stations, charge smarter, drive cleaner. Powering a Cleaner Tomorrow.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#10141a",
-  "theme_color": "#10141a",
+  "background_color": "#0f2318",
+  "theme_color": "#0f2318",
   "categories": ["transportation", "utilities", "business"],
   "icons": [
     {

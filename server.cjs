@@ -29,6 +29,9 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // server.ts
 var server_exports = {};
 __export(server_exports, {
+  IDLE_FEE_PER_MIN_GHS: () => IDLE_FEE_PER_MIN_GHS,
+  IDLE_GRACE_MINUTES: () => IDLE_GRACE_MINUTES,
+  MAX_IDLE_FEE_GHS: () => MAX_IDLE_FEE_GHS,
   default: () => server_default
 });
 module.exports = __toCommonJS(server_exports);
@@ -512,7 +515,7 @@ async function initiateMomoPayment(params) {
   const prov = provider.toUpperCase() === "TELECEL" ? "TELECEL" : provider.toUpperCase() === "CARD" ? "CARD" : "MTN";
   const txId = `momo-req-${Date.now()}`;
   const networkRef = `GH-${prov}-${Math.floor(1e5 + Math.random() * 9e5)}`;
-  const merchant = "XCHARGE GHANA LTD";
+  const merchant = "CHARGELINK GH LTD";
   const ussdPrompt = prov === "MTN" ? `Authorize payment of GHS ${amount.toFixed(2)} to ${merchant}? Ref: ${networkRef}. Enter Mobile Money (*170#) PIN:` : prov === "TELECEL" ? `Authorize payment of GHS ${amount.toFixed(2)} to ${merchant}? Ref: ${networkRef}. Enter Telecel Cash (*110#) PIN:` : `Authorize payment of GHS ${amount.toFixed(2)} via Mastercard 3D Secure?`;
   const txRecord = {
     id: txId,
@@ -664,27 +667,30 @@ app.post("/api/upload-video", import_express.default.raw({ type: "*/*", limit: "
     res.status(500).json({ error: err.message });
   }
 });
+var IDLE_GRACE_MINUTES = 5;
+var IDLE_FEE_PER_MIN_GHS = 0.5;
+var MAX_IDLE_FEE_GHS = 10;
 var STATIONS = [
   {
     id: "st-01",
-    stationId: "XC-AFR-001",
-    name: "XCharge Superhub - Airport City",
-    operator: "XCharge Grid Network",
-    address: "Liberation Rd, Airport Residential Area",
-    latitude: 5.6037,
-    longitude: -0.187,
-    isOnline: true,
-    rating: 4.9,
-    amenities: ["Coffee Lounge", "Free Wi-Fi", "Security 24/7", "Restrooms", "EV Detailing"],
+    stationId: "CL-KSI-001",
+    name: "Greenwood Event Center",
+    operator: "ChargeLink GH",
+    address: "Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi",
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    isOnline: false,
+    rating: 5,
+    amenities: ["Event Center", "Parking Bay", "Security", "24/7 Operation", "Opoku Bandoh Plaza"],
     connectors: [
       {
         id: 101,
         connectorId: 1,
-        type: "CCS2",
+        type: "GB/T",
         maxPowerKw: 160,
         currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 4.2,
+        status: "Unavailable",
+        tariffPerKwh: 4.5,
         tariffCurrency: "GHS"
       },
       {
@@ -692,141 +698,9 @@ var STATIONS = [
         connectorId: 2,
         type: "CCS2",
         maxPowerKw: 160,
-        currentPowerKw: 124,
-        status: "Charging",
-        tariffPerKwh: 4.2,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 103,
-        connectorId: 3,
-        type: "CHAdeMO",
-        maxPowerKw: 60,
         currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 3.8,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 104,
-        connectorId: 4,
-        type: "Type2",
-        maxPowerKw: 22,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 2.8,
-        tariffCurrency: "GHS"
-      }
-    ]
-  },
-  {
-    id: "st-02",
-    stationId: "XC-CBD-002",
-    name: "XCharge Express - Financial Plaza",
-    operator: "XCharge Grid Network",
-    address: "High Street Commercial District",
-    latitude: 5.5489,
-    longitude: -0.2012,
-    isOnline: true,
-    rating: 4.8,
-    amenities: ["Shopping Mall", "ATM", "Valet EV Parking"],
-    connectors: [
-      {
-        id: 201,
-        connectorId: 1,
-        type: "CCS2",
-        maxPowerKw: 200,
-        currentPowerKw: 0,
-        status: "Available",
+        status: "Unavailable",
         tariffPerKwh: 4.5,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 202,
-        connectorId: 2,
-        type: "CCS2",
-        maxPowerKw: 200,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 4.5,
-        tariffCurrency: "GHS"
-      }
-    ]
-  },
-  {
-    id: "st-03",
-    stationId: "XC-LOG-003",
-    name: "XCharge Fleet Depot - West Logistics Corridor",
-    operator: "XCharge Commercial Systems",
-    address: "Industrial Ring Rd, Heavy Transport Hub",
-    latitude: 5.5892,
-    longitude: -0.245,
-    isOnline: true,
-    rating: 4.7,
-    amenities: ["Fleet Truck Bay", "Driver Rest Area", "High Clearance Canopy"],
-    connectors: [
-      {
-        id: 301,
-        connectorId: 1,
-        type: "CCS2",
-        maxPowerKw: 350,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 4,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 302,
-        connectorId: 2,
-        type: "CCS2",
-        maxPowerKw: 350,
-        currentPowerKw: 280,
-        status: "Charging",
-        tariffPerKwh: 4,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 303,
-        connectorId: 3,
-        type: "GB/T",
-        maxPowerKw: 120,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 3.5,
-        tariffCurrency: "GHS"
-      }
-    ]
-  },
-  {
-    id: "st-04",
-    stationId: "XC-RES-004",
-    name: "XCharge Urban Oasis - Cantonments",
-    operator: "XCharge Grid Network",
-    address: "8th Circular Rd, Cantonments",
-    latitude: 5.578,
-    longitude: -0.172,
-    isOnline: true,
-    rating: 4.9,
-    amenities: ["Cafe & Bakery", "Parkside Seating", "Pet Friendly"],
-    connectors: [
-      {
-        id: 401,
-        connectorId: 1,
-        type: "CCS2",
-        maxPowerKw: 120,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 3.9,
-        tariffCurrency: "GHS"
-      },
-      {
-        id: 402,
-        connectorId: 2,
-        type: "Type2",
-        maxPowerKw: 22,
-        currentPowerKw: 0,
-        status: "Available",
-        tariffPerKwh: 2.8,
         tariffCurrency: "GHS"
       }
     ]
@@ -907,10 +781,12 @@ var OCPP_LOGS = [
     direction: "INCOMING",
     action: "BootNotification",
     payload: {
-      chargePointVendor: "XCharge Tech",
-      chargePointModel: "C9-Pro-160kW",
-      chargePointSerialNumber: "XC-2024-00188",
-      firmwareVersion: "v3.8.4-citrineos"
+      chargePointVendor: "MaxPower",
+      chargePointModel: "VCP160",
+      chargePointSerialNumber: "TBD-ON-ARRIVAL",
+      firmwareVersion: "OCPP-1.6J",
+      chargeBoxId: "CL-KSI-001",
+      location: "Greenwood Event Center, Kumasi"
     }
   },
   {
@@ -931,8 +807,10 @@ var OCPP_LOGS = [
     action: "StatusNotification",
     payload: {
       connectorId: 1,
+      connectorLabel: "A",
       errorCode: "NoError",
-      status: "Available",
+      status: "Unavailable",
+      info: "Under construction \u2014 hardware en route",
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     }
   }
@@ -959,7 +837,7 @@ setInterval(() => {
     }
     const currentStation = STATIONS.find((s) => s.stationId === ACTIVE_SESSION?.stationId);
     const connector = currentStation?.connectors.find((c) => c.connectorId === ACTIVE_SESSION?.connectorId);
-    const rate = connector?.tariffPerKwh || 4.2;
+    const rate = connector?.tariffPerKwh || 4.5;
     ACTIVE_SESSION.accruedCost = +(ACTIVE_SESSION.kwhDelivered * rate).toFixed(2);
     if (ACTIVE_SESSION.elapsedSeconds % 3 === 0) {
       ACTIVE_SESSION.meterValuesLog.push({
@@ -1579,4 +1457,10 @@ if (!process.env.VERCEL) {
   startServer();
 }
 var server_default = app;
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  IDLE_FEE_PER_MIN_GHS,
+  IDLE_GRACE_MINUTES,
+  MAX_IDLE_FEE_GHS
+});
 //# sourceMappingURL=server.cjs.map
