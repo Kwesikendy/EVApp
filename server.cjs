@@ -572,7 +572,7 @@ function confirmMomoPayment(params) {
       currency: "GHS",
       provider: prov,
       status: "SUCCESS",
-      merchantName: "XCHARGE GHANA LTD",
+      merchantName: "CHARGELINK GH LTD",
       description: `${prov} MoMo Top-Up (${normalized}) \xB7 Approved`,
       createdAt: (/* @__PURE__ */ new Date()).toISOString()
     };
@@ -933,35 +933,35 @@ app.post("/api/stations", (req, res) => {
     maxPowerKw: Number(c.maxPowerKw) || 150,
     currentPowerKw: 0,
     status: c.status || "Available",
-    tariffPerKwh: Number(c.tariffPerKwh) || 0.3,
-    tariffCurrency: c.tariffCurrency || "USD"
+    tariffPerKwh: Number(c.tariffPerKwh) || 4.5,
+    tariffCurrency: c.tariffCurrency || "GHS"
   })) : [
     {
       id: Date.now(),
       connectorId: 1,
       type: "CCS2",
-      maxPowerKw: 150,
+      maxPowerKw: 160,
       currentPowerKw: 0,
       status: "Available",
-      tariffPerKwh: 0.3,
-      tariffCurrency: "USD"
+      tariffPerKwh: 4.5,
+      tariffCurrency: "GHS"
     },
     {
       id: Date.now() + 1,
       connectorId: 2,
-      type: "CCS2",
-      maxPowerKw: 150,
+      type: "GB/T",
+      maxPowerKw: 160,
       currentPowerKw: 0,
       status: "Available",
-      tariffPerKwh: 0.3,
-      tariffCurrency: "USD"
+      tariffPerKwh: 4.5,
+      tariffCurrency: "GHS"
     }
   ];
   const newStation = {
     id: newId,
     stationId: generatedStationId,
     name,
-    operator: operator || "EnergyGrid Network",
+    operator: operator || "ChargeLink GH Network",
     address: address || "Main Highway Plaza",
     latitude: parseFloat(latitude),
     longitude: parseFloat(longitude),
