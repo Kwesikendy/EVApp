@@ -22,6 +22,7 @@ interface SignUpScreenProps {
     devCode?: string;
   }) => void;
   onBackToLogin: () => void;
+  onViewLegal?: (tab?: 'terms' | 'privacy') => void;
 }
 
 const EV_MODELS = [
@@ -40,6 +41,7 @@ const PAYMENT_GATEWAYS = [
 export const SignUpScreen: React.FC<SignUpScreenProps> = ({
   onContinue,
   onBackToLogin,
+  onViewLegal,
 }) => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -93,7 +95,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
         email: email.trim(),
         selectedEv,
         selectedGateway,
-        devCode: data.devCode || '123456',
+        devCode: data?.code || data?.otp || '123456',
       });
     } catch {
       setIsLoading(false);
@@ -110,197 +112,199 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#0a0e14] text-slate-100 overflow-y-auto no-scrollbar select-none">
-      <div className="w-full max-w-md space-y-4 py-6 sm:my-auto">
-        {/* Top Bar with Back Button */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onBackToLogin}
-            className="flex items-center gap-1 text-xs text-[#94a3b8] hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Sign In</span>
-          </button>
-
-          <span className="px-2.5 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80]">
-            REGISTRATION
-          </span>
-        </div>
-
-        {/* Title */}
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-            Register EV & Driver Profile
-          </h1>
-          <p className="text-xs text-[#94a3b8] mt-1">
-            Setup your Ghana fast-charging credentials and link your vehicle telemetry.
-          </p>
-        </div>
-
-        {errorMessage && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium text-center animate-in fade-in">
-            {errorMessage}
+      <div className="w-full max-w-md mx-auto py-6 sm:my-auto px-4 animate-in fade-in duration-300">
+        <div className="bg-[#10141a] border border-white/10 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+          {/* Top Header */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onBackToLogin}
+              type="button"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Login</span>
+            </button>
+            <span className="text-[10px] font-mono text-[#4ade80] bg-[#22c55e]/15 border border-[#22c55e]/30 px-2 py-0.5 rounded-full font-bold">
+              NEW DRIVER NODE
+            </span>
           </div>
-        )}
 
-        {/* Step 1: Personal Credentials */}
-        <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
-            1. Driver Information
-          </span>
+          {/* Brand & Title */}
+          <div className="text-center space-y-1">
+            <div className="flex justify-center mb-1">
+              <XChargeLogo size="md" variant="mark" />
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-tight">Create Driver Profile</h2>
+            <p className="text-xs text-[#94a3b8]">
+              Register with your Ghana mobile number for instant MoMo escrow charging
+            </p>
+          </div>
 
-          <div className="space-y-2.5">
+          {/* Form Inputs */}
+          <div className="space-y-3">
             <div>
-              <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
+              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
                 Full Name
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
-                <User className="w-3.5 h-3.5 text-[#64748b]" />
+              <div className="flex items-center gap-2 bg-[#141820] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#22c55e] transition-all">
+                <User className="w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="e.g. Kwesi Mensah"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="flex-1 bg-transparent border-none text-xs text-white placeholder-[#64748b] focus:outline-none"
+                  placeholder="Kofi Mensah"
+                  className="flex-1 bg-transparent border-none text-white text-xs focus:outline-none placeholder-slate-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
-                Ghana Phone Number
+              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                Ghana Mobile Phone
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
-                <span className="text-xs font-mono font-bold text-slate-300">🇬🇭 +233</span>
+              <div className="flex items-center gap-2 bg-[#141820] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#22c55e] transition-all">
+                <span className="text-sm">🇬🇭</span>
+                <span className="text-xs font-mono font-bold text-slate-300">+233</span>
                 <input
                   type="tel"
-                  placeholder="024 123 4567"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1 bg-transparent border-none text-xs text-white font-mono placeholder-[#64748b] focus:outline-none"
+                  placeholder="24 890 1204"
+                  className="flex-1 bg-transparent border-none text-white text-xs focus:outline-none placeholder-slate-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
-                Email Address (Optional)
+              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                Email Address (Invoicing & Receipts)
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
-                <Mail className="w-3.5 h-3.5 text-[#64748b]" />
+              <div className="flex items-center gap-2 bg-[#141820] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#22c55e] transition-all">
+                <Mail className="w-4 h-4 text-slate-400" />
                 <input
                   type="email"
-                  placeholder="driver@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 bg-transparent border-none text-xs text-white placeholder-[#64748b] focus:outline-none"
+                  placeholder="driver@chargelink.africa"
+                  className="flex-1 bg-transparent border-none text-white text-xs focus:outline-none placeholder-slate-500"
                 />
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Step 2: Electric Vehicle Selection */}
-        <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
-            2. Select Active Electric Vehicle
-          </span>
-
-          <div className="grid grid-cols-2 gap-2">
-            {EV_MODELS.map((ev) => (
-              <button
-                key={ev.id}
-                type="button"
-                onClick={() => setSelectedEv(ev.id)}
-                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                  selectedEv === ev.id
-                    ? 'bg-[#181c24] border-[#22c55e] shadow-sm'
-                    : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <Car className={`w-3.5 h-3.5 ${selectedEv === ev.id ? 'text-[#4ade80]' : 'text-slate-400'}`} />
-                  {selectedEv === ev.id && (
-                    <Check className="w-3.5 h-3.5 text-[#4ade80] stroke-[3]" />
-                  )}
-                </div>
-                <div className="text-xs font-bold text-white mt-1.5 truncate">{ev.name}</div>
-                <div className="text-[10px] text-[#94a3b8] font-mono">{ev.spec}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Step 3: Payment Gateway */}
-        <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
-            3. Primary Payment Gateway
-          </span>
-
+          {/* EV Selection Section */}
           <div className="space-y-2">
-            {PAYMENT_GATEWAYS.map((gw) => {
-              const Logo = gw.logo;
-              const isSelected = selectedGateway === gw.id;
-              return (
-                <button
-                  key={gw.id}
-                  type="button"
-                  onClick={() => setSelectedGateway(gw.id)}
-                  className={`w-full p-2.5 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#181c24] border-[#22c55e] shadow-sm'
-                      : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Logo size="icon" />
-                    <div className="text-left">
-                      <div className="text-xs font-bold text-white font-mono">{gw.name}</div>
-                      <div className="text-[10px] text-[#94a3b8] font-mono">{gw.sub}</div>
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+              Select Electric Vehicle Model
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {EV_MODELS.map((ev) => {
+                const isSelected = selectedEv === ev.id;
+                return (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    onClick={() => setSelectedEv(ev.id)}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#181c24] border-[#22c55e] text-white shadow-md shadow-black/40'
+                        : 'bg-[#141820] border-white/5 text-slate-400 hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <Car className={`w-3.5 h-3.5 ${isSelected ? 'text-[#4ade80]' : 'text-slate-400'}`} />
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#4ade80]" />}
                     </div>
-                  </div>
-
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    isSelected ? 'bg-[#22c55e] border-[#22c55e]' : 'border-white/20'
-                  }`}>
-                    {isSelected && <Check className="w-3 h-3 text-white stroke-[3]" />}
-                  </div>
-                </button>
-              );
-            })}
+                    <span className="text-[11px] font-bold block leading-tight">{ev.name}</span>
+                    <span className="text-[9px] text-[#94a3b8] font-mono block mt-0.5">{ev.spec}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Payment Preference */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+              Default Payment Switch
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {PAYMENT_GATEWAYS.map((gw) => {
+                const isSelected = selectedGateway === gw.id;
+                const LogoComponent = gw.logo;
+                return (
+                  <button
+                    key={gw.id}
+                    type="button"
+                    onClick={() => setSelectedGateway(gw.id)}
+                    className={`p-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#181c24] border-[#22c55e] text-white'
+                        : 'bg-[#141820] border-white/5 text-slate-400 hover:border-white/10'
+                    }`}
+                  >
+                    <LogoComponent size="icon" />
+                    <span className="text-[10px] font-bold text-center leading-none">{gw.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Terms Agreement Checkbox & Links */}
+          <div className="flex items-start gap-2.5 pt-1 text-xs text-[#94a3b8]">
+            <input
+              id="signup-agree-checkbox"
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 rounded accent-[#22c55e] cursor-pointer"
+            />
+            <label htmlFor="signup-agree-checkbox" className="leading-relaxed select-none">
+              I agree to the{' '}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onViewLegal ? onViewLegal('terms') : alert('View Terms of Service');
+                }}
+                className="text-[#4ade80] hover:text-[#22c55e] font-semibold underline underline-offset-2 cursor-pointer"
+              >
+                Terms of Service
+              </button>{' '}
+              and{' '}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onViewLegal ? onViewLegal('privacy') : alert('View Privacy Policy');
+                }}
+                className="text-[#4ade80] hover:text-[#22c55e] font-semibold underline underline-offset-2 cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              , and authorize automated Ghana MoMo pre-authorization escrow holds for public EV charging sessions.
+            </label>
+          </div>
+
+          {/* Action Button */}
+          <button
+            type="button"
+            onClick={handleRegister}
+            disabled={isLoading}
+            className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
+          >
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Zap className="w-4 h-4 fill-white" />
+                <span>CREATE PROFILE & SEND OTP</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
         </div>
-
-        {/* Terms Agreement Checkbox */}
-        <label className="flex items-start gap-2 text-xs text-[#94a3b8] cursor-pointer pt-1">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 rounded accent-[#22c55e]"
-          />
-          <span>
-            I agree to the ChargeLink GH Terms of Service and authorize instant MoMo pre-authorization for public charging sessions.
-          </span>
-        </label>
-
-        {/* Action Button */}
-        <button
-          type="button"
-          onClick={handleRegister}
-          disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
-        >
-          {isLoading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Zap className="w-4 h-4 fill-white" />
-              <span>CREATE PROFILE & SEND OTP</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
       </div>
     </div>
   );

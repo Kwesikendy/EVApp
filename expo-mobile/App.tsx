@@ -71,6 +71,7 @@ import { LoginScreen } from './screens/LoginScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { OtpVerificationScreen } from './screens/OtpVerificationScreen';
 import { OtpSuccessScreen } from './screens/OtpSuccessScreen';
+import { LegalScreen } from './screens/LegalScreen';
 import { SessionStorage } from './storage';
 
 export interface Connector {
@@ -263,9 +264,11 @@ function AppContent() {
   // Persistent Driver Authentication & Onboarding
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
-  const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'otp' | 'otp_success'>('login');
+  const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'otp' | 'otp_success' | 'legal'>('login');
   const [authParams, setAuthParams] = useState<any>({});
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
+  const [legalModalTab, setLegalModalTab] = useState<'terms' | 'privacy'>('terms');
 
   // Restore stored session on mobile app startup
   useEffect(() => {
@@ -914,6 +917,16 @@ function AppContent() {
             if (params) setAuthParams(params);
             setAuthScreen(screen);
           }}
+        />
+      );
+    }
+    if (authScreen === 'legal') {
+      return (
+        <LegalScreen
+          initialTab={authParams?.tab || 'terms'}
+          onBack={() => setAuthScreen('signup')}
+          showAcceptButton={true}
+          onAccept={() => setAuthScreen('signup')}
         />
       );
     }
@@ -2006,6 +2019,40 @@ function AppContent() {
                 </View>
               )}
 
+              {/* Legal & Compliance Section */}
+              <Text style={s.modalSectionLabel}>LEGAL & COMPLIANCE</Text>
+              <TouchableOpacity
+                style={[s.prefRow, { paddingVertical: 12 }]}
+                onPress={() => {
+                  setLegalModalTab('terms');
+                  setShowLegalModal(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={s.prefTitle}>Terms of Service</Text>
+                  <Text style={s.prefSubtitle}>High-voltage safety, MoMo escrow holds, and idle parking fees</Text>
+                </View>
+                <ChevronRight size={18} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <View style={s.prefDivider} />
+
+              <TouchableOpacity
+                style={[s.prefRow, { paddingVertical: 12 }]}
+                onPress={() => {
+                  setLegalModalTab('privacy');
+                  setShowLegalModal(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={s.prefTitle}>Privacy Policy (Act 843)</Text>
+                  <Text style={s.prefSubtitle}>Ghana Data Protection Commission statutory disclosure</Text>
+                </View>
+                <ChevronRight size={18} color="#94a3b8" />
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={[s.settingsApplyBtn, { width: '100%', marginTop: 16, marginBottom: 8, paddingVertical: 14 }]}
                 onPress={() => setShowSettingsModal(false)}
@@ -2015,6 +2062,18 @@ function AppContent() {
             </ScrollView>
           </View>
         </View>
+      </Modal>
+
+      {/* Full-Screen Legal & Privacy Policy Modal for Authenticated Drivers */}
+      <Modal
+        visible={showLegalModal}
+        animationType="slide"
+        onRequestClose={() => setShowLegalModal(false)}
+      >
+        <LegalScreen
+          initialTab={legalModalTab}
+          onBack={() => setShowLegalModal(false)}
+        />
       </Modal>
 
       {/* ===================================================

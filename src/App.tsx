@@ -13,6 +13,7 @@ import { OtpVerificationScreen } from './components/OtpVerificationScreen';
 import { OtpSuccessScreen } from './components/OtpSuccessScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { DriverProfileModal } from './components/DriverProfileModal';
+import { TermsAndPrivacyModal } from './components/TermsAndPrivacyModal';
 import { X, Building2, ShieldCheck, Car, User, LogOut, Wallet, Phone, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
@@ -45,6 +46,8 @@ export default function App() {
   const [authGatewayNotice, setAuthGatewayNotice] = useState<string | undefined>(undefined);
   const [authRegistration, setAuthRegistration] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
+  const [legalModalTab, setLegalModalTab] = useState<'terms' | 'privacy'>('terms');
 
   // Active navigation tab (Strict 4-tab spec: 'map' | 'charge' | 'wallet' | 'fleet')
   const [activeTab, setActiveTab] = useState<TabKey>('map');
@@ -231,6 +234,10 @@ export default function App() {
                       setAuthView('otp');
                     }}
                     onBackToLogin={() => setAuthView('login')}
+                    onViewLegal={(tab) => {
+                      setLegalModalTab(tab || 'terms');
+                      setIsLegalModalOpen(true);
+                    }}
                   />
                 )}
 
@@ -344,7 +351,18 @@ export default function App() {
           setIsProfileModalOpen(false);
           setIsAdminOpen(true);
         }}
+        onOpenLegal={(tab) => {
+          setLegalModalTab(tab || 'terms');
+          setIsLegalModalOpen(true);
+        }}
         onSignOut={handleSignOut}
+      />
+
+      {/* Terms of Service & Privacy Policy Modal */}
+      <TermsAndPrivacyModal
+        isOpen={isLegalModalOpen}
+        defaultTab={legalModalTab}
+        onClose={() => setIsLegalModalOpen(false)}
       />
 
       {/* Vehicle Selector Modal */}

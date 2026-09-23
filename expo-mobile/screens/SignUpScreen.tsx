@@ -39,7 +39,7 @@ const PAYMENT_GATEWAYS = [
 
 interface SignUpScreenProps {
   navigation?: any;
-  onNavigate?: (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => void;
+  onNavigate?: (screen: 'login' | 'signup' | 'otp' | 'otp_success' | 'legal', params?: any) => void;
 }
 
 export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNavigate }) => {
@@ -52,7 +52,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = (screen: 'login' | 'signup' | 'otp' | 'otp_success', params?: any) => {
+  const navigate = (screen: 'login' | 'signup' | 'otp' | 'otp_success' | 'legal', params?: any) => {
     if (onNavigate) {
       onNavigate(screen, params);
     } else if (navigation) {
@@ -61,6 +61,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
         signup: 'SignUp',
         otp: 'OtpVerification',
         otp_success: 'OtpSuccess',
+        legal: 'Legal',
       };
       navigation.navigate(screenMap[screen] || screen, params);
     }
@@ -268,8 +269,21 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
             {agreed && <Check size={12} color={Theme.colors.onPrimary} strokeWidth={3.5} />}
           </View>
           <Text style={styles.termsText}>
-            I agree to ChargeLink GH <Text style={styles.termsHighlight}>Terms of Service</Text> and the{' '}
-            <Text style={styles.termsHighlight}>OCPI Privacy Policy</Text> for secure autonomous roaming.
+            I agree to ChargeLink GH{' '}
+            <Text
+              style={styles.termsHighlight}
+              onPress={() => navigate('legal', { tab: 'terms' })}
+            >
+              Terms of Service
+            </Text>{' '}
+            and the{' '}
+            <Text
+              style={styles.termsHighlight}
+              onPress={() => navigate('legal', { tab: 'privacy' })}
+            >
+              Privacy Policy
+            </Text>{' '}
+            for autonomous roaming.
           </Text>
         </TouchableOpacity>
 

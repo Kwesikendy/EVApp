@@ -24,7 +24,8 @@
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Continuous geolocation tracking, map auto-centering, dynamic Haversine distance/ETA, and 1-tap Google Maps directions. |
 | **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with official ChargeLink GH branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v5 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
-| **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, and cloud serverless routing complete; entering hardware ingress. |
+| **Legal Defense & Privacy Suite (Act 843)** | **100%** | **Production Ready** | Statutory Terms of Service & Privacy Policy protecting CHARGELINK GH LTD across high-voltage DC fast charging, utility grid surges, MoMo escrow, drive-off damages, idle fees, and DPC data privacy rights with interactive viewers on Web and Mobile. |
+| **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, cloud serverless routing, and legal compliance suite complete; entering hardware ingress. |
 
 ---
 
@@ -113,3 +114,34 @@ Phase 1: Real Telephony & Auth  ──►  Phase 2: Live Payment Switch  ──�
    - Configure privacy policies, Ghana telecom disclosures, and location permission declarations.
 4. **Station Owner Web Admin Portal**:
    - Real-time management dashboard for station operators to inspect revenue (GH₵), active charging kilowatts, charger uptime, and tariff schedules.
+
+---
+
+### Phase 5: Legal Defense & Ghana Data Protection Act (Act 843) Suite
+> **Status: 100% Production Ready & Verified**  
+> **Primary Goal:** Ironclad legal insulation for `CHARGELINK GH LTD` against personal injury, EV traction battery claims, ECG/GRIDCo grid surges, cable drive-offs, unauthorized MoMo usage, and regulatory compliance under Ghana's *Data Protection Act, 2012 (Act 843)* and *Alternative Dispute Resolution Act, 2010 (Act 798)*.
+
+#### Delivered Capabilities:
+1. [x] **Comprehensive Terms of Service ([`src/legalData.ts`](file:///d:/xcharge-ev-platform/src/legalData.ts), [`expo-mobile/legalData.ts`](file:///d:/xcharge-ev-platform/expo-mobile/legalData.ts))**:
+   - **Operator Entity Declaration**: Registered under `CHARGELINK GH LTD`, Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti, Ghana.
+   - **High-Voltage EV Charging & Safety Rules**: Strict driver compliance with MaxPower VCP160 (160 kW) protocols, absolute prohibition of third-party non-OEM adapters/splitters, and mandatory vehicle attendance.
+   - **Vehicle Damage & Battery Degradation Disclaimers**: Complete insulation against electrochemical cell degradation, thermal runaway, and vehicle battery management system (BMS) failures.
+   - **Ghana Utility Grid ("Dumsor" & Surges) Disclaimers**: Complete waiver of liability for ECG/GRIDCo brownouts, blackouts, frequency fluctuations, or sudden voltage spikes.
+   - **Cable Drive-Off & Physical Damage Indemnification**: Strict liability on driver for pulling away while tethered, liquid spills, connector drops, or terminal damage.
+   - **Payment, MoMo Escrow & Non-Refundable Energy**: Ghanaian Cedi (`GH₵`) enforcement, dynamic pre-auth deposit authorization, automatic pesewa-accurate refund of unspent escrow, non-refundable delivered energy, and telecommunication network fee disclosures.
+   - **Automated Overstay & Idle Parking Fees**: Enforcement of idle bay penalty fees (GH₵ 0.50/min after 5-minute grace, capped at GH₵ 10.00) to deter bay monopolization.
+   - **Limitation of Liability**: Strict cap limiting claims to the lesser of GH₵ 100.00 or total charging fees paid in the preceding 30 days; total disclaimer of consequential damages.
+   - **Dispute Resolution & Mandatory Arbitration**: Exclusive jurisdiction in Kumasi/Accra under Ghana's *Alternative Dispute Resolution Act, 2010 (Act 798)*, individual arbitration only, and explicit waiver of class actions.
+2. [x] **Statutory Privacy Policy compliant with Ghana Act 843**:
+   - Formal recognition of principles under Ghana's *Data Protection Act, 2012 (Act 843)*.
+   - Transparent disclosure of processed data: MSISDN (+233), GPS telemetry, EV VIN/license plate, kilowatt-hour meter records, and payment logs.
+   - Lawful bases (contract fulfillment, legal obligation, vital interests).
+   - 6-year statutory retention for Ghana Revenue Authority (GRA) tax audit trails.
+   - Clear driver rights (access, rectification, erasure, and right to lodge complaints with the Data Protection Commission (DPC) of Ghana).
+3. [x] **Interactive Web Legal Center ([`src/components/TermsAndPrivacyModal.tsx`](file:///d:/xcharge-ev-platform/src/components/TermsAndPrivacyModal.tsx))**:
+   - Integrated into [`src/components/SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx) and [`src/components/DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx).
+   - Live real-time clause search, instant category jumps, Act 843 statutory notices, and smooth tab switching.
+4. [x] **Native Expo Mobile Legal Reader ([`expo-mobile/screens/LegalScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/LegalScreen.tsx))**:
+   - Direct modal reader in [`expo-mobile/screens/SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/SignUpScreen.tsx) and Driver Settings.
+   - Safe-area insets, dark palette styling, search filtering, and 1-tap agreement buttons.
+

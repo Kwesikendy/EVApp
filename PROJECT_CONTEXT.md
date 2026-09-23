@@ -188,12 +188,33 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
 - **Live User Geolocation on Launch ([`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx))**:
   - Automatically queries and watches user's live coordinates via `navigator.geolocation.watchPosition` with high accuracy mode.
   - Automatically concentrates and flies the map viewport directly to the driver's live GPS coordinates upon opening (`map.flyTo([lat, lng], 14)`).
-  - Renders a live pulsing GPS cyan dot with animated radar ping wave tracking the driver's physical position in real time.
+  - Renders a live pulsing GPS green dot tracking the driver's physical position in real time.
   - Recalculates real-time distance and ETA for all charging hubs dynamically using the Haversine formula (`calculateDistanceKm`) based on the driver's actual position rather than static placeholders.
   - Live GPS status indicator in top search bar (`Locating...`, `Live GPS`, `GPS Off · Tap to Enable`) with 1-tap recenter button.
 - **Turn-by-Turn Google Maps Navigation**:
-  - Integrated universal Google Maps driving directions (`https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}&travelmode=driving`) into the "Navigate" CTA in [`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx).
+  - Integrated universal Google Maps driving directions into the "Navigate" CTA in [`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx).
   - Also upgraded the mobile app's navigation CTA in [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) via `Linking.openURL(...)` to immediately launch native Google Maps navigation with origin and destination coordinates preset.
+
+### H. Phase 8: Legal Defense & Ghana Data Protection Act (Act 843) Suite (100% Complete & Verified)
+- **Single Source of Truth Legal Repository ([`src/legalData.ts`](file:///d:/xcharge-ev-platform/src/legalData.ts) & [`expo-mobile/legalData.ts`](file:///d:/xcharge-ev-platform/expo-mobile/legalData.ts))**:
+  - **Comprehensive Terms of Service (10 Structured Clauses)**:
+    - **High-Voltage EV Dispensing & Safety Disclaimers**: Explicit assumption of risk regarding 160 kW - 350 kW DC fast charging voltages; absolute ban on DIY/uncertified adapters; strict 100% driver liability for drive-offs or cable damage.
+    - **Vehicle Traction Battery Disclaimer**: Disclaiming battery degradation, cell overheating, or thermal runaway resulting from fast charging or pre-existing manufacturer defects; user-set SoC targets (80% vs 100%) confirmed as assistive.
+    - **Utility Grid Disclaimers**: Complete exclusion of liability for upstream power surges, brownouts, or blackouts ("dumsor") caused by the Electricity Company of Ghana (ECG) or GRIDCo.
+    - **Currency & Escrow Protocols**: Strict Ghana Cedi (`GH₵`) denomination, dynamic pre-auth escrow holds (GH₵ 20.00 - GH₵ 25.00), automatic pesewa-level difference refunds upon session termination.
+    - **Automated Idle Parking Fees**: 5-minute grace period followed by automated GH₵ 0.50/minute idle penalty up to GH₵ 10.00 cap, with facility towing rights after 60 minutes.
+    - **Mobile Money (MoMo) Security**: Telco USSD push protocols for MTN MoMo and Telecel Cash; declaration that delivered electrical energy is non-refundable.
+    - **Maximum Limitation of Liability**: Aggregate liability capped strictly at the lesser of GH₵ 100.00 or fees paid in the past 30 days.
+    - **Ghanaian Law & Individual Arbitration**: Exclusive jurisdiction under the laws of the Republic of Ghana, mandatory 30-day amicable negotiation, and binding arbitration under the *Alternative Dispute Resolution Act, 2010 (Act 798)* in Kumasi or Accra, with explicit class action waiver.
+  - **Statutory Privacy Policy (Act 843 Compliant)**:
+    - Registered Data Controller declaration for CHARGELINK GH LTD under the *Data Protection Act, 2012 (Act 843)*.
+    - Full transparency on data collected (MSISDN, telemetry meter values, VIN/plate, GPS coordinates), lawful processing bases, 6-year financial audit retention schedules, and statutory rights to access, rectification, and DPC complaint.
+- **Web Legal Center Modal ([`src/components/TermsAndPrivacyModal.tsx`](file:///d:/xcharge-ev-platform/src/components/TermsAndPrivacyModal.tsx))**:
+  - Interactive multi-tab legal browser (Terms vs Privacy), instant text search and highlighting, category quick-jump chips, Ghanaian statutory alert boxes, entity contact block, and optional acceptance actions.
+  - Linked directly from [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx) and the driver profile action panel in [`DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx).
+- **Mobile Legal Center Screen ([`expo-mobile/screens/LegalScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/LegalScreen.tsx))**:
+  - React Native legal screen matching ChargeLink OS dark design tokens with safe area insets, clause search, segmented tab switcher, and statutory alert banners.
+  - Wired into mobile driver onboarding in [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/SignUpScreen.tsx) and authenticated driver settings in [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx).
 
 ---
 
@@ -206,9 +227,11 @@ d:\xcharge-ev-platform\
 │   │   ├── LoginScreen.tsx             # Dual-mode phone login screen
 │   │   ├── SignUpScreen.tsx            # Multi-step driver & EV onboarding
 │   │   ├── OtpVerificationScreen.tsx   # 6-digit visual PIN entry & numeric keypad
-│   │   └── OtpSuccessScreen.tsx        # Cryptographic node verification & launch
+│   │   ├── OtpSuccessScreen.tsx        # Cryptographic node verification & launch
+│   │   └── LegalScreen.tsx             # Statutory Terms & Act 843 Privacy Policy viewer
 │   ├── App.tsx                         # Main Mobile App root (HUD, Map, Wallet, Fleet)
 │   ├── api.ts                          # Mobile API client with multi-user phone support
+│   ├── legalData.ts                    # Statutory Terms & Privacy clauses (Mobile)
 │   ├── storage.ts                      # AsyncStorage session management (Auto-login)
 │   ├── theme.ts                        # Hypercharge OS design tokens
 │   ├── XChargeLogoNative.tsx           # Native SVG brand logos & vector emblems
@@ -224,7 +247,8 @@ d:\xcharge-ev-platform\
 │   └── users.json                      # Persistent driver accounts, EV fleet & ledger database
 │
 ├── src/                                # Web Application
-│   ├── components/                     # Web components (PwaInstallPrompt, Login, Signup, OTP, Map, Header, Admin)
+│   ├── components/                     # Web components (TermsAndPrivacyModal, PwaInstallPrompt, Login, Signup, OTP, Map, Header, Admin)
+│   ├── legalData.ts                    # Single source of truth for Ghana Terms & Act 843 Privacy
 │   ├── registerServiceWorker.ts        # PWA Service Worker lifecycle registration
 │   ├── firebase.ts                     # Cloud Firestore client initialization
 │   └── types.ts                        # TypeScript models (OCPP, Station, Wallet, Fleet)

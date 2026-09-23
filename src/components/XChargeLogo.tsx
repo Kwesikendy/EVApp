@@ -77,3 +77,16 @@ export const XChargeLogo: React.FC<XChargeLogoProps> = ({
     </div>
   );
 };
+
+export const XChargeMark: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | number; className?: string }> = ({
+  size = 'md',
+  className = '',
+}) => {
+  const pixelSize = typeof size === 'number' ? `${size}px` : undefined;
+  return (
+    <div style={pixelSize ? { width: pixelSize, height: pixelSize } : undefined}>
+      <XChargeLogo variant="mark" size={typeof size === 'string' ? size : 'md'} className={className} />
+    </div>
+  );
+};
+

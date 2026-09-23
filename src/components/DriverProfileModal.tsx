@@ -19,7 +19,8 @@ import {
   LogOut,
   Sparkles,
   CreditCard,
-  Zap
+  Zap,
+  Scale
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MtnMomoLogo, TelecelLogo, MastercardLogo } from './PaymentLogos';
@@ -58,6 +59,7 @@ interface DriverProfileModalProps {
   onUpdateUser: (updated: DriverProfileData) => void;
   onOpenAdmin?: () => void;
   onSignOut?: () => void;
+  onOpenLegal?: (tab?: 'terms' | 'privacy') => void;
 }
 
 // Preset luxury automotive avatar options
@@ -758,7 +760,21 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
             </button>
 
             {/* Quick Actions Row */}
-            <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-xs">
+              {onOpenLegal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenLegal('terms');
+                  }}
+                  className="py-2 px-2 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Scale className="w-3.5 h-3.5 text-[#4ade80]" />
+                  <span>Legal & Privacy</span>
+                </button>
+              )}
+
               {onOpenAdmin && (
                 <button
                   type="button"
@@ -777,7 +793,7 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
                 <button
                   type="button"
                   onClick={onSignOut}
-                  className="py-2 px-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.99]"
+                  className="py-2 px-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.99] col-span-2 sm:col-span-1"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>
