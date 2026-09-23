@@ -1,5 +1,5 @@
 /**
- * XCHARGE Progressive Web App Service Worker Registration
+ * ChargeLink GH Progressive Web App — Service Worker Registration
  */
 
 export function registerServiceWorker() {
@@ -8,7 +8,7 @@ export function registerServiceWorker() {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) {
         refreshing = true;
-        console.log('[XCharge PWA] Controller changed; reloading to activate latest version.');
+        console.log('[ChargeLink PWA] Controller changed; reloading to activate latest version.');
         window.location.reload();
       }
     });
@@ -17,7 +17,7 @@ export function registerServiceWorker() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('[XCharge PWA] ServiceWorker registered with scope:', registration.scope);
+          console.log('[ChargeLink PWA] ServiceWorker registered with scope:', registration.scope);
 
           // Actively check for Service Worker updates on launch
           registration.update();
@@ -28,9 +28,9 @@ export function registerServiceWorker() {
               installingWorker.onstatechange = () => {
                 if (installingWorker.state === 'installed') {
                   if (navigator.serviceWorker.controller) {
-                    console.log('[XCharge PWA] New content installed; activating immediately.');
+                    console.log('[ChargeLink PWA] New content installed; activating immediately.');
                   } else {
-                    console.log('[XCharge PWA] Content cached for offline use.');
+                    console.log('[ChargeLink PWA] Content cached for offline use.');
                   }
                 }
               };
@@ -38,7 +38,7 @@ export function registerServiceWorker() {
           };
         })
         .catch((error) => {
-          console.error('[XCharge PWA] ServiceWorker registration failed:', error);
+          console.error('[ChargeLink PWA] ServiceWorker registration failed:', error);
         });
     });
   }

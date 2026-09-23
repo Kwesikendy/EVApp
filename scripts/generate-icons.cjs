@@ -2,48 +2,47 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
+// ChargeLink GH — Official PWA Icon Generator
+// Produces ChargeLink Green "C + plug + leaf" glyph on deep obsidian background
+// Run: node scripts/generate-icons.cjs
 const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="cyanBlade" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#00d2ff" />
-      <stop offset="60%" stop-color="#00f0ff" />
-      <stop offset="100%" stop-color="#55f5ff" />
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="100%" stop-color="#16a34a" />
     </linearGradient>
-    <linearGradient id="whiteBlade" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="100%" stop-color="#cbd5e1" />
+    <linearGradient id="cGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#15803d" />
     </linearGradient>
-    <radialGradient id="cyanGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.25" />
-      <stop offset="60%" stop-color="#00f0ff" stop-opacity="0.05" />
+    <radialGradient id="greenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.20" />
+      <stop offset="60%" stop-color="#22c55e" stop-opacity="0.05" />
       <stop offset="100%" stop-color="#10141a" stop-opacity="0" />
     </radialGradient>
   </defs>
 
   <!-- Deep Obsidian Background -->
-  <rect width="1024" height="1024" fill="#10141a" />
+  <rect width="1024" height="1024" rx="180" fill="#10141a" />
   
-  <!-- Ambient Electric Cyan Backlight -->
-  <circle cx="512" cy="512" r="440" fill="url(#cyanGlow)" />
+  <!-- Ambient green backlight -->
+  <circle cx="512" cy="512" r="440" fill="url(#greenGlow)" />
 
-  <!-- Centered Aerodynamic X-Blade Glyph -->
-  <g transform="translate(512, 512) scale(12) translate(-49.5, -45.5)">
-    <!-- Top-Left White Wing -->
+  <!-- C-shaped arc (large, centered) -->
+  <g transform="translate(512,512) scale(9) translate(-60,-60)">
     <path
-      d="M 32 24 L 46 24 C 49 24 51 27 49 30 L 44 38 C 42 41 38 41 36 38 L 30 29 C 29 27 30 24 32 24 Z"
-      fill="url(#whiteBlade)"
+      d="M 68 14 A 46 46 0 1 0 68 106 L 68 90 A 30 30 0 1 1 68 30 Z"
+      fill="url(#cGrad)"
     />
-    <!-- Bottom-Right White Wing -->
-    <path
-      d="M 52 48 L 57 44 C 59 42 63 43 65 46 L 70 54 C 71 56 70 59 67 59 L 58 59 C 55 59 53 56 55 53 Z"
-      fill="url(#whiteBlade)"
-    />
-    <!-- Cyan Main Diagonal Blade -->
-    <path
-      d="M 28 64 L 42 46 C 44 43 47 41 50 39 L 68 25 C 71 23 74 25 73 28 L 68 34 C 66 36 63 38 60 41 L 44 60 C 42 63 38 65 34 66 L 27 67 C 25 67 25 65 28 64 Z"
-      fill="url(#cyanBlade)"
-    />
+    <!-- EV plug body -->
+    <rect x="62" y="48" width="32" height="22" rx="6" fill="url(#leafGrad)" />
+    <rect x="94" y="53" width="12" height="4" rx="2" fill="url(#leafGrad)" />
+    <rect x="94" y="62" width="12" height="4" rx="2" fill="url(#leafGrad)" />
+    <!-- Lightning bolt -->
+    <path d="M75 52 L71 61 L76 61 L72 70 L81 60 L76 60 Z" fill="#ffffff" />
+    <!-- Leaf swoosh -->
+    <path d="M 36 84 Q 56 72 84 78 Q 62 90 42 94 Z" fill="url(#leafGrad)" opacity="0.9"/>
   </g>
 </svg>`;
 
@@ -52,6 +51,7 @@ async function run() {
   
   // Write the master SVG
   fs.writeFileSync(path.join(__dirname, '..', 'public', 'icons', 'xcharge-mark.svg'), svgContent);
+  console.log('Written: public/icons/xcharge-mark.svg (ChargeLink GH glyph)');
 
   const targets = [
     { file: path.join(__dirname, '..', 'public', 'icons', 'icon-512.png'), size: 512 },
@@ -69,6 +69,8 @@ async function run() {
       .toFile(t.file);
     console.log(`Rendered: ${t.file} (${t.size}x${t.size})`);
   }
+
+  console.log('\n✅ ChargeLink GH icons generated successfully!');
 }
 
 run().catch(console.error);
