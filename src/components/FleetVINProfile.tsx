@@ -153,11 +153,11 @@ export const FleetVINProfile: React.FC<FleetVINProfileProps> = ({
       {/* Corporate Fleet Benefits Note */}
       <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-400 space-y-1">
         <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
-          <Shield className="w-3.5 h-3.5 text-sky-400" />
-          <span>XCharge Fleet Telematics Integration</span>
+          <Shield className="w-3.5 h-3.5 text-[#4ade80]" />
+          <span>ChargeLink GH Fleet Telematics Integration</span>
         </div>
         <p className="text-[11px]">
-          OCPP 1.6-J and 2.0.1 transactions automatically capture vehicle VIN via ISO 15118 Plug & Charge or driver badge tagging, synchronizing session kilowatt-hours directly with ERP accounting ledgers.
+          OCPP 1.6J and 2.0.1 transactions automatically capture vehicle VIN via ISO 15118 Plug & Charge or driver badge tagging, synchronizing session kilowatt-hours directly with ERP accounting ledgers.
         </p>
       </div>
     </div>

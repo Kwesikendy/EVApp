@@ -1,11 +1,41 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ChargeLink GH — Design Tokens
+   Extracted from official chargelink-logo.jpeg
+   ============================================================
+   Primary deep forest green  : #1e4d2b  (C shape, plug body)
+   Brand green medium         : #2d7a3e  ("GH" text colour)
+   Bright leaf green          : #5c9e3a  (leaf highlight)
+   Accent neon leaf           : #6abf47  (leaf tip)
+   Muted sage tagline         : #4a7a55  ("Powering a Cleaner Tomorrow")
+   Background obsidian        : #0a0e14
+   ============================================================ */
+
 @layer base {
   :root {
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
     --sar: env(safe-area-inset-right, 0px);
+
+    /* ChargeLink GH Brand Palette */
+    --cl-primary:       #2d7a3e;   /* brand green — main CTAs */
+    --cl-primary-deep:  #1e4d2b;   /* deep forest — borders, headers */
+    --cl-leaf:          #5c9e3a;   /* leaf bright — highlights */
+    --cl-leaf-tip:      #6abf47;   /* leaf tip — accent glow */
+    --cl-sage:          #4a7a55;   /* muted sage — subtitles */
+    --cl-bg:            #0a0e14;   /* obsidian background */
+    --cl-surface:       #111a13;   /* dark green-tinted surface */
+    --cl-surface-2:     #192418;   /* elevated surface */
+    --cl-border:        #1e3a22;   /* subtle forest border */
+    --cl-glow:          rgba(45, 122, 62, 0.35);
+
+    /* Semantic aliases for easy inline use */
+    --color-primary:    var(--cl-primary);
+    --color-success:    #00e676;
+    --color-error:      #ff4d4d;
+    --color-warning:    #f59e0b;
   }
 
   html, body {
@@ -20,28 +50,58 @@
     background-color: #0a0e14;
     color: #f1f5f9;
   }
+
   h1, h2, h3, h4, .font-display {
     font-family: 'Outfit', sans-serif;
     letter-spacing: -0.01em;
   }
 }
 
-/* Clean automotive elevation styling */
+/* ── ChargeLink GH — Global Glow Utility ── */
+.glow-green {
+  box-shadow: 0 0 16px rgba(45, 122, 62, 0.45), 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.glow-green-sm {
+  box-shadow: 0 0 8px rgba(45, 122, 62, 0.30), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.glow-leaf {
+  box-shadow: 0 0 12px rgba(106, 191, 71, 0.40);
+}
+
+/* Legacy class names kept for backward compat — now uses green glow */
 .glow-cyan,
 .glow-cyan-sm,
 .glow-emerald {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-.border-subtle {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* ── ChargeLink GH — Primary Button ── */
+.btn-chargelink {
+  background: var(--cl-primary);
+  color: #ffffff;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-chargelink:hover  { background: var(--cl-leaf); }
+.btn-chargelink:active { transform: scale(0.97); }
+
+/* ── ChargeLink GH — Surface Card ── */
+.card-chargelink {
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 1rem;
 }
 
+/* ── Pulsing live indicator ── */
+@keyframes chargelink-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.25); }
+}
+.cl-pulse { animation: chargelink-pulse 1.8s ease-in-out infinite; }
+
 /* Hide scrollbars for clean mobile presentation */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.border-subtle { border: 1px solid rgba(255, 255, 255, 0.08); }

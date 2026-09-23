@@ -394,29 +394,29 @@ app.post('/api/stations', (req, res) => {
         maxPowerKw: Number(c.maxPowerKw) || 150,
         currentPowerKw: 0,
         status: (c.status || 'Available') as any,
-        tariffPerKwh: Number(c.tariffPerKwh) || 0.30,
-        tariffCurrency: c.tariffCurrency || 'USD'
+        tariffPerKwh: Number(c.tariffPerKwh) || 4.50,
+        tariffCurrency: c.tariffCurrency || 'GHS'
       }))
     : [
         {
           id: Date.now(),
           connectorId: 1,
           type: 'CCS2',
-          maxPowerKw: 150,
+          maxPowerKw: 160,
           currentPowerKw: 0,
           status: 'Available',
-          tariffPerKwh: 0.30,
-          tariffCurrency: 'USD'
+          tariffPerKwh: 4.50,
+          tariffCurrency: 'GHS'
         },
         {
           id: Date.now() + 1,
           connectorId: 2,
-          type: 'CCS2',
-          maxPowerKw: 150,
+          type: 'GB/T',
+          maxPowerKw: 160,
           currentPowerKw: 0,
           status: 'Available',
-          tariffPerKwh: 0.30,
-          tariffCurrency: 'USD'
+          tariffPerKwh: 4.50,
+          tariffCurrency: 'GHS'
         }
       ];
 
@@ -424,7 +424,7 @@ app.post('/api/stations', (req, res) => {
     id: newId,
     stationId: generatedStationId,
     name,
-    operator: operator || 'EnergyGrid Network',
+    operator: operator || 'ChargeLink GH Network',
     address: address || 'Main Highway Plaza',
     latitude: parseFloat(latitude),
     longitude: parseFloat(longitude),

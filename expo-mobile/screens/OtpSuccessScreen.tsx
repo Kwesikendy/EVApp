@@ -55,7 +55,7 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ navigation, 
         <XChargeLogoNative width={180} height={52} showSubtitle={false} style={{ marginBottom: 10 }} />
         <Text style={styles.heroTitle}>Identity Verified</Text>
         <Text style={styles.heroSub}>
-          Welcome back, {user?.displayName || 'Driver'}. Establishing real-time telemetry link to Accra Grid Hub.
+          Welcome back, {user?.displayName || 'Driver'}. Establishing real-time telemetry link to ChargeLink Kumasi & Accra Grid.
         </Text>
       </View>
 
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.5,
     borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.4)',
+    borderColor: 'rgba(34, 197, 94, 0.4)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Theme.borderRadius.full,
@@ -122,11 +122,11 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.3)',
+    borderColor: 'rgba(34, 197, 94, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: 'rgba(0,240,255,0.03)',
+    backgroundColor: 'rgba(34, 197, 94, 0.05)',
   },
   innerRing: {
     width: 80,

@@ -68,7 +68,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
       return;
     }
     if (!agreed) {
-      setErrorMessage('Please accept the XCharge Terms of Service');
+      setErrorMessage('Please accept the ChargeLink GH Terms of Service');
       return;
     }
 
@@ -122,7 +122,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
             <span>Back to Sign In</span>
           </button>
 
-          <span className="px-2.5 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff]">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80]">
             REGISTRATION
           </span>
         </div>
@@ -145,7 +145,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
         {/* Step 1: Personal Credentials */}
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#00f0ff] uppercase tracking-wider block font-mono">
+          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
             1. Driver Information
           </span>
 
@@ -154,7 +154,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
               <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
                 Full Name
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#00f0ff]/60">
+              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
                 <User className="w-3.5 h-3.5 text-[#64748b]" />
                 <input
                   type="text"
@@ -170,7 +170,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
               <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
                 Ghana Phone Number
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#00f0ff]/60">
+              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
                 <span className="text-xs font-mono font-bold text-slate-300">🇬🇭 +233</span>
                 <input
                   type="tel"
@@ -186,7 +186,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
               <label className="text-[10px] text-[#94a3b8] uppercase font-bold block mb-1">
                 Email Address (Optional)
               </label>
-              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#00f0ff]/60">
+              <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2 focus-within:border-[#22c55e]/60">
                 <Mail className="w-3.5 h-3.5 text-[#64748b]" />
                 <input
                   type="email"
@@ -202,7 +202,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
         {/* Step 2: Electric Vehicle Selection */}
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#00f0ff] uppercase tracking-wider block font-mono">
+          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
             2. Select Active Electric Vehicle
           </span>
 
@@ -212,16 +212,16 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
                 key={ev.id}
                 type="button"
                 onClick={() => setSelectedEv(ev.id)}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                   selectedEv === ev.id
-                    ? 'bg-[#181c24] border-[#00f0ff] shadow-sm'
+                    ? 'bg-[#181c24] border-[#22c55e] shadow-sm'
                     : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <Car className={`w-3.5 h-3.5 ${selectedEv === ev.id ? 'text-[#00f0ff]' : 'text-slate-400'}`} />
+                  <Car className={`w-3.5 h-3.5 ${selectedEv === ev.id ? 'text-[#4ade80]' : 'text-slate-400'}`} />
                   {selectedEv === ev.id && (
-                    <Check className="w-3.5 h-3.5 text-[#00f0ff] stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 text-[#4ade80] stroke-[3]" />
                   )}
                 </div>
                 <div className="text-xs font-bold text-white mt-1.5 truncate">{ev.name}</div>
@@ -233,7 +233,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
         {/* Step 3: Payment Gateway */}
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-4 space-y-3 shadow-lg">
-          <span className="text-[11px] font-bold text-[#00f0ff] uppercase tracking-wider block font-mono">
+          <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider block font-mono">
             3. Primary Payment Gateway
           </span>
 
@@ -246,9 +246,9 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
                   key={gw.id}
                   type="button"
                   onClick={() => setSelectedGateway(gw.id)}
-                  className={`w-full p-2.5 rounded-xl border flex items-center justify-between transition-all ${
+                  className={`w-full p-2.5 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#181c24] border-[#00f0ff] shadow-sm'
+                      ? 'bg-[#181c24] border-[#22c55e] shadow-sm'
                       : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
                   }`}
                 >
@@ -261,9 +261,9 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
                   </div>
 
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    isSelected ? 'bg-[#00f0ff] border-[#00f0ff]' : 'border-white/20'
+                    isSelected ? 'bg-[#22c55e] border-[#22c55e]' : 'border-white/20'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 text-black stroke-[3]" />}
+                    {isSelected && <Check className="w-3 h-3 text-white stroke-[3]" />}
                   </div>
                 </button>
               );
@@ -277,10 +277,10 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 rounded accent-[#00f0ff]"
+            className="mt-0.5 rounded accent-[#22c55e]"
           />
           <span>
-            I agree to the XCharge Terms of Service and authorize instant MoMo pre-authorization for public charging sessions.
+            I agree to the ChargeLink GH Terms of Service and authorize instant MoMo pre-authorization for public charging sessions.
           </span>
         </label>
 
@@ -289,13 +289,13 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({
           type="button"
           onClick={handleRegister}
           disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
+          className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
         >
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              <Zap className="w-4 h-4 fill-black" />
+              <Zap className="w-4 h-4 fill-white" />
               <span>CREATE PROFILE & SEND OTP</span>
               <ArrowRight className="w-4 h-4" />
             </>

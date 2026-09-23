@@ -17,7 +17,7 @@ export const PwaInstallPrompt: React.FC = () => {
   useEffect(() => {
     // 1. Purge any legacy 24-hour dismissal lockout so users never lose the prompt
     try {
-      localStorage.removeItem('xcharge_pwa_dismissed');
+      localStorage.removeItem('chargelink_pwa_dismissed');
     } catch {}
 
     // 2. Check if already running in standalone PWA mode (added to home screen)
@@ -61,7 +61,7 @@ export const PwaInstallPrompt: React.FC = () => {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('xcharge-open-pwa-install', handleOpenRequest);
+    window.addEventListener('chargelink-open-pwa-install', handleOpenRequest);
 
     // App installed handler
     const handleAppInstalled = () => {
@@ -69,14 +69,14 @@ export const PwaInstallPrompt: React.FC = () => {
       setShowBanner(false);
       setShowIosGuide(false);
       setDeferredPrompt(null);
-      console.log('[XCharge PWA] Successfully installed on device!');
+      console.log('[ChargeLink PWA] Successfully installed on device!');
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       clearTimeout(initialTimer);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('xcharge-open-pwa-install', handleOpenRequest);
+      window.removeEventListener('chargelink-open-pwa-install', handleOpenRequest);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -120,19 +120,19 @@ export const PwaInstallPrompt: React.FC = () => {
       {/* 1. Bottom Floating Installation Banner */}
       {showBanner && !showIosGuide && (
         <div className="fixed bottom-20 sm:bottom-6 inset-x-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-[#141922]/95 backdrop-blur-xl border border-[#00f0ff]/30 rounded-2xl p-4 shadow-2xl shadow-black/80 flex items-center gap-3 relative ring-1 ring-[#00f0ff]/20">
+          <div className="bg-[#111a13]/95 backdrop-blur-xl border border-[#2d7a3e]/40 rounded-2xl p-4 shadow-2xl shadow-black/80 flex items-center gap-3 relative ring-1 ring-[#2d7a3e]/20">
             {/* App Icon */}
-            <div className="w-12 h-12 rounded-xl bg-[#10141a] border border-white/10 p-1.5 shrink-0 flex items-center justify-center shadow-inner">
-              <img src="/icons/xcharge-mark.svg" alt="XCHARGE" className="w-full h-full object-contain" />
+            <div className="w-12 h-12 rounded-xl bg-[#111a13] border border-[#2d7a3e]/30 p-1 shrink-0 flex items-center justify-center shadow-inner overflow-hidden">
+              <img src="/chargelink-logo.jpeg" alt="ChargeLink GH" className="w-full h-full object-contain rounded-lg" />
             </div>
 
             {/* Information */}
             <div className="flex-1 min-w-0 pr-6">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-bold text-white tracking-wide">
-                  {isIos ? 'Install XCHARGE on iPhone' : 'Install XCHARGE App'}
+                  {isIos ? 'Install ChargeLink GH on iPhone' : 'Install ChargeLink GH'}
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-[#00f0ff]/20 text-[#00f0ff] text-[9px] font-mono font-bold uppercase">
+                <span className="px-1.5 py-0.2 rounded bg-[#2d7a3e]/20 text-[#5c9e3a] text-[9px] font-mono font-bold uppercase">
                   PWA
                 </span>
               </div>
@@ -144,7 +144,7 @@ export const PwaInstallPrompt: React.FC = () => {
             {/* Install CTA */}
             <button
               onClick={handleInstallClick}
-              className="px-3.5 py-2 rounded-xl bg-[#00f0ff] hover:bg-[#55f5ff] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 shadow-md shadow-black/40 transition-all shrink-0 active:scale-95 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-[#2d7a3e] hover:bg-[#5c9e3a] text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-black/40 transition-all shrink-0 active:scale-95 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Install</span>
@@ -174,11 +174,11 @@ export const PwaInstallPrompt: React.FC = () => {
               setShowIosGuide(true);
             }
           }}
-          className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-40 px-3.5 py-2 rounded-full bg-[#141922]/95 backdrop-blur-xl border border-[#00f0ff]/50 text-white shadow-xl flex items-center gap-2 text-xs font-bold hover:bg-[#181c24] hover:border-[#00f0ff] active:scale-95 transition-all cursor-pointer group"
-          title="Install XCHARGE App on your device"
+          className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-40 px-3.5 py-2 rounded-full bg-[#111a13]/95 backdrop-blur-xl border border-[#2d7a3e]/50 text-white shadow-xl flex items-center gap-2 text-xs font-bold hover:bg-[#192418] hover:border-[#5c9e3a] active:scale-95 transition-all cursor-pointer group"
+          title="Install ChargeLink GH on your device"
         >
-          <div className="w-2 h-2 rounded-full bg-[#00f0ff] animate-ping" />
-          <Download className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+          <div className="w-2 h-2 rounded-full bg-[#5c9e3a] animate-ping" />
+          <Download className="w-3.5 h-3.5 text-[#5c9e3a] group-hover:scale-110 transition-transform" />
           <span className="text-[11px] font-mono font-bold text-white">
             {isIos ? 'Install on iPhone' : 'Install App'}
           </span>
@@ -197,11 +197,11 @@ export const PwaInstallPrompt: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-[#10141a] border border-[#00f0ff]/40 p-2 shrink-0">
-                <img src="/icons/xcharge-mark.svg" alt="XCHARGE" className="w-full h-full object-contain" />
+              <div className="w-12 h-12 rounded-xl bg-[#111a13] border border-[#2d7a3e]/40 p-1.5 shrink-0 overflow-hidden">
+                <img src="/chargelink-logo.jpeg" alt="ChargeLink GH" className="w-full h-full object-contain rounded-md" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Install XCHARGE on iPhone</h3>
+                <h3 className="text-base font-bold text-white">Install ChargeLink GH on iPhone</h3>
                 <p className="text-xs text-slate-400">Add to Home Screen in 2 quick steps</p>
               </div>
             </div>
@@ -209,13 +209,13 @@ export const PwaInstallPrompt: React.FC = () => {
             <div className="space-y-3.5 py-2">
               {/* Step 1 */}
               <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <div className="w-8 h-8 rounded-lg bg-[#00f0ff]/10 text-[#00f0ff] flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-[#2d7a3e]/10 text-[#5c9e3a] flex items-center justify-center shrink-0 mt-0.5">
                   <Share className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white">1. Tap the Share button</p>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Tap the Safari share icon <Share className="w-3 h-3 inline text-[#00f0ff] mx-0.5" /> at the bottom or top of your screen.
+                    Tap the Safari share icon <Share className="w-3 h-3 inline text-[#5c9e3a] mx-0.5" /> at the bottom or top of your screen.
                   </p>
                 </div>
               </div>
@@ -228,13 +228,13 @@ export const PwaInstallPrompt: React.FC = () => {
                 <div>
                   <p className="text-xs font-semibold text-white">2. Select "Add to Home Screen"</p>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Scroll down and tap <span className="text-white font-medium">Add to Home Screen</span>, then tap <span className="text-[#00f0ff] font-bold">Add</span> in the top-right corner.
+                    Scroll down and tap <span className="text-white font-medium">Add to Home Screen</span>, then tap <span className="text-[#22c55e] font-bold">Add</span> in the top-right corner.
                   </p>
                 </div>
               </div>
 
               {/* Result */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#00f0ff]/5 border border-[#00f0ff]/20 text-[11px] text-[#00f0ff]">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/30 text-[11px] text-[#22c55e]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Runs as a standalone full-screen app with 1-tap instant launch.</span>
               </div>
@@ -242,7 +242,7 @@ export const PwaInstallPrompt: React.FC = () => {
 
             <button
               onClick={() => setShowIosGuide(false)}
-              className="w-full mt-4 py-3 rounded-xl bg-[#00f0ff] text-[#0a0e14] font-bold text-sm hover:bg-[#55f5ff] transition-all"
+              className="w-full mt-4 py-3 rounded-xl bg-[#22c55e] text-[#0a0e14] font-bold text-sm hover:bg-[#16a34a] transition-all"
             >
               Got it!
             </button>

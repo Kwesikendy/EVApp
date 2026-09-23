@@ -23,7 +23,7 @@
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Continuous geolocation tracking, map auto-centering, dynamic Haversine distance/ETA, and 1-tap Google Maps directions. |
-| **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with authentic XCHARGE branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v5 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
+| **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with official ChargeLink GH branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v5 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
 | **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, and cloud serverless routing complete; entering hardware ingress. |
 
 ---
@@ -104,12 +104,12 @@ Phase 1: Real Telephony & Auth  ──►  Phase 2: Live Payment Switch  ──�
 1. **Progressive Web App (PWA) Distribution (Complete & Live)**:
    - Full Web App Manifest ([`public/manifest.json`](file:///d:/xcharge-ev-platform/public/manifest.json)) and Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js)).
    - Native installation banners with 1-tap Android install and iOS Safari Share guidance.
-   - High-resolution aerodynamic X-blade app icons in [`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/).
+   - High-resolution ChargeLink GH official logo brand app icons in [`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/).
 2. **EAS Standalone App Builds**:
    - Run `eas build -p android --profile production` to generate Google Play Store `.aab` bundles.
    - Run `eas build -p ios --profile production` to build Apple iOS `.ipa` binaries.
 3. **App Store & Google Play Console Submission**:
-   - Package high-resolution app icons (1024x1024) and splash screens generated from [`public/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/public/xcharge-logo.svg).
+   - Package high-resolution app icons (1024x1024) and splash screens generated from [`public/chargelink-logo.jpeg`](file:///d:/xcharge-ev-platform/public/chargelink-logo.jpeg).
    - Configure privacy policies, Ghana telecom disclosures, and location permission declarations.
 4. **Station Owner Web Admin Portal**:
    - Real-time management dashboard for station operators to inspect revenue (GH₵), active charging kilowatts, charger uptime, and tariff schedules.

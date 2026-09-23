@@ -27,8 +27,8 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
 
         {/* Success Emblem */}
         <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#10141a] to-[#181c24] border-2 border-[#00f0ff] flex items-center justify-center shadow-lg shadow-black/60">
-            <Check className="w-12 h-12 text-[#00f0ff] stroke-[3]" />
+          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#10141a] to-[#181c24] border-2 border-[#22c55e] flex items-center justify-center shadow-lg shadow-black/60">
+            <Check className="w-12 h-12 text-[#4ade80] stroke-[3]" />
           </div>
         </div>
 
@@ -41,7 +41,7 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
             Identity Verified
           </h1>
           <p className="text-xs text-[#94a3b8] max-w-xs mx-auto">
-            Welcome back, <span className="text-[#00f0ff] font-semibold">{driverName}</span>. Real-time telemetry link established to the Accra Ultra-Fast Grid.
+            Welcome back, <span className="text-[#4ade80] font-semibold">{driverName}</span>. Real-time telemetry link established to the Kumasi & Accra Charging Network.
           </p>
         </div>
 
@@ -50,7 +50,7 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
           <div className="flex items-center justify-between text-xs py-1 border-b border-white/[0.04]">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-[#00e699] stroke-[3]" />
-              <span className="text-slate-300">OCPP 2.0.1 Protocol</span>
+              <span className="text-slate-300">OCPP 1.6J / 2.0.1 Protocol</span>
             </div>
             <span className="text-[10px] font-mono text-[#00e699] font-bold">CONNECTED</span>
           </div>
@@ -60,13 +60,13 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
               <Check className="w-4 h-4 text-[#00e699] stroke-[3]" />
               <span className="text-slate-300">MoMo Escrow Wallet</span>
             </div>
-            <span className="text-[10px] font-mono text-[#00f0ff] font-bold">{balanceStr}</span>
+            <span className="text-[10px] font-mono text-[#4ade80] font-bold">{balanceStr}</span>
           </div>
 
           <div className="flex items-center justify-between text-xs py-1">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-[#00e699] stroke-[3]" />
-              <span className="text-slate-300">Accra Superhubs (5)</span>
+              <span className="text-slate-300">Greenwood Event Center & Superhubs</span>
             </div>
             <span className="text-[10px] font-mono text-[#00e699] font-bold">SYNCED</span>
           </div>
@@ -76,9 +76,9 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({
         <button
           type="button"
           onClick={onEnterDashboard}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-md shadow-black/40"
+          className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-md shadow-black/40 cursor-pointer"
         >
-          <span>ENTER HYPERCHARGE OS</span>
+          <span>ENTER CHARGELINK GH</span>
           <ArrowRight className="w-4 h-4 stroke-[3]" />
         </button>
       </div>

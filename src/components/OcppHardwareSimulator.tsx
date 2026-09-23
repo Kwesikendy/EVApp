@@ -27,10 +27,10 @@ export const OcppHardwareSimulator: React.FC<OcppHardwareSimulatorProps> = ({
     try {
       if (type === 'boot') {
         await onInjectEvent('BootNotification', {
-          chargePointVendor: 'XCharge Hardware Labs',
-          chargePointModel: 'XCharge-Titan-350kW',
-          chargePointSerialNumber: 'XC-GH-2026-991',
-          firmwareVersion: 'v4.1.0-citrineos-native',
+          chargePointVendor: 'MaxPower',
+          chargePointModel: 'VCP160-160kW',
+          chargePointSerialNumber: 'MP-VCP160-KSI-001',
+          firmwareVersion: 'v1.6.0-ocpp16j',
           iccid: '89014103211118510720',
           imsi: '0829117281928'
         });
@@ -89,7 +89,7 @@ export const OcppHardwareSimulator: React.FC<OcppHardwareSimulatorProps> = ({
           </span>
         </div>
         <p className="text-[11px] text-slate-400 mb-3">
-          Simulate incoming hardware telemetry packets from chargers like XCharge Titan or open-source tools (Ocpp-Charge-Point-Simulator / MicroOCPP).
+          Simulate incoming hardware telemetry packets from chargers like MaxPower VCP160 or open-source tools (Ocpp-Charge-Point-Simulator / MicroOCPP).
         </p>
 
         {/* Action Triggers */}

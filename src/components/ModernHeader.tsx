@@ -33,7 +33,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
       className="h-[calc(3.5rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] bg-[#10141a] border-b border-white/[0.08] px-3 sm:px-4 shrink-0 select-none z-30"
     >
       <div className="w-full max-w-4xl mx-auto h-full flex items-center justify-between">
-      {/* Left: Official XCHARGE Logo + status pill */}
+      {/* Left: Official ChargeLink GH Logo + status pill */}
       <div className="flex items-center gap-2.5">
         <XChargeLogo size="sm" variant="full" />
         <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00e699]/10 border border-[#00e699]/30 text-[10px] font-mono font-semibold text-[#00e699]">
@@ -50,7 +50,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             id="btn-replay-splash"
             onClick={onReplaySplash}
             title="Replay Charging Video Splash"
-            className="w-7 h-7 rounded-lg bg-[#181c24] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:text-[#00f0ff] transition-colors cursor-pointer active:scale-95"
+            className="w-7 h-7 rounded-lg bg-[#181c24] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:text-[#4ade80] transition-colors cursor-pointer active:scale-95"
           >
             <Video className="w-3.5 h-3.5" />
           </button>
@@ -65,7 +65,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
         >
           {deviceMode === 'phone' ? (
             <>
-              <Monitor className="w-3 h-3 text-[#00f0ff]" />
+              <Monitor className="w-3 h-3 text-[#4ade80]" />
               <span>Fullscreen</span>
             </>
           ) : (

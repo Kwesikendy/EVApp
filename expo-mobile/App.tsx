@@ -121,67 +121,66 @@ export interface WalletTransaction {
 const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-01',
-    stationId: 'XC-ACC-001',
-    name: 'XCharge Superhub - Airport City',
+    stationId: 'CL-KSI-001',
+    name: 'ChargeLink Greenwood Event Center',
+    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+    distanceKm: 0.8,
+    etaMins: 3,
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    connectors: [
+      { id: 1, connectorId: 1, type: 'GB/T', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+    ],
+    amenities: ['Event Center', 'Parking Bay', '24/7 Security', 'Opoku Bandoh Plaza'],
+  },
+  {
+    id: 'st-02',
+    stationId: 'CL-ACC-001',
+    name: 'ChargeLink Superhub - Airport City',
     address: 'Liberation Rd, Terminal 3 District, Accra',
     distanceKm: 1.2,
     etaMins: 4,
     latitude: 5.6050,
     longitude: -0.1720,
     connectors: [
-      { id: 1, connectorId: 1, type: 'CCS2', maxPowerKw: 350, status: 'Available', tariffPerKwh: 3.80 },
-      { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 3.50 },
-      { id: 3, connectorId: 3, type: 'CCS2', maxPowerKw: 160, status: 'Charging', tariffPerKwh: 3.50 },
-      { id: 4, connectorId: 4, type: 'CHAdeMO', maxPowerKw: 60, status: 'Available', tariffPerKwh: 3.20 },
+      { id: 3, connectorId: 1, type: 'CCS2', maxPowerKw: 350, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 4, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 5, connectorId: 3, type: 'CCS2', maxPowerKw: 160, status: 'Charging', tariffPerKwh: 4.50 },
+      { id: 6, connectorId: 4, type: 'CHAdeMO', maxPowerKw: 60, status: 'Available', tariffPerKwh: 4.50 },
     ],
     amenities: ['24/7 Security', 'Coffee Lounge', 'Free Wi-Fi', 'Restrooms', 'EV Detailing'],
   },
   {
-    id: 'st-02',
-    stationId: 'XC-ACC-002',
-    name: 'XCharge Express - Financial Plaza',
+    id: 'st-03',
+    stationId: 'CL-ACC-002',
+    name: 'ChargeLink Express - Financial Plaza',
     address: 'High Street Commercial Core, Accra Central',
     distanceKm: 3.8,
     etaMins: 9,
     latitude: 5.5520,
     longitude: -0.1980,
     connectors: [
-      { id: 5, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 4.20 },
-      { id: 6, connectorId: 2, type: 'CCS2', maxPowerKw: 200, status: 'Charging', tariffPerKwh: 4.20 },
+      { id: 7, connectorId: 1, type: 'CCS2', maxPowerKw: 200, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 8, connectorId: 2, type: 'CCS2', maxPowerKw: 200, status: 'Charging', tariffPerKwh: 4.50 },
     ],
     amenities: ['Covered Canopy', 'ATM Banking', '24/7 Lighting'],
   },
   {
-    id: 'st-03',
-    stationId: 'XC-ACC-003',
-    name: 'XCharge Hub - Ridge Tech Zone',
+    id: 'st-04',
+    stationId: 'CL-ACC-003',
+    name: 'ChargeLink Hub - Ridge Tech Zone',
     address: 'GIMPA Bypass, Ridge Ambassadorial Enclave',
     distanceKm: 2.4,
     etaMins: 6,
     latitude: 5.5780,
     longitude: -0.1910,
     connectors: [
-      { id: 7, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 3.60 },
-      { id: 8, connectorId: 2, type: 'CHAdeMO', maxPowerKw: 50, status: 'Available', tariffPerKwh: 3.20 },
-      { id: 9, connectorId: 3, type: 'Type2', maxPowerKw: 22, status: 'Available', tariffPerKwh: 2.80 },
+      { id: 9, connectorId: 1, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 10, connectorId: 2, type: 'CHAdeMO', maxPowerKw: 50, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 11, connectorId: 3, type: 'Type2', maxPowerKw: 22, status: 'Available', tariffPerKwh: 4.50 },
     ],
     amenities: ['Solar Canopy', 'EV Care Workshop', 'Café'],
-  },
-  {
-    id: 'st-04',
-    stationId: 'XC-ACC-004',
-    name: 'XCharge Fleet Depot - Heavy Logistics Hub',
-    address: 'Industrial Ring Rd West, Heavy Transport Corridor',
-    distanceKm: 5.1,
-    etaMins: 12,
-    latitude: 5.5890,
-    longitude: -0.2450,
-    connectors: [
-      { id: 10, connectorId: 1, type: 'CCS2', maxPowerKw: 350, status: 'Available', tariffPerKwh: 3.20 },
-      { id: 11, connectorId: 2, type: 'CCS2', maxPowerKw: 350, status: 'Charging', tariffPerKwh: 3.20 },
-      { id: 12, connectorId: 3, type: 'GB/T', maxPowerKw: 120, status: 'Available', tariffPerKwh: 3.00 },
-    ],
-    amenities: ['Commercial Truck Bay', 'Driver Rest Lounge', 'High Clearance Canopy'],
   },
 ];
 
@@ -209,14 +208,14 @@ const DEFAULT_FLEET: FleetVehicle[] = [
     lastCharged: 'Yesterday, 18:45 PM',
   },
   {
-    vin: '7SAYGDEE4PF889120',
-    model: 'Tesla Model Y Long Range',
-    plate: 'GW-8920-23',
-    driver: 'Ama Osei',
+    vin: 'YS2R4X20002918291',
+    model: 'Volvo FH Electric Heavy',
+    plate: 'GN-1082-23',
+    driver: 'Kofi Owusu',
     soc: 89,
-    isPlugAndChargeEnabled: false,
+    isPlugAndChargeEnabled: true,
     maxKw: 250,
-    batteryCapacityKwh: 82,
+    batteryCapacityKwh: 540,
     lastCharged: 'Today, 07:15 AM',
   },
 ];
@@ -224,10 +223,10 @@ const DEFAULT_FLEET: FleetVehicle[] = [
 const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   {
     id: 'tx-01',
-    title: 'XCharge Superhub - Airport City',
-    subtitle: 'CCS2 #1 · 350 kW Ultra-Fast',
+    title: 'ChargeLink Greenwood Event Center',
+    subtitle: 'MaxPower VCP160 · 160 kW Fast',
     timestamp: 'Today, 11:20 AM',
-    amount: 93.48,
+    amount: 110.70,
     isCredit: false,
     kwh: 24.6,
   },
@@ -241,10 +240,10 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   },
   {
     id: 'tx-03',
-    title: 'XCharge Express - Financial Plaza',
+    title: 'ChargeLink Express - Financial Plaza',
     subtitle: 'CCS2 #2 · 200 kW Fast',
     timestamp: 'Yesterday, 16:15 PM',
-    amount: 76.44,
+    amount: 81.90,
     isCredit: false,
     kwh: 18.2,
   },
@@ -342,8 +341,8 @@ function AppContent() {
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(872);
   const [packVoltage, setPackVoltage] = useState<number>(412.8);
   const [packCurrent, setPackCurrent] = useState<number>(335.2);
-  const [activeStationName, setActiveStationName] = useState<string>('XCharge Superhub - Airport City');
-  const [activeConnectorType, setActiveConnectorType] = useState<string>('CCS2 · 350 kW Ultra-Fast');
+  const [activeStationName, setActiveStationName] = useState<string>('ChargeLink Greenwood Event Center');
+  const [activeConnectorType, setActiveConnectorType] = useState<string>('MaxPower VCP160 · 160 kW Fast');
 
   // Real-time Station Hardware Simulator state
   const [simSpeed, setSimSpeed] = useState<number>(1);
@@ -631,7 +630,7 @@ function AppContent() {
     if (!isFleetMode && walletBalance < PREAUTH_HOLD) {
       Alert.alert(
         'Insufficient MoMo Balance',
-        `XCharge requires a GH₵ ${PREAUTH_HOLD.toFixed(2)} pre-authorization hold to lock the connector. Please top up your wallet.`,
+        `ChargeLink GH requires a GH₵ ${PREAUTH_HOLD.toFixed(2)} pre-authorization hold to lock the connector. Please top up your wallet.`,
         [
           { text: 'Top Up MoMo', onPress: () => handleOpenMomoModal(PREAUTH_HOLD) },
           { text: 'Cancel', style: 'cancel' },
@@ -891,8 +890,8 @@ function AppContent() {
       <View style={{ flex: 1, backgroundColor: '#0a0e14', justifyContent: 'center', alignItems: 'center' }}>
         <StatusBar hidden={true} translucent={true} backgroundColor="#0a0e14" />
         <XChargeMarkNative size={54} />
-        <ActivityIndicator size="small" color="#00f0ff" style={{ marginTop: 24, marginBottom: 12 }} />
-        <Text style={{ color: '#00f0ff', fontSize: 11, fontWeight: '700', letterSpacing: 2 }}>INITIALIZING TELEMETRY NODE...</Text>
+        <ActivityIndicator size="small" color="#22c55e" style={{ marginTop: 24, marginBottom: 12 }} />
+        <Text style={{ color: '#4ade80', fontSize: 11, fontWeight: '700', letterSpacing: 2 }}>INITIALIZING TELEMETRY NODE...</Text>
       </View>
     );
   }
@@ -1527,7 +1526,7 @@ function AppContent() {
             <View style={s.walletVirtualCard}>
               <View style={s.cardTopRow}>
                 <View>
-                  <Text style={s.virtualCardBrand}>XCHARGE PASS</Text>
+                  <Text style={s.virtualCardBrand}>CHARGELINK PASS</Text>
                   <Text style={s.virtualCardType}>Commercial Driver EV Smart Card</Text>
                 </View>
                 <View style={s.cardChipIcon}>
@@ -1817,9 +1816,9 @@ function AppContent() {
 
             <ScrollView style={{ maxHeight: 440 }} showsVerticalScrollIndicator={false}>
               {/* Authenticated Node Profile */}
-              <View style={{ backgroundColor: '#0a0e14', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#00f0ff33', marginBottom: 16 }}>
+              <View style={{ backgroundColor: '#0a0e14', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(34, 197, 94, 0.25)', marginBottom: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#00f0ff', letterSpacing: 1 }}>AUTHENTICATED NODE</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#4ade80', letterSpacing: 1 }}>AUTHENTICATED NODE</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#00e676' }} />
                     <Text style={{ fontSize: 10, color: '#00e676', fontWeight: '700' }}>ONLINE</Text>
@@ -2211,7 +2210,7 @@ function AppContent() {
                   {/* USSD Body Text */}
                   <View style={s.ussdContent}>
                     <Text style={s.ussdPromptText}>
-                      Authorize transfer of GHS {momoAmount.toFixed(2)} to XCHARGE GHANA LTD?
+                      Authorize transfer of GHS {momoAmount.toFixed(2)} to CHARGELINK GH LTD?
                     </Text>
                     <Text style={s.ussdRefText}>
                       Ref: {momoNetworkRef} · Fee: GHS 0.00
@@ -2276,7 +2275,7 @@ function AppContent() {
                 </View>
                 <Text style={s.receiptTitle}>PAYMENT SETTLED</Text>
                 <Text style={s.receiptAmountText}>GH₵ {momoAmount.toFixed(2)}</Text>
-                <Text style={s.receiptSub}>Credited immediately to your XCharge pass</Text>
+                <Text style={s.receiptSub}>Credited immediately to your ChargeLink GH pass</Text>
 
                 {/* Official Invoice Card */}
                 <View style={s.receiptInvoiceCard}>
@@ -2483,7 +2482,7 @@ function AppContent() {
                   ]} />
                 </TouchableOpacity>
 
-                {/* XCharge Pass Balance */}
+                {/* ChargeLink Pass Balance */}
                 <TouchableOpacity
                   style={[
                     s.settleMethodOption,
@@ -2492,11 +2491,11 @@ function AppContent() {
                   onPress={() => setSettlementPaymentMethod('WALLET')}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#2d7a3e', alignItems: 'center', justifyContent: 'center' }}>
                       <CreditCard size={18} color="#ffffff" />
                     </View>
                     <View>
-                      <Text style={s.settleMethodText}>XCharge Pass Balance</Text>
+                      <Text style={s.settleMethodText}>ChargeLink Pass Balance</Text>
                       <Text style={s.settleMethodSub}>Available: GH₵ {walletBalance.toFixed(2)}</Text>
                     </View>
                   </View>
@@ -3487,12 +3486,12 @@ const s = StyleSheet.create({
 
   // MoMo Wallet Styles
   walletVirtualCard: {
-    backgroundColor: '#0a192f',
+    backgroundColor: '#0f2318',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#1e3a8a',
-    shadowColor: '#1e3a8a',
+    borderColor: '#1e3a22',
+    shadowColor: '#22c55e',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -3507,7 +3506,7 @@ const s = StyleSheet.create({
   virtualCardBrand: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#38bdf8',
+    color: '#4ade80',
     letterSpacing: 1,
   },
   virtualCardType: {

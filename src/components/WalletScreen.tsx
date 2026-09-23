@@ -60,7 +60,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           onClick={() => setAccountType('fleet')}
           className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
             accountType === 'fleet'
-              ? 'bg-[#181c24] text-[#00f0ff] shadow-sm border border-[#00f0ff]/30'
+              ? 'bg-[#181c24] text-[#4ade80] shadow-sm border border-[#22c55e]/30'
               : 'text-[#64748b] hover:text-slate-300'
           }`}
         >
@@ -130,7 +130,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               onClick={() => setSelectedPreset(amt)}
               className={`py-2 rounded-xl text-xs font-mono font-bold transition-all border ${
                 selectedPreset === amt
-                  ? 'bg-[#00f0ff] border-[#00f0ff] text-[#0a0e14] shadow-sm'
+                  ? 'bg-[#22c55e] border-[#22c55e] text-white shadow-sm'
                   : 'bg-[#181c24] border-white/[0.08] text-slate-300 hover:border-white/20'
               }`}
             >
@@ -179,7 +179,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           id="btn-wallet-topup"
           onClick={handleTopUp}
           disabled={isProcessing}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] disabled:opacity-60 shadow-md shadow-black/40"
+          className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] disabled:opacity-60 shadow-md shadow-black/40 cursor-pointer"
         >
           <Wallet className="w-4 h-4 fill-current" />
           <span>
@@ -200,7 +200,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           <span className="text-xs font-bold text-white">Payment Methods</span>
           <button
             id="btn-add-payment-method"
-            className="text-[11px] font-mono text-[#00f0ff] hover:underline flex items-center gap-0.5"
+            className="text-[11px] font-mono text-[#4ade80] hover:underline flex items-center gap-0.5 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             <span>Add Method</span>
@@ -213,7 +213,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('mtn')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'mtn'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
+                ? 'bg-[#181c24] border-[#22c55e]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
@@ -222,7 +222,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white font-mono">MTN Mobile Money</span>
-                  <span className="px-1.5 py-0.5 rounded bg-[#00f0ff]/15 text-[9px] font-mono font-bold text-[#00f0ff] border border-[#00f0ff]/30">
+                  <span className="px-1.5 py-0.5 rounded bg-[#22c55e]/15 text-[9px] font-mono font-bold text-[#4ade80] border border-[#22c55e]/30">
                     DEFAULT
                   </span>
                 </div>
@@ -230,8 +230,8 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               </div>
             </div>
 
-            <div className="w-5 h-5 rounded-full bg-[#00f0ff] flex items-center justify-center shadow-sm">
-              <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
+            <div className="w-5 h-5 rounded-full bg-[#22c55e] flex items-center justify-center shadow-sm">
+              <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
             </div>
           </div>
 
@@ -240,7 +240,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('telecel')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'telecel' || selectedMethod === 'vodafone'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
+                ? 'bg-[#181c24] border-[#22c55e]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
@@ -257,7 +257,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               </div>
             </div>
 
-            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'telecel' || selectedMethod === 'vodafone' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`}>
+            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'telecel' || selectedMethod === 'vodafone' ? 'border-[#22c55e] bg-[#22c55e]' : 'border-white/20'}`}>
               {(selectedMethod === 'telecel' || selectedMethod === 'vodafone') && (
                 <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
               )}
@@ -269,7 +269,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
             onClick={() => setSelectedMethod('card')}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
               selectedMethod === 'card'
-                ? 'bg-[#181c24] border-[#00f0ff]/60 shadow-sm'
+                ? 'bg-[#181c24] border-[#22c55e]/60 shadow-sm'
                 : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
             }`}
           >
@@ -286,7 +286,7 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
               </div>
             </div>
 
-            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'card' ? 'border-[#00f0ff] bg-[#00f0ff]' : 'border-white/20'}`}>
+            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'card' ? 'border-[#22c55e] bg-[#22c55e]' : 'border-white/20'}`}>
               {selectedMethod === 'card' && (
                 <Check className="w-3.5 h-3.5 text-[#0a0e14] stroke-[3]" />
               )}
@@ -306,8 +306,8 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           {/* Item 1 */}
           <div className="p-3 bg-[#141820] border border-white/[0.04] rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
-                <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
+              <div className="w-7 h-7 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/30 flex items-center justify-center">
+                <Plug className="w-3.5 h-3.5 text-[#22c55e]" />
               </div>
               <div>
                 <span className="text-xs font-bold text-white block">Apex Hub Charging</span>
@@ -340,8 +340,8 @@ export const WalletScreen: React.FC<WalletScreenProps> = ({ onTopUpSuccess }) =>
           {/* Item 3 */}
           <div className="p-3 bg-[#141820] border border-white/[0.04] rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center">
-                <Plug className="w-3.5 h-3.5 text-[#00f0ff]" />
+              <div className="w-7 h-7 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/30 flex items-center justify-center">
+                <Plug className="w-3.5 h-3.5 text-[#22c55e]" />
               </div>
               <div>
                 <span className="text-xs font-bold text-white block">Metro Depot Charge</span>

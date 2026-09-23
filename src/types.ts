@@ -8,7 +8,7 @@ export interface Connector {
   maxPowerKw: number;
   currentPowerKw?: number;
   status: ConnectorStatus;
-  tariffPerKwh: number; // in USD or local currency
+  tariffPerKwh: number; // in GHS (Ghana Cedi)
   tariffCurrency: string;
 }
 

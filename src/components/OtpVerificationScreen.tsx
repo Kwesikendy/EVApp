@@ -126,7 +126,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             id: 'usr-sim-' + Date.now().toString(36),
             phoneNumber,
             displayName: registrationMetadata?.fullName || 'EV Driver',
-            email: registrationMetadata?.email || 'driver@xcharge.africa',
+            email: registrationMetadata?.email || 'driver@chargelink.africa',
             walletBalance: 250.00,
             defaultPaymentMethod: 'MTN_MOMO',
             registeredVehicles: [
@@ -199,14 +199,14 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             <span>Change Number</span>
           </button>
 
-          <span className="px-2 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff]">
+          <span className="px-2 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80]">
             STEP 2 OF 2
           </span>
         </div>
 
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-[#00f0ff]/10 border border-[#00f0ff]/30 mx-auto flex items-center justify-center text-[#00f0ff] shadow-md shadow-black/40">
+          <div className="w-12 h-12 rounded-2xl bg-[#22c55e]/15 border border-[#22c55e]/30 mx-auto flex items-center justify-center text-[#4ade80] shadow-md shadow-black/40">
             <KeyRound className="w-6 h-6" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
@@ -215,7 +215,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
           <p className="text-xs text-[#94a3b8]">
             Enter the 6-digit passcode sent via SMS to:
           </p>
-          <div className="inline-block px-3 py-1 rounded-full bg-[#181c24] border border-white/10 text-xs font-mono font-bold text-[#00f0ff]">
+          <div className="inline-block px-3 py-1 rounded-full bg-[#181c24] border border-white/10 text-xs font-mono font-bold text-[#4ade80]">
             {phoneNumber}
           </div>
         </div>
@@ -230,7 +230,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
               {gatewayNotice}
             </p>
             <p className="text-[10px] text-slate-400">
-              Top up SMS units on <strong className="text-white">app.moolre.com</strong>, or use code <strong className="text-[#00f0ff]">123456</strong> below.
+              Top up SMS units on <strong className="text-white">app.moolre.com</strong>, or use code <strong className="text-[#4ade80]">123456</strong> below.
             </p>
           </div>
         )}
@@ -265,8 +265,8 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 className={`w-11 h-13 sm:w-12 sm:h-14 rounded-xl text-center font-mono text-xl font-bold transition-all border ${
                   d
-                    ? 'bg-[#181c24] border-[#00f0ff] text-white shadow-sm'
-                    : 'bg-[#141820] border-white/10 text-slate-400 focus:border-[#00f0ff]/60 focus:bg-[#181c24]'
+                    ? 'bg-[#181c24] border-[#22c55e] text-white shadow-sm'
+                    : 'bg-[#141820] border-white/10 text-slate-400 focus:border-[#22c55e]/60 focus:bg-[#181c24]'
                 } focus:outline-none`}
               />
             ))}
@@ -274,14 +274,14 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
 
           {/* Quick Auto-Fill Hint (only in explicit demo mode) */}
           {devCode && (
-            <div className="p-2.5 rounded-xl bg-[#00f0ff]/5 border border-[#00f0ff]/20 flex items-center justify-between">
+            <div className="p-2.5 rounded-xl bg-[#22c55e]/10 border border-[#22c55e]/25 flex items-center justify-between">
               <span className="text-[11px] font-mono text-[#94a3b8]">
-                Demo Passcode: <span className="text-[#00f0ff] font-bold">{devCode}</span>
+                Demo Passcode: <span className="text-[#4ade80] font-bold">{devCode}</span>
               </span>
               <button
                 type="button"
                 onClick={handleAutoFillDevCode}
-                className="text-[10px] font-mono font-bold text-[#00f0ff] hover:underline"
+                className="text-[10px] font-mono font-bold text-[#4ade80] hover:underline"
               >
                 Auto-fill
               </button>
@@ -293,13 +293,13 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             type="button"
             onClick={() => submitCode()}
             disabled={isVerifying || digits.includes('')}
-            className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40"
+            className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
           >
             {isVerifying ? (
-              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <ShieldCheck className="w-4 h-4 fill-black" />
+                <ShieldCheck className="w-4 h-4 fill-white" />
                 <span>VERIFY & LAUNCH CONSOLE</span>
               </>
             )}
@@ -316,7 +316,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
             <button
               type="button"
               onClick={handleResend}
-              className="text-[#00f0ff] font-bold hover:underline flex items-center gap-1"
+              className="text-[#4ade80] font-bold hover:underline flex items-center gap-1"
             >
               <RotateCw className="w-3.5 h-3.5" />
               <span>Resend SMS Code</span>

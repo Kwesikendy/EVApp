@@ -167,8 +167,8 @@ export const MapView: React.FC<MapViewProps> = ({
       <div className="absolute top-3 left-3 right-3 z-10 pointer-events-none flex flex-wrap gap-2 justify-between items-center">
         <div className="pointer-events-auto bg-slate-900/95 backdrop-blur-md border border-slate-700/60 rounded-xl px-3 py-1.5 shadow-lg flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
-          <span className="text-xs font-semibold text-slate-200">XCharge Grid Live</span>
-          <span className="text-[11px] text-slate-400">| 4 Hubs • 11 Connectors</span>
+          <span className="text-xs font-semibold text-slate-200">ChargeLink GH Grid Live</span>
+          <span className="text-[11px] text-slate-400">| Kumasi & Accra Superhubs</span>
         </div>
 
         {activeRouteStationId && (

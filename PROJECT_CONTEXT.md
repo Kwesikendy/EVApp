@@ -95,8 +95,8 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
 ### B. Phase 2: Live Payment Switch & Dynamic Escrow (100% Complete & Verified)
 - **Ghana MoMo Payment Switch ([`server/momo.ts`](file:///d:/xcharge-ev-platform/server/momo.ts)):**
   - **`initiateMomoPayment`**: Dispatches telco-compliant USSD prompts:
-    - MTN MoMo: `Authorize payment of GHS XX.XX to XCHARGE GHANA LTD? Ref: GH-MTN-XXXXXX. Enter Mobile Money (*170#) PIN:`
-    - Telecel Cash: `Authorize payment of GHS XX.XX to XCHARGE GHANA LTD? Ref: GH-TELECEL-XXXXXX. Enter Telecel Cash (*110#) PIN:`
+    - MTN MoMo: `Authorize payment of GHS XX.XX to CHARGELINK GH LTD? Ref: GH-MTN-XXXXXX. Enter Mobile Money (*170#) PIN:`
+    - Telecel Cash: `Authorize payment of GHS XX.XX to CHARGELINK GH LTD? Ref: GH-TELECEL-XXXXXX. Enter Telecel Cash (*110#) PIN:`
   - **`confirmMomoPayment`**: Settles payment, issues approval code (e.g. `MTN-AUTH-31237183`) and GRA tax invoice (`GRA-ELEV-EXEMPT-XXXXX`), and immediately credits persistent wallet balance.
   - **`handleMomoWebhook` (`POST /api/momo/webhook`)**: Ingests asynchronous telco payment confirmations and credits driver balances automatically.
 - **Pre-Authorization Escrow Hold & Programmatic Refund ([`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts)):**
@@ -118,7 +118,7 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
 - **Web App Manifest ([`public/manifest.json`](file:///d:/xcharge-ev-platform/public/manifest.json))**:
   - Configured standalone display mode, `portrait-primary` orientation, and Hypercharge OS `#10141a` theme.
 - **Authentic Brand App Icons ([`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/))**:
-  - Replaced generic placeholder "X" with the authentic XCHARGE aerodynamic wing blade emblem (white wing, glowing cyan diagonal blade, and electric cyan backlight) generated with `sharp` at `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, and `expo-mobile/assets/icon.png`.
+  - Replaced legacy icons with the official ChargeLink GH logo (`chargelink-logo.jpeg`) featuring deep green `#1e4d2b` background, vibrant leaf green and bolt motif, and "chargeLink Gh" typography, generated at `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, and `expo-mobile/assets/icon.png`.
 - **Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js)) & Registration ([`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts))**:
   - Pre-caches core app shell for offline resilience with stale-while-revalidate for static assets and network-first for live APIs.
 - **Mobile Installation Prompts ([`src/components/PwaInstallPrompt.tsx`](file:///d:/xcharge-ev-platform/src/components/PwaInstallPrompt.tsx))**:
@@ -138,9 +138,9 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
 - **Em-Dash & En-Dash Clean-up**:
   - Completely removed all em-dashes (`—`) and en-dashes (`–`) across all UI text, hubs, and documentation, ensuring crisp typography.
 - **Unnecessary Glow Elimination**:
-  - Replaced arcade-style neon glow drop shadows (`glow-cyan`, `glow-cyan-sm`, `glow-emerald`) with clean, high-contrast automotive elevation shadows (`shadow-md shadow-black/40`, `shadow-xl`) across buttons, modals, logo emblems, and gauges.
+  - Replaced arcade-style neon glow drop shadows with clean, high-contrast automotive elevation shadows (`shadow-md shadow-black/40`, `shadow-xl`) across buttons, modals, logo emblems, and gauges.
 - **Login Screen Refinements**:
-  - Replaced the generic `Ghana EV Telemetry Network` text with the official `XCHARGE NETWORK · ACCRA` status pill containing an animated green live pulse dot.
+  - Replaced the generic `Ghana EV Telemetry Network` text with the official `CHARGELINK GH · KUMASI & ACCRA` status pill containing an animated green live pulse dot.
   - Replaced lightning bolt (`Zap`) on the "SEND VERIFICATION CODE" button with a security `ShieldCheck` icon.
   - Replaced lightning bolt on the quick demo button with a `User` profile icon.
 - **Motion & Transition Engine ([`motion/react`](file:///d:/xcharge-ev-platform/package.json))**:

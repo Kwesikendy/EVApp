@@ -45,7 +45,7 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
     }
 
     if (!isFleetMode && wallet.availableBalance < PREAUTH_HOLD_AMOUNT) {
-      setErrorMessage(`Insufficient balance for pre-authorization hold ($${PREAUTH_HOLD_AMOUNT.toFixed(2)} required). Available: $${wallet.availableBalance.toFixed(2)}. Please top up your wallet.`);
+      setErrorMessage(`Insufficient balance for pre-authorization hold (GH₵ ${PREAUTH_HOLD_AMOUNT.toFixed(2)} required). Available: GH₵ ${wallet.availableBalance.toFixed(2)}. Please top up your wallet.`);
       return;
     }
 
@@ -167,13 +167,13 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
                 <div>
                   <span className="text-xs text-slate-400">MoMo Wallet Balance</span>
                   <div className="text-sm font-bold font-mono text-emerald-400">
-                    ${wallet.availableBalance.toFixed(2)}
+                    GH₵ {wallet.availableBalance.toFixed(2)}
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-slate-400">Required Pre-Auth Hold</span>
                   <div className="text-sm font-bold font-mono text-amber-400">
-                    ${PREAUTH_HOLD_AMOUNT.toFixed(2)}
+                    GH₵ {PREAUTH_HOLD_AMOUNT.toFixed(2)}
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export const StationDetailModal: React.FC<StationDetailModalProps> = ({
               ? `Connector ${selectedConnector?.status}`
               : isFleetMode
               ? 'Unlock Connector (Fleet Credit)'
-              : `Authorize $${PREAUTH_HOLD_AMOUNT.toFixed(2)} & Unlock`}
+              : `Authorize GH₵ ${PREAUTH_HOLD_AMOUNT.toFixed(2)} & Unlock`}
           </span>
         </button>
       </div>

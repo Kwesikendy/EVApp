@@ -102,7 +102,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 : 'text-[#64748b] hover:text-slate-300'
             }`}
           >
-            <User className="w-3.5 h-3.5 text-[#00f0ff]" />
+            <User className="w-3.5 h-3.5 text-[#4ade80]" />
             <span>Personal Driver</span>
           </button>
           <button
@@ -110,11 +110,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             onClick={() => setAccountType('fleet')}
             className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               accountType === 'fleet'
-                ? 'bg-[#181c24] text-[#00f0ff] shadow-sm border border-[#00f0ff]/30'
+                ? 'bg-[#181c24] text-[#4ade80] shadow-sm border border-[#22c55e]/30'
                 : 'text-[#64748b] hover:text-slate-300'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5 text-[#00f0ff]" />
+            <Building2 className="w-3.5 h-3.5 text-[#4ade80]" />
             <span>Fleet Account</span>
           </button>
         </div>
@@ -132,7 +132,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             Mobile Number
           </label>
 
-          <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#00f0ff] transition-all">
+          <div className="flex items-center gap-2 bg-[#181c24] border border-white/10 rounded-xl px-3 py-2.5 focus-within:border-[#22c55e] transition-all">
             {/* Ghana Flag Indicator */}
             <div className="flex items-center gap-1.5 pr-2 border-r border-white/10 shrink-0">
               <span className="text-base leading-none">🇬🇭</span>
@@ -168,10 +168,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           type="button"
           onClick={() => handleSendCode()}
           disabled={isLoading}
-          className="w-full min-h-[48px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
+          className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-xs tracking-wider transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-black/40 cursor-pointer"
         >
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
@@ -187,18 +187,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           onClick={handleFillDemoDriver}
           className="w-full py-2.5 px-3 rounded-xl bg-[#181c24] hover:bg-[#20252e] border border-white/10 text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-all group cursor-pointer active:scale-[0.99]"
         >
-          <User className="w-3.5 h-3.5 text-[#00f0ff] group-hover:scale-110 transition-transform" />
+          <User className="w-3.5 h-3.5 text-[#4ade80] group-hover:scale-110 transition-transform" />
           <span>Quick Demo Login (Kofi Mensah · BYD Atto 3)</span>
         </button>
 
         {/* Secondary Navigation Options */}
         <div className="pt-1 flex flex-col items-center gap-3 text-xs">
           <p className="text-[#94a3b8]">
-            New to XCharge?{' '}
+            New to ChargeLink GH?{' '}
             <button
               type="button"
               onClick={onNavigateToSignUp}
-              className="text-[#00f0ff] font-bold hover:underline"
+              className="text-[#4ade80] font-bold hover:underline"
             >
               Register Vehicle & Driver
             </button>

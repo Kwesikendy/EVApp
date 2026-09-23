@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "XCharge",
-    "slug": "xcharge-mobile-app",
+    "name": "chargeLink Gh",
+    "slug": "chargelink-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "xcharge",
+    "scheme": "chargelink",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#070b10"
+      "backgroundColor": "#0a0e14"
     },
     "platforms": [
       "ios",
@@ -20,7 +20,7 @@
       "package": "com.kwesii.xchargemobileapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#070b10"
+        "backgroundColor": "#0a0e14"
       },
       "navigationBar": {
         "visible": "sticky-immersive",
@@ -41,7 +41,7 @@
       "bundleIdentifier": "com.kwesii.xchargemobileapp",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "XCharge needs your location to find nearby EV charging stations across Ghana."
+        "NSLocationWhenInUseUsageDescription": "ChargeLink Gh needs your location to find nearby EV charging stations across Ghana."
       }
     },
     "extra": {

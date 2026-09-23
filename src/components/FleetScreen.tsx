@@ -26,7 +26,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
   const [notice, setNotice] = useState<string | null>(null);
 
   const handleDownloadReports = () => {
-    setNotice('Fleet telemetry report exported to CSV (XCHARGE-NORDIC.csv)');
+    setNotice('Fleet telemetry report exported to CSV (CHARGELINK-NORDIC.csv)');
     setTimeout(() => setNotice(null), 4000);
   };
 
@@ -52,16 +52,16 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
           </h1>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] animate-ping" />
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-ping" />
           <span>Live Telemetry</span>
         </div>
       </div>
 
       {/* Floating Notice */}
       {notice && (
-        <div className="bg-[#10141a] border border-[#00f0ff]/40 text-[#00f0ff] px-3.5 py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-2 animate-in fade-in">
-          <Radio className="w-3.5 h-3.5 text-[#00f0ff]" />
+        <div className="bg-[#10141a] border border-[#22c55e]/40 text-[#4ade80] px-3.5 py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-2 animate-in fade-in">
+          <Radio className="w-3.5 h-3.5 text-[#4ade80]" />
           <span>{notice}</span>
         </div>
       )}
@@ -87,8 +87,8 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-3 flex flex-col justify-between">
           <span className="text-[10px] text-[#64748b] font-mono block">CHARGING</span>
           <div className="mt-1">
-            <span className="text-base font-bold text-[#00f0ff] font-mono block">4</span>
-            <span className="text-[10px] text-[#00f0ff]">In Session</span>
+            <span className="text-base font-bold text-[#4ade80] font-mono block">4</span>
+            <span className="text-[10px] text-[#4ade80]">In Session</span>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
         <button
           id="btn-fleet-add-vehicle"
           onClick={handleAddVehicle}
-          className="min-h-[44px] rounded-2xl bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-xs tracking-wider transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-[0.98]"
+          className="min-h-[44px] rounded-2xl bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-black/40 flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>Add Vehicle</span>
@@ -107,7 +107,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
         <button
           id="btn-fleet-download-reports"
           onClick={handleDownloadReports}
-          className="min-h-[44px] rounded-2xl bg-[#141820] hover:bg-[#181c24] border border-white/[0.08] text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-[0.98]"
+          className="min-h-[44px] rounded-2xl bg-[#141820] hover:bg-[#181c24] border border-white/[0.08] text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
         >
           <Download className="w-3.5 h-3.5 text-slate-400" />
           <span>Download Reports</span>
@@ -138,44 +138,44 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
               </p>
             </div>
 
-            <span className="px-2 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff] whitespace-nowrap flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] animate-pulse" />
+            <span className="px-2 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80] whitespace-nowrap flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
               <span>Charging 68%</span>
             </span>
           </div>
 
-          {/* Progress Bar (Luminous Cyan at 68%) */}
+          {/* Progress Bar (Luminous Green at 68%) */}
           <div className="space-y-1">
             <div className="w-full h-2 bg-[#181c24] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#00f0ff] rounded-full"
+                className="h-full bg-[#22c55e] rounded-full"
                 style={{ width: '68%' }}
               />
             </div>
             <div className="flex justify-between text-[10px] font-mono text-[#64748b]">
               <span>SoC: 68%</span>
-              <span className="text-[#00f0ff]">350 kW Active</span>
+              <span className="text-[#4ade80]">160 kW Active</span>
             </div>
           </div>
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
             <span className="text-xs font-mono font-medium text-slate-300">
-              Fast Charging GH₵ 3.20/kWh
+              Fast Charging GH₵ 4.50/kWh
             </span>
 
             <div className="flex items-center gap-1.5">
               <button
                 id="btn-polestar-details"
                 onClick={() => alert('Polestar 3 telemetry: VIN 1FTFW1ED8NFA02941, 111 kWh pack, DC fast charge curve active.')}
-                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors cursor-pointer"
               >
                 Details
               </button>
               <button
                 id="btn-polestar-locate"
                 onClick={() => onLocateVehicle && onLocateVehicle('EV 01 OSL')}
-                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#00f0ff] text-[11px] font-mono text-[#00f0ff] transition-colors flex items-center gap-1"
+                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#22c55e] text-[11px] font-mono text-[#4ade80] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Navigation className="w-3 h-3 fill-current" />
                 <span>Locate</span>
@@ -229,14 +229,14 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
               <button
                 id="btn-volvo-details"
                 onClick={() => alert('Volvo FH Electric: 540 kWh heavy transport battery pack, fully charged and preheated.')}
-                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors cursor-pointer"
               >
                 Details
               </button>
               <button
                 id="btn-volvo-locate"
                 onClick={() => onLocateVehicle && onLocateVehicle('HV 04 BER')}
-                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#00e699] text-[11px] font-mono text-[#00e699] transition-colors flex items-center gap-1"
+                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#00e699] text-[11px] font-mono text-[#00e699] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Navigation className="w-3 h-3 fill-current" />
                 <span>Locate</span>
@@ -266,17 +266,17 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
             </span>
           </div>
 
-          {/* Progress Bar (Cyan Battery Bar at 41%) */}
+          {/* Progress Bar (Green Battery Bar at 41%) */}
           <div className="space-y-1">
             <div className="w-full h-2 bg-[#181c24] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#00f0ff] rounded-full"
+                className="h-full bg-[#22c55e]"
                 style={{ width: '41%' }}
               />
             </div>
             <div className="flex justify-between text-[10px] font-mono text-[#64748b]">
               <span>SoC: 41%</span>
-              <span className="text-[#ffb020]">Routing to Apex Hub</span>
+              <span className="text-[#ffb020]">Routing to Greenwood Hub</span>
             </div>
           </div>
 
@@ -289,15 +289,15 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
             <div className="flex items-center gap-1.5">
               <button
                 id="btn-etransit-details"
-                onClick={() => alert('Ford E-Transit: 68 kWh battery pack, current speed 64 km/h, heading toward Accra.')}
-                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors"
+                onClick={() => alert('Ford E-Transit: 68 kWh battery pack, current speed 64 km/h, heading toward Kumasi.')}
+                className="px-2.5 py-1 rounded-xl bg-[#181c24] hover:bg-[#1f2632] border border-white/[0.08] text-[11px] font-mono text-slate-200 transition-colors cursor-pointer"
               >
                 Details
               </button>
               <button
                 id="btn-etransit-locate"
                 onClick={() => onLocateVehicle && onLocateVehicle('VN 12 STV')}
-                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#00f0ff] text-[11px] font-mono text-[#00f0ff] transition-colors flex items-center gap-1"
+                className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-[#22c55e] text-[11px] font-mono text-[#4ade80] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Navigation className="w-3 h-3 fill-current" />
                 <span>Locate</span>

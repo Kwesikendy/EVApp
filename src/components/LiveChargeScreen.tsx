@@ -31,9 +31,9 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
 
   // Default simulated stats or real active session data
   const currentSoc = session ? Math.min(100, Math.round(session.currentSocPercent || 68)) : 68;
-  const chargingSpeedKw = session ? Math.round(session.currentPowerKw || 185) : 185;
+  const chargingSpeedKw = session ? Math.round(session.currentPowerKw || 160) : 160;
   const energyKwh = session ? (session.kwhDelivered || 0).toFixed(2) : '34.00';
-  const costGhs = session ? (session.accruedCost !== undefined ? session.accruedCost.toFixed(2) : ((session.kwhDelivered || 0) * 4.20).toFixed(2)) : '142.80';
+  const costGhs = session ? (session.accruedCost !== undefined ? session.accruedCost.toFixed(2) : ((session.kwhDelivered || 0) * 4.50).toFixed(2)) : '153.00';
   const rangeAddedKm = Math.round(((session?.kwhDelivered !== undefined ? session.kwhDelivered : 34)) * 4.18);
   const voltage = session?.voltageV || 742;
   const currentAmps = session?.currentA || 248;
@@ -50,15 +50,15 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
       <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-3.5 flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#00f0ff] animate-pulse" />
-            <h2 className="text-sm font-bold text-white tracking-tight">Apex Hypercharge Hub</h2>
+            <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+            <h2 className="text-sm font-bold text-white tracking-tight">Greenwood Event Center</h2>
           </div>
           <p className="text-xs text-[#94a3b8] font-mono">
-            CCS2 · 350 kW Ultra-Fast
+            MaxPower VCP160 · 160 kW High-Speed
           </p>
         </div>
 
-        <div className="px-2.5 py-1 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[10px] font-mono font-bold text-[#00f0ff] tracking-wide uppercase">
+        <div className="px-2.5 py-1 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[10px] font-mono font-bold text-[#4ade80] tracking-wide uppercase">
           ACTIVE Negotiated
         </div>
       </div>
@@ -89,18 +89,20 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
               strokeDasharray={`2 12`}
               fill="transparent"
             />
-            {/* Active Cyan Glowing Stroke */}
+            {/* Active Green Glowing Stroke */}
             <circle
               cx="120"
               cy="120"
               r={radius}
-              stroke="#00f0ff"
+              stroke="#22c55e"
               strokeWidth="12"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               fill="transparent"
               style={{
+                stroke: '#22c55e',
+                filter: 'drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))',
                 transition: 'stroke-dashoffset 0.8s ease-in-out',
               }}
             />
@@ -112,8 +114,8 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
               {currentSoc}%
             </span>
 
-            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-xs font-mono font-bold text-[#00f0ff]">
-              <BatteryCharging className="w-3.5 h-3.5 text-[#00f0ff]" />
+            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-xs font-mono font-bold text-[#4ade80]">
+              <BatteryCharging className="w-3.5 h-3.5 text-[#4ade80]" />
               <span>{chargingSpeedKw} kW Fast Charge</span>
             </div>
 
@@ -126,7 +128,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
         {/* Pulse status indicator under gauge */}
         <div className="flex items-center gap-2 text-[11px] font-mono text-[#00e699] mt-2">
           <span className="w-2 h-2 rounded-full bg-[#00e699] animate-ping" />
-          <span>Cell Voltage Balanced · 400V-800V Architecture</span>
+          <span>Cell Voltage Balanced · MaxPower VCP160 Dual Gun</span>
         </div>
       </div>
 
@@ -134,7 +136,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
       <div className="grid grid-cols-3 gap-2.5">
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-3 flex flex-col justify-between">
           <div className="flex items-center gap-1 text-[#94a3b8] text-[11px]">
-            <Clock className="w-3 h-3 text-[#00f0ff]" />
+            <Clock className="w-3 h-3 text-[#4ade80]" />
             <span>To 80%</span>
           </div>
           <div className="mt-2">
@@ -156,7 +158,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
 
         <div className="bg-[#10141a] border border-white/[0.08] rounded-2xl p-3 flex flex-col justify-between">
           <div className="flex items-center gap-1 text-[#94a3b8] text-[11px]">
-            <CircleDollarSign className="w-3 h-3 text-[#00f0ff]" />
+            <CircleDollarSign className="w-3 h-3 text-[#4ade80]" />
             <span>Session Cost</span>
           </div>
           <div className="mt-2">
@@ -173,7 +175,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
             <span className="text-xs font-bold text-white block">Target Charge Limit</span>
             <span className="text-[10px] text-[#94a3b8]">Recommended for daily battery longevity</span>
           </div>
-          <span className="px-2 py-0.5 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-xs font-mono font-bold text-[#00f0ff]">
+          <span className="px-2 py-0.5 rounded-lg bg-[#22c55e]/15 border border-[#22c55e]/30 text-xs font-mono font-bold text-[#4ade80]">
             {targetLimit}%
           </span>
         </div>
@@ -188,14 +190,14 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
             step="5"
             value={targetLimit}
             onChange={e => setTargetLimit(Number(e.target.value))}
-            className="w-full h-2 bg-[#181c24] rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
+            className="w-full h-2 bg-[#181c24] rounded-lg appearance-none cursor-pointer accent-[#22c55e]"
           />
         </div>
 
         {/* Labels below slider */}
         <div className="flex items-center justify-between text-[11px] font-mono">
           <span className="text-[#64748b]">Current: {currentSoc}%</span>
-          <span className="text-[#00f0ff] font-semibold">Daily: 80%</span>
+          <span className="text-[#4ade80] font-semibold">Daily: 80%</span>
           <span className="text-[#94a3b8]">Road Trip: 100%</span>
         </div>
       </div>
@@ -208,12 +210,12 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
           className="w-full p-3.5 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
         >
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#00f0ff]" />
+            <Activity className="w-4 h-4 text-[#4ade80]" />
             <span className="text-xs font-semibold text-slate-200">Hardware Telemetry Bus</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="px-2.5 py-0.5 rounded-full bg-[#181c24] border border-white/[0.08] text-xs font-mono text-[#00f0ff]">
+            <div className="px-2.5 py-0.5 rounded-full bg-[#181c24] border border-white/[0.08] text-xs font-mono text-[#4ade80]">
               {voltage}V · {currentAmps}A
             </div>
             {isTechDetailsOpen ? (
@@ -245,7 +247,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
             <div className="col-span-2 bg-[#141820] p-2.5 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[10px] text-[#64748b] block">PROTOCOL STANDARD</span>
-                <span className="text-xs font-semibold text-slate-300">OCPP 2.0.1 / ISO 15118 Plug&Charge</span>
+                <span className="text-xs font-semibold text-slate-300">OCPP 1.6J / ISO 15118 Plug&Charge</span>
               </div>
               <ShieldCheck className="w-4 h-4 text-[#00e699]" />
             </div>

@@ -146,7 +146,7 @@ export function confirmMomoPayment(params: {
       currency: 'GHS',
       provider: prov,
       status: 'SUCCESS',
-      merchantName: 'XCHARGE GHANA LTD',
+      merchantName: 'CHARGELINK GH LTD',
       description: `${prov} MoMo Top-Up (${normalized}) · Approved`,
       createdAt: new Date().toISOString(),
     };

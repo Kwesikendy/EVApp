@@ -31,13 +31,13 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
   // Form State
   const [name, setName] = useState('');
   const [stationId, setStationId] = useState('');
-  const [operator, setOperator] = useState('XCharge Grid Network');
+  const [operator, setOperator] = useState('ChargeLink GH Network');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('5.6037');
-  const [longitude, setLongitude] = useState('-0.1870');
+  const [latitude, setLatitude] = useState('6.6697479');
+  const [longitude, setLongitude] = useState('-1.5995679');
   const [connectorType, setConnectorType] = useState<ConnectorType>('CCS2');
-  const [maxPowerKw, setMaxPowerKw] = useState('350');
-  const [tariffPerKwh, setTariffPerKwh] = useState('3.80');
+  const [maxPowerKw, setMaxPowerKw] = useState('160');
+  const [tariffPerKwh, setTariffPerKwh] = useState('4.50');
   const [connectorCount, setConnectorCount] = useState('2');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -205,35 +205,35 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => handlePresetLocation('Airport City', '5.6050', '-0.1720', 'Liberation Rd, Terminal 3 District, Accra')}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
+                  onClick={() => handlePresetLocation('Greenwood Event Center', '6.6697479', '-1.5995679', 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi')}
+                  className="text-xs bg-[#142318] hover:bg-[#1b3122] text-[#4ade80] px-2.5 py-1 rounded-lg border border-[#22c55e]/40 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <MapPin className="w-3 h-3 text-[#00f0ff]" />
+                  <MapPin className="w-3 h-3 text-[#4ade80]" />
+                  <span>Greenwood Event Center (Kumasi)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePresetLocation('Airport City', '5.6050', '-0.1720', 'Liberation Rd, Terminal 3 District, Accra')}
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <MapPin className="w-3 h-3 text-[#4ade80]" />
                   <span>Airport City Terminal 3</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePresetLocation('Tema Motorway', '5.6420', '-0.0980', 'Accra-Tema Motorway Interchange, Freight Hub')}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <MapPin className="w-3 h-3 text-[#00f0ff]" />
+                  <MapPin className="w-3 h-3 text-[#4ade80]" />
                   <span>Tema Motorway Freight Stop</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePresetLocation('Ridge Diplomatic', '5.5780', '-0.1910', 'GIMPA Bypass, Ridge Ambassadorial Enclave')}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <MapPin className="w-3 h-3 text-[#00f0ff]" />
+                  <MapPin className="w-3 h-3 text-[#4ade80]" />
                   <span>Ridge Tech Enclave</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePresetLocation('Achimota Mall', '5.6120', '-0.2290', 'Achimota Retail Complex, N1 Highway')}
-                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5"
-                >
-                  <MapPin className="w-3 h-3 text-[#00f0ff]" />
-                  <span>Achimota Mall Express</span>
                 </button>
               </div>
             </div>

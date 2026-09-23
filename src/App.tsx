@@ -143,7 +143,7 @@ export default function App() {
       }`}
     >
       {/* Ambient background glow for desktop showcase */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(0,240,255,0.08),transparent_60%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(45,122,62,0.18),transparent_60%)]" />
 
       {/* 1. Launch Splash Screen with Video and Cinematic Animation */}
       {showSplash && (
@@ -155,16 +155,16 @@ export default function App() {
         <div className="hidden lg:flex items-center justify-between w-full max-w-4xl px-4 py-1.5 mb-1 shrink-0 z-20">
           <div className="flex items-center gap-2.5">
             <span className="text-[11px] font-mono font-semibold text-slate-400">
-              XCHARGE HYPERCHARGE OS <span className="text-[#00f0ff]">v2.4 WEB</span>
+              CHARGELINK GH OS <span className="text-[#4ade80]">v2.4 WEB</span>
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00f0ff]/10 text-[#00f0ff] border border-[#00f0ff]/30">
-              ACCRA NETWORK
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">
+              KUMASI & ACCRA NETWORK
             </span>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00e699] animate-pulse" />
-              OCPP 2.0.1 Live
+              OCPP 1.6J / 2.0.1 Live
             </span>
             <span>•</span>
             <span className="text-slate-300">Ghana MoMo Gateway</span>
@@ -177,7 +177,7 @@ export default function App() {
         id="xcharge-app-container"
         className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 relative z-10 ${
           deviceMode === 'phone'
-            ? 'sm:max-w-[420px] sm:max-h-[890px] sm:rounded-[44px] sm:border-[5px] sm:border-[#1e2531] sm:shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(0,240,255,0.12)] sm:ring-1 sm:ring-white/15'
+            ? 'sm:max-w-[420px] sm:max-h-[890px] sm:rounded-[44px] sm:border-[5px] sm:border-[#1e2531] sm:shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(45,122,62,0.2)] sm:ring-1 sm:ring-white/15'
             : 'max-w-none max-h-none rounded-none border-none shadow-none'
         }`}
       >
@@ -369,7 +369,7 @@ export default function App() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Car className="w-5 h-5 text-[#00f0ff]" />
+                  <Car className="w-5 h-5 text-[#4ade80]" />
                   <h3 className="text-sm font-bold text-white">Select Active Vehicle Profile</h3>
                 </div>
                 <button
@@ -394,7 +394,7 @@ export default function App() {
                     }}
                     className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                       selectedVehicle === veh.name
-                        ? 'bg-[#181c24] border-[#00f0ff] shadow-md shadow-black/40'
+                        ? 'bg-[#181c24] border-[#22c55e] shadow-md shadow-black/40'
                         : 'bg-[#141820] border-white/[0.06] hover:border-white/20'
                     }`}
                   >
@@ -403,7 +403,7 @@ export default function App() {
                       <p className="text-[11px] text-[#94a3b8]">{veh.model}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-mono font-bold text-[#00f0ff]">{veh.soc}</span>
+                      <span className="text-xs font-mono font-bold text-[#4ade80]">{veh.soc}</span>
                       <p className="text-[10px] text-[#00e699] font-mono">{veh.status}</p>
                     </div>
                   </button>
@@ -436,8 +436,8 @@ export default function App() {
             >
               <div className="p-4 bg-[#141820] border-b border-white/[0.08] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-[#00f0ff]" />
-                  <h3 className="text-sm font-bold text-white">XCharge Operator & Station Admin</h3>
+                  <Building2 className="w-5 h-5 text-[#4ade80]" />
+                  <h3 className="text-sm font-bold text-white">ChargeLink GH Operator & Station Admin</h3>
                 </div>
                 <button
                   id="btn-close-admin-modal"

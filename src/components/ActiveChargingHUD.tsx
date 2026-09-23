@@ -25,12 +25,12 @@ export const ActiveChargingHUD: React.FC<ActiveChargingHUDProps> = ({
         </div>
         <h3 className="text-lg font-bold text-slate-200 mb-1">No Active Charging Session</h3>
         <p className="text-xs text-slate-400 max-w-xs mb-6">
-          Connect your EV to any XCharge fast charging station, authorize via Mobile Money or Fleet VIN, and unlock the connector to start streaming live telemetry.
+          Connect your EV to any ChargeLink GH fast charging station, authorize via Mobile Money or Fleet VIN, and unlock the connector to start streaming live telemetry.
         </p>
         <button
           id="btn-hud-find-station"
           onClick={onSwitchToMap}
-          className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+          className="bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <span>Locate Nearest Fast Charger</span>
           <ChevronRight className="w-4 h-4" />

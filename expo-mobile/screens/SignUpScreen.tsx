@@ -268,7 +268,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
             {agreed && <Check size={12} color={Theme.colors.onPrimary} strokeWidth={3.5} />}
           </View>
           <Text style={styles.termsText}>
-            I agree to XCharge <Text style={styles.termsHighlight}>Terms of Service</Text> and the{' '}
+            I agree to ChargeLink GH <Text style={styles.termsHighlight}>Terms of Service</Text> and the{' '}
             <Text style={styles.termsHighlight}>OCPI Privacy Policy</Text> for secure autonomous roaming.
           </Text>
         </TouchableOpacity>
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   selectionCardActive: {
     borderColor: Theme.colors.primary,
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
   },
   cardHeader: {
     flexDirection: 'row',

@@ -44,20 +44,20 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
               <Icon
                 className={`w-5 h-5 transition-colors ${
                   isActive
-                    ? 'text-[#00f0ff]'
+                    ? 'text-[#22c55e]'
                     : 'text-[#64748b] group-hover:text-slate-300'
                 }`}
               />
 
               {/* Pulse indicator for live charging session */}
               {tab.key === 'charge' && isCharging && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#00f0ff] animate-ping" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#22c55e] animate-ping" />
               )}
             </div>
 
             <span
               className={`text-[11px] font-medium tracking-wide mt-1 transition-colors ${
-                isActive ? 'text-[#00f0ff] font-semibold' : 'text-[#64748b] group-hover:text-slate-300'
+                isActive ? 'text-[#4ade80] font-semibold' : 'text-[#64748b] group-hover:text-slate-300'
               }`}
             >
               {tab.label}
@@ -67,7 +67,7 @@ export const ModernBottomNav: React.FC<ModernBottomNavProps> = ({
             {isActive && (
               <motion.span
                 layoutId="bottomNavIndicator"
-                className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#00f0ff]"
+                className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#22c55e]"
                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}

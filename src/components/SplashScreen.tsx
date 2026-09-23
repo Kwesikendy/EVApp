@@ -122,7 +122,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       className={`fixed inset-0 z-50 flex flex-col justify-between bg-[#070b10] text-white select-none overflow-hidden transition-all ${
-        isDragOver ? 'ring-4 ring-[#00f0ff] ring-inset' : ''
+        isDragOver ? 'ring-4 ring-[#22c55e] ring-inset' : ''
       }`}
     >
       {/* 1. Full-Screen Background Video Layer */}
@@ -146,14 +146,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         </video>
 
         {/* 2. Visual Digital Twin of the exact uploaded video scene:
-               Dark coupe-SUV charging at twilight with illuminated dual cyan cable and ground mist */}
+               Dark coupe-SUV charging at twilight with illuminated dual green cable and ground mist */}
         <div className="absolute inset-0 bg-[#070b10] -z-10 overflow-hidden pointer-events-none">
           {/* Twilight sky background with horizon gradient */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0b121c] via-[#0d1624] to-[#05080c]" />
 
           {/* Distant streetlamp / horizon flare */}
           <div className="absolute top-[28%] left-[22%] w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_24px_8px_rgba(180,220,255,0.7)]" />
-          <div className="absolute top-[28%] left-[10%] right-[40%] h-[1px] bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" />
+          <div className="absolute top-[28%] left-[10%] right-[40%] h-[1px] bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent" />
 
           {/* SVG representation of the dark SUV rear quarter panel & charging port */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -165,10 +165,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               </linearGradient>
 
               <linearGradient id="cableCyanGlow" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#00d2ff" stopOpacity="0.4" />
-                <stop offset="40%" stopColor="#00f0ff" stopOpacity="1" />
-                <stop offset="70%" stopColor="#55f5ff" stopOpacity="1" />
-                <stop offset="100%" stopColor="#00e699" stopOpacity="0.9" />
+                <stop offset="0%" stopColor="#16a34a" stopOpacity="0.4" />
+                <stop offset="40%" stopColor="#22c55e" stopOpacity="1" />
+                <stop offset="70%" stopColor="#4ade80" stopOpacity="1" />
+                <stop offset="100%" stopColor="#86efac" stopOpacity="0.9" />
               </linearGradient>
 
               <filter id="neonFilter" x="-50%" y="-50%" width="200%" height="200%">
@@ -211,7 +211,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               strokeLinecap="round"
             />
 
-            {/* Glowing neon cyan charging cable (twin lines matching video) */}
+            {/* Glowing neon green charging cable (twin lines matching video) */}
             <path
               d="M 20 1520 C 140 1480, 260 1350, 340 1200 C 380 1120, 420 1040, 460 970"
               fill="none"
@@ -219,7 +219,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               strokeWidth="36"
               strokeLinecap="round"
             />
-            {/* Cable Cyan Core 1 */}
+            {/* Cable Green Core 1 */}
             <path
               d="M 20 1520 C 140 1480, 260 1350, 340 1200 C 380 1120, 420 1040, 460 970"
               fill="none"
@@ -228,7 +228,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               strokeLinecap="round"
               filter="url(#neonFilter)"
             />
-            {/* Cable Cyan Core 2 */}
+            {/* Cable Green Core 2 */}
             <path
               d="M 30 1530 C 150 1490, 270 1360, 350 1210 C 390 1130, 430 1050, 470 980"
               fill="none"
@@ -240,8 +240,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           </svg>
 
           {/* Rolling cold ground mist / fog effects */}
-          <div className="absolute bottom-0 inset-x-0 h-96 bg-gradient-to-t from-slate-900/90 via-cyan-950/20 to-transparent blur-2xl pointer-events-none animate-pulse" />
-          <div className="absolute bottom-10 -left-20 w-[600px] h-48 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 inset-x-0 h-96 bg-gradient-to-t from-slate-900/90 via-emerald-950/20 to-transparent blur-2xl pointer-events-none animate-pulse" />
+          <div className="absolute bottom-10 -left-20 w-[600px] h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-4 right-0 w-[500px] h-40 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 
@@ -253,8 +253,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       <div className="relative z-20 p-5 sm:p-6 flex items-center justify-between pointer-events-auto">
         <div className="flex items-center gap-3">
           <XChargeLogo size="md" variant="full" />
-          <span className="text-[10px] text-[#00f0ff] font-mono font-medium px-2 py-0.5 rounded-full bg-[#00f0ff]/10 border border-[#00f0ff]/30">
-            OS 4.0
+          <span className="text-[10px] text-[#4ade80] font-mono font-medium px-2 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30">
+            CHARGELINK OS 4.0
           </span>
         </div>
 
@@ -282,7 +282,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             title={isMuted ? 'Unmute video audio' : 'Mute video audio'}
             className="w-8 h-8 rounded-full bg-[#10141a]/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
           >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-[#00f0ff]" />}
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-[#4ade80]" />}
           </button>
 
           {/* Play/Pause toggle */}
@@ -295,7 +295,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             title={isVideoPlaying ? 'Pause' : 'Play'}
             className="w-8 h-8 rounded-full bg-[#10141a]/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
           >
-            {isVideoPlaying ? <Pause className="w-3.5 h-3.5 text-[#00e699]" /> : <Play className="w-3.5 h-3.5 text-[#00f0ff] ml-0.5" />}
+            {isVideoPlaying ? <Pause className="w-3.5 h-3.5 text-[#00e699]" /> : <Play className="w-3.5 h-3.5 text-[#4ade80] ml-0.5" />}
           </button>
 
           <div className="px-2.5 py-1 rounded-full bg-[#10141a]/80 backdrop-blur-md border border-white/10 text-[10px] font-mono text-[#00e699] flex items-center gap-1.5">
@@ -307,19 +307,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
       {/* 4. Center Video Switcher / Telemetry Badge */}
       <div className="relative z-20 px-6 my-auto text-center space-y-4 pointer-events-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#10141a]/85 backdrop-blur-md border border-[#00f0ff]/40 text-xs text-[#00f0ff] font-mono shadow-[0_0_20px_rgba(0,240,255,0.25)]">
-          <span className="w-2 h-2 rounded-full bg-[#00f0ff] animate-ping" />
-          <span>350 kW ULTRA-FAST CHARGING TELEMETRY</span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#10141a]/85 backdrop-blur-md border border-[#22c55e]/40 text-xs text-[#4ade80] font-mono shadow-[0_0_20px_rgba(45,122,62,0.35)]">
+          <span className="w-2 h-2 rounded-full bg-[#4ade80] animate-ping" />
+          <span>160 kW HIGH-SPEED EV CHARGING TELEMETRY</span>
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-lg">
-          High-Speed Mobility.
-          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#00e699]">
-            Intelligent Energy.
+          Powering a Cleaner
+          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#5c9e3a] via-[#4ade80] to-[#22c55e]">
+            Tomorrow in Ghana.
           </span>
         </h1>
-
-
       </div>
 
       {/* 5. 'Enter Application' CTA Overlay */}
@@ -327,15 +325,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         <button
           id="btn-enter-application"
           onClick={onComplete}
-          className="w-full h-13 py-3.5 bg-[#00f0ff] hover:bg-[#33f3ff] text-[#0a0e14] font-bold text-sm tracking-wider rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] shadow-xl"
+          className="w-full h-13 py-3.5 bg-gradient-to-r from-[#2d7a3e] via-[#22c55e] to-[#2d7a3e] hover:brightness-110 text-white font-extrabold text-sm tracking-wider rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] shadow-xl shadow-black/60 cursor-pointer"
         >
-          <span>ENTER APPLICATION</span>
+          <span>ENTER CHARGELINK GH</span>
           <ArrowRight className="w-4 h-4 stroke-[2.5]" />
         </button>
 
         <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
-          <span>APEX HYPERCHARGE HUB · ACCRA</span>
-          <span>ISO 15118 · OCPP 2.0.1</span>
+          <span>GREENWOOD EVENT CENTER · KUMASI</span>
+          <span>OCPP 1.6J · MAXPOWER VCP160</span>
         </div>
       </div>
     </div>

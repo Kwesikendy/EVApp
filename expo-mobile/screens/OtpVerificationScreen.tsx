@@ -95,7 +95,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
           id: 'usr-gh-' + Date.now().toString(36),
           phoneNumber,
           displayName: params?.fullName || routeParams?.fullName || 'Driver ' + phoneNumber.slice(-4),
-          email: params?.email || routeParams?.email || 'driver@xcharge.africa',
+          email: params?.email || routeParams?.email || 'driver@chargelink.africa',
           walletBalance: 250.00,
           heldEscrow: 0.00,
           defaultPaymentMethod: 'MTN_MOMO',
@@ -126,7 +126,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
           id: 'usr-gh-' + Date.now().toString(36),
           phoneNumber,
           displayName: params?.fullName || routeParams?.fullName || 'Driver ' + phoneNumber.slice(-4),
-          email: params?.email || routeParams?.email || 'driver@xcharge.africa',
+          email: params?.email || routeParams?.email || 'driver@chargelink.africa',
           walletBalance: 250.00,
           heldEscrow: 0.00,
           defaultPaymentMethod: 'MTN_MOMO',
@@ -225,7 +225,7 @@ export const OtpVerificationScreen: React.FC<OtpVerificationScreenProps> = ({
 
       {/* Headline */}
       <View style={styles.centerHeader}>
-        <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(0, 240, 255, 0.08)', borderWidth: 1, borderColor: 'rgba(0, 240, 255, 0.3)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+        <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(34, 197, 94, 0.1)', borderWidth: 1, borderColor: 'rgba(34, 197, 94, 0.3)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
           <XChargeMarkNative size={36} />
         </View>
         <Text style={styles.title}>Verification Code</Text>
@@ -377,9 +377,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sandboxBanner: {
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
+    borderColor: 'rgba(34, 197, 94, 0.3)',
     borderRadius: Theme.borderRadius.sm,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   slotFilled: {
     borderColor: Theme.colors.primary,
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
   },
   slotCurrent: {
     borderColor: Theme.colors.primary,
@@ -455,9 +455,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
+    borderColor: 'rgba(34, 197, 94, 0.3)',
     borderRadius: 12,
     paddingVertical: 7,
     paddingHorizontal: 14,
