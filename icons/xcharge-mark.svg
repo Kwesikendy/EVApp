@@ -1,31 +1,40 @@
-<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="clLeafMark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#4ade80" />
-      <stop offset="100%" stopColor="#16a34a" />
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="100%" stop-color="#16a34a" />
     </linearGradient>
-    <linearGradient id="clCMark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#22c55e" />
-      <stop offset="100%" stopColor="#15803d" />
+    <linearGradient id="cGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#15803d" />
     </linearGradient>
+    <radialGradient id="greenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.20" />
+      <stop offset="60%" stop-color="#22c55e" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#10141a" stop-opacity="0" />
+    </radialGradient>
   </defs>
 
-  <!-- Dark rounded background -->
-  <rect width="120" height="120" rx="24" fill="#0f2318" />
+  <!-- Deep Obsidian Background -->
+  <rect width="1024" height="1024" rx="180" fill="#10141a" />
+  
+  <!-- Ambient green backlight -->
+  <circle cx="512" cy="512" r="440" fill="url(#greenGlow)" />
 
-  <!-- C-shaped arc -->
-  <path
-    d="M 68 18 A 42 42 0 1 0 68 102 L 68 86 A 26 26 0 1 1 68 34 Z"
-    fill="url(#clCMark)"
-  />
-
-  <!-- EV plug body -->
-  <rect x="60" y="50" width="28" height="18" rx="5" fill="url(#clLeafMark)" />
-  <rect x="88" y="55" width="10" height="3" rx="1.5" fill="url(#clLeafMark)" />
-  <rect x="88" y="62" width="10" height="3" rx="1.5" fill="url(#clLeafMark)" />
-  <!-- Lightning bolt -->
-  <path d="M72 54 L69 61 L73 61 L70 68 L77 60 L73 60 Z" fill="#ffffff" />
-
-  <!-- Leaf swoosh -->
-  <path d="M 40 82 Q 58 70 82 76 Q 64 86 46 90 Z" fill="url(#clLeafMark)" opacity="0.9" />
+  <!-- C-shaped arc (large, centered) -->
+  <g transform="translate(512,512) scale(9) translate(-60,-60)">
+    <path
+      d="M 68 14 A 46 46 0 1 0 68 106 L 68 90 A 30 30 0 1 1 68 30 Z"
+      fill="url(#cGrad)"
+    />
+    <!-- EV plug body -->
+    <rect x="62" y="48" width="32" height="22" rx="6" fill="url(#leafGrad)" />
+    <rect x="94" y="53" width="12" height="4" rx="2" fill="url(#leafGrad)" />
+    <rect x="94" y="62" width="12" height="4" rx="2" fill="url(#leafGrad)" />
+    <!-- Lightning bolt -->
+    <path d="M75 52 L71 61 L76 61 L72 70 L81 60 L76 60 Z" fill="#ffffff" />
+    <!-- Leaf swoosh -->
+    <path d="M 36 84 Q 56 72 84 78 Q 62 90 42 94 Z" fill="url(#leafGrad)" opacity="0.9"/>
+  </g>
 </svg>

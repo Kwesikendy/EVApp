@@ -1,11 +1,13 @@
-// XCHARGE Hypercharge OS Service Worker
-const CACHE_NAME = 'xcharge-pwa-v5';
+// ChargeLink GH Progressive Web App — Service Worker
+// Cache version v6 forces old xcharge-pwa-v5 caches to be evicted on update.
+const CACHE_NAME = 'chargelink-pwa-v6';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/xcharge-logo.svg',
+  '/chargelink-logo.jpeg',
   '/icons/xcharge-mark.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -16,20 +18,20 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[XCharge SW] Pre-caching offline app shell');
+      console.log('[ChargeLink SW] Pre-caching offline app shell');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate Event - Clean old caches and claim clients immediately
+// 2. Activate Event - Evict all old caches (including xcharge-pwa-*) and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('[XCharge SW] Deleting obsolete cache:', name);
+            console.log('[ChargeLink SW] Evicting old cache:', name);
             return caches.delete(name);
           }
         })
