@@ -29,7 +29,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
 }) => {
   return (
     <header
-      id="xcharge-global-header"
+      id="chargelink-global-header"
       className="h-[calc(3.5rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] bg-[#10141a] border-b border-white/[0.08] px-3 sm:px-4 shrink-0 select-none z-30"
     >
       <div className="w-full max-w-4xl mx-auto h-full flex items-center justify-between">

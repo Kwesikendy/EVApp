@@ -1,13 +1,13 @@
 {
   "name": "ChargeLink GH",
-  "short_name": "ChargeLink",
+  "short_name": "ChargeLink GH",
   "description": "Ghana's premier EV charging network. Find stations, charge smarter, drive cleaner. Powering a Cleaner Tomorrow.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0f2318",
-  "theme_color": "#0f2318",
+  "background_color": "#0a0e14",
+  "theme_color": "#1e4d2b",
   "categories": ["transportation", "utilities", "business"],
   "icons": [
     {
@@ -29,10 +29,10 @@
       "purpose": "maskable"
     },
     {
-      "src": "/icons/xcharge-mark.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

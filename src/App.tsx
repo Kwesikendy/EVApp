@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LaunchScreen } from './components/LaunchScreen';
 import { SplashScreen } from './components/SplashScreen';
 import { ModernHeader } from './components/ModernHeader';
 import { ModernBottomNav, TabKey } from './components/ModernBottomNav';
@@ -19,13 +20,25 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
-  // Splash screen state (can be replayed from header)
+  // Launch screen state (displays official ChargeLink GH logo on initial load or replay)
+  const [showLaunch, setShowLaunch] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const hasLaunched = sessionStorage.getItem('chargelink_has_launched');
+      if (!hasLaunched) {
+        sessionStorage.setItem('chargelink_has_launched', '1');
+        return true;
+      }
+    }
+    return false;
+  });
+
+  // Video splash screen state (optional cinematic replay)
   const [showSplash, setShowSplash] = useState<boolean>(false);
 
   // Authentication workflow: 'authenticated' | 'login' | 'signup' | 'otp' | 'otp_success'
   const [authView, setAuthView] = useState<'authenticated' | 'login' | 'signup' | 'otp' | 'otp_success'>(() => {
     try {
-      const saved = localStorage.getItem('xcharge_user_session');
+      const saved = localStorage.getItem('chargelink_user_session') || localStorage.getItem('xcharge_user_session');
       return saved ? 'authenticated' : 'login';
     } catch {
       return 'login';
@@ -34,7 +47,7 @@ export default function App() {
 
   const [currentUser, setCurrentUser] = useState<any>(() => {
     try {
-      const saved = localStorage.getItem('xcharge_user_session');
+      const saved = localStorage.getItem('chargelink_user_session') || localStorage.getItem('xcharge_user_session');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -132,6 +145,7 @@ export default function App() {
 
   const handleSignOut = () => {
     try {
+      localStorage.removeItem('chargelink_user_session');
       localStorage.removeItem('xcharge_user_session');
     } catch {}
     setCurrentUser(null);
@@ -148,7 +162,14 @@ export default function App() {
       {/* Ambient background glow for desktop showcase */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(45,122,62,0.18),transparent_60%)]" />
 
-      {/* 1. Launch Splash Screen with Video and Cinematic Animation */}
+      {/* 1. Official ChargeLink GH Launch Screen */}
+      <AnimatePresence>
+        {showLaunch && (
+          <LaunchScreen onComplete={() => setShowLaunch(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Cinematic Video Splash (Optional Replay) */}
       {showSplash && (
         <SplashScreen onComplete={() => setShowSplash(false)} />
       )}
@@ -177,7 +198,7 @@ export default function App() {
 
       {/* 2. Main Mobile Frame / Responsive Container */}
       <div
-        id="xcharge-app-container"
+        id="chargelink-app-container"
         className={`w-full h-full flex flex-col overflow-hidden transition-all duration-300 relative z-10 ${
           deviceMode === 'phone'
             ? 'sm:max-w-[420px] sm:max-h-[890px] sm:rounded-[44px] sm:border-[5px] sm:border-[#1e2531] sm:shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(45,122,62,0.2)] sm:ring-1 sm:ring-white/15'
@@ -250,6 +271,7 @@ export default function App() {
                     onVerified={(user) => {
                       setCurrentUser(user);
                       try {
+                        localStorage.setItem('chargelink_user_session', JSON.stringify(user));
                         localStorage.setItem('xcharge_user_session', JSON.stringify(user));
                       } catch {}
                       if (user?.registeredVehicles?.[0]?.model) {
@@ -277,7 +299,7 @@ export default function App() {
               vehicleBadge={selectedVehicle}
               deviceMode={deviceMode}
               onToggleDeviceMode={() => setDeviceMode(deviceMode === 'phone' ? 'fluid' : 'phone')}
-              onReplaySplash={() => setShowSplash(true)}
+              onReplaySplash={() => setShowLaunch(true)}
               onOpenProfile={() => setIsProfileModalOpen(true)}
               onOpenVehicleSelect={() => setIsVehicleModalOpen(true)}
               onOpenAdmin={() => setIsAdminOpen(true)}
@@ -344,6 +366,7 @@ export default function App() {
         onUpdateUser={(updated) => {
           setCurrentUser(updated);
           try {
+            localStorage.setItem('chargelink_user_session', JSON.stringify(updated));
             localStorage.setItem('xcharge_user_session', JSON.stringify(updated));
           } catch {}
         }}

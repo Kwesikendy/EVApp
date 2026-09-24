@@ -84,7 +84,7 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
 
   // Form State
   const [displayName, setDisplayName] = useState(user?.displayName || 'Kofi Mensah');
-  const [email, setEmail] = useState(user?.email || 'kofi.mensah@xcharge.africa');
+  const [email, setEmail] = useState(user?.email || 'kofi.mensah@chargelink.com.gh');
   const [ghanaCardId, setGhanaCardId] = useState(user?.ghanaCardId || 'GHA-729104821-4');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.avatarUrl);
   const [paymentMethod, setPaymentMethod] = useState<'MTN_MOMO' | 'TELECEL_CASH' | 'MASTERCARD'>(

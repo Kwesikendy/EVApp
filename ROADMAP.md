@@ -145,3 +145,26 @@ Phase 1: Real Telephony & Auth  ──►  Phase 2: Live Payment Switch  ──�
    - Direct modal reader in [`expo-mobile/screens/SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/SignUpScreen.tsx) and Driver Settings.
    - Safe-area insets, dark palette styling, search filtering, and 1-tap agreement buttons.
 
+---
+
+### Phase 6: Brand Assets, Authentic App Icons & Instant Launch Screen
+> **Status: 100% Production Ready & Verified**  
+> **Primary Goal:** Transform the visual entry point of ChargeLink GH into an authentic luxury EV charging OS experience using the client's official source of truth (`public/chargelink-logo.jpeg`).
+
+#### Delivered Capabilities:
+1. [x] **High-Resolution Icon Generation Pipeline ([`scripts/generate-icons.cjs`](file:///d:/xcharge-ev-platform/scripts/generate-icons.cjs))**:
+   - Generates bicubic PWA app icons (512x512, 192x192, 180x180, 48x48) directly from [`public/chargelink-logo.jpeg`](file:///d:/xcharge-ev-platform/public/chargelink-logo.jpeg).
+   - Generates safe-padded maskable Android icons (`icon-maskable-512.png` and `adaptive-icon.png`) with 80% safe zone padding, eliminating any clipping on Samsung, Pixel, or Xiaomi launchers.
+   - Produces 1284x2778 portrait launch screens for iOS PWA (`apple-splash.png`) and Expo mobile (`splash.png`).
+2. [x] **Instant Zero-Flash Pre-Mount Launch Screen ([`index.html`](file:///d:/xcharge-ev-platform/index.html))**:
+   - Inlined inside `<div id="root">` with zero JavaScript dependency to display the official logo, breathing ambient glow, and tagline before React bundle hydration.
+   - Configured `<link rel="apple-touch-startup-image" href="/icons/apple-splash.png">` for native iOS PWA home screen taps.
+3. [x] **Interactive In-App Launch Experience ([`src/components/LaunchScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LaunchScreen.tsx))**:
+   - Automotive-grade launch sequence with telemetry initialization progress and smooth spring exit animation.
+   - Integrated into [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) on-demand replay trigger.
+4. [x] **Legacy XCHARGE Clean-Up & Theme Unification**:
+   - Replaced legacy cyan blade SVGs in [`public/logos/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/public/logos/xcharge-logo.svg) and [`expo-mobile/assets/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/expo-mobile/assets/xcharge-logo.svg) with ChargeLink GH branding.
+   - Normalized all default driver emails to `@chargelink.com.gh` across backend, serverless endpoints, and persistent store.
+   - Upgraded Service Worker cache version to `chargelink-pwa-v7` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js).
+
+

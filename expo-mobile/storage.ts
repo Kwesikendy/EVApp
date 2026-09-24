@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SESSION_KEY = '@xcharge_driver_session';
-const PHONE_KEY = '@xcharge_driver_phone';
+const SESSION_KEY = '@chargelink_driver_session';
+const LEGACY_SESSION_KEY = '@xcharge_driver_session';
+const PHONE_KEY = '@chargelink_driver_phone';
+const LEGACY_PHONE_KEY = '@xcharge_driver_phone';
 
 export interface StoredSession {
   phoneNumber: string;
@@ -31,11 +33,11 @@ export const SessionStorage = {
   },
 
   /**
-   * Retrieve active driver session
+   * Retrieve active driver session (with legacy fallback)
    */
   async getSession(): Promise<StoredSession | null> {
     try {
-      const raw = await AsyncStorage.getItem(SESSION_KEY);
+      const raw = (await AsyncStorage.getItem(SESSION_KEY)) || (await AsyncStorage.getItem(LEGACY_SESSION_KEY));
       if (!raw) return null;
       return JSON.parse(raw);
     } catch (err) {
@@ -49,7 +51,7 @@ export const SessionStorage = {
    */
   async getStoredPhone(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(PHONE_KEY);
+      return (await AsyncStorage.getItem(PHONE_KEY)) || (await AsyncStorage.getItem(LEGACY_PHONE_KEY));
     } catch {
       return null;
     }
@@ -61,6 +63,9 @@ export const SessionStorage = {
   async clearSession(): Promise<void> {
     try {
       await AsyncStorage.removeItem(SESSION_KEY);
+      await AsyncStorage.removeItem(LEGACY_SESSION_KEY);
+      await AsyncStorage.removeItem(PHONE_KEY);
+      await AsyncStorage.removeItem(LEGACY_PHONE_KEY);
     } catch (err) {
       console.warn('[SessionStorage] Failed to clear session:', err);
     }

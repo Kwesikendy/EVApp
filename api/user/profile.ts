@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
       id: `usr-gh-${normalized.slice(-4)}`,
       phoneNumber: normalized,
       displayName: normalized === '+233248901204' ? 'Kofi Mensah' : 'EV Driver',
-      email: normalized === '+233248901204' ? 'kofi.mensah@xcharge.africa' : 'driver@xcharge.africa',
+      email: normalized === '+233248901204' ? 'kofi.mensah@chargelink.com.gh' : 'driver@chargelink.com.gh',
       walletBalance: 245.50,
       heldEscrow: 0.00,
       defaultPaymentMethod: 'MTN_MOMO',

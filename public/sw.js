@@ -1,17 +1,18 @@
 // ChargeLink GH Progressive Web App — Service Worker
-// Cache version v6 forces old xcharge-pwa-v5 caches to be evicted on update.
-const CACHE_NAME = 'chargelink-pwa-v6';
+// Cache version v7 forces eviction of any older caches and loads authentic ChargeLink GH icons & splash screen.
+const CACHE_NAME = 'chargelink-pwa-v7';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/xcharge-logo.svg',
   '/chargelink-logo.jpeg',
-  '/icons/xcharge-mark.svg',
+  '/favicon.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/icon-maskable-512.png',
+  '/icons/apple-touch-icon.png',
+  '/icons/apple-splash.png'
 ];
 
 // 1. Install Event - Pre-cache core shell
@@ -24,7 +25,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event - Evict all old caches (including xcharge-pwa-*) and claim clients
+// 2. Activate Event - Evict all old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
