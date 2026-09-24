@@ -177,6 +177,7 @@ function normalizeGhanaPhoneNumber(rawPhone) {
   return rawPhone.trim();
 }
 var PRODUCTION_MOOLRE_VAS_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0";
+var PRODUCTION_MOOLRE_SENDER_ID = "ChargeLink";
 async function sendOtp(phoneNumber) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const code = getDeterministicOtp(normalized, 0);
@@ -187,11 +188,11 @@ async function sendOtp(phoneNumber) {
     attempts: 0
   });
   const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || PRODUCTION_MOOLRE_VAS_KEY).replace(/^["']|["']$/g, "").trim();
-  const moolreSenderId = "Business_Ad";
+  const moolreSenderId = (process.env.MOOLRE_SENDER_ID || PRODUCTION_MOOLRE_SENDER_ID).replace(/^["']|["']$/g, "").trim();
   const rawRecipient = normalized.startsWith("+") ? normalized.substring(1) : normalized;
   if (moolreVasKey) {
     try {
-      const messageText = `Your XCharge EV code is ${code}. Valid for 5 minutes.`;
+      const messageText = `Your ChargeLink GH code is ${code}. Valid for 5 minutes.`;
       const url = new URL("https://api.moolre.com/open/sms/send");
       url.searchParams.append("type", "1");
       url.searchParams.append("senderid", moolreSenderId);
