@@ -115,6 +115,14 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
 - Deployed and live on GitHub Pages and ready for Vercel.
 
 ### D. Phase 4: Progressive Web App (PWA) Engine (100% Complete & Verified)
+- **Instant Launch & Zero-Delay Pipeline**:
+  - **Hang Resolution**: Resolved long loading hang by setting `showLaunch = false` by default in [`src/App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx). The live console mounts instantly without waiting for a secondary 1.8-second splash timer.
+  - **OS Text Removal**: Completely stripped the text `"CHARGELINK GH OS"` from the launch screens ([`index.html`](file:///d:/xcharge-ev-platform/index.html), [`src/components/LaunchScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LaunchScreen.tsx), and [`src/components/SplashScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SplashScreen.tsx)), leaving clean, professional ChargeLink GH branding.
+  - **Click-to-Dismiss**: Enabled instant dismiss (`onclick="this.remove()"`) on `#pwa-launch-screen` in `index.html` and click-to-skip on `<LaunchScreen />` with a hard safety fallback timer.
+  - **Service Worker Cache Eviction**: Bumped cache identifier to `chargelink-pwa-v8` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) to force instant browser cache invalidation.
+- **Moolre Ghana SMS Gateway Sender ID**:
+  - Updated primary Sender ID to `ChargeLink` in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts), [`api/auth/send-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/send-otp.ts), and [`.env.example`](file:///d:/xcharge-ev-platform/.env.example).
+  - Preserved automatic carrier fallback to `Business_Ad` when Moolre returns code `ASMS07` (unapproved sender id) so that driver SMS OTP delivery is never interrupted while carrier approvals are pending.
 - **Web App Manifest ([`public/manifest.json`](file:///d:/xcharge-ev-platform/public/manifest.json))**:
   - Configured standalone display mode, `portrait-primary` orientation, and Hypercharge OS `#10141a` theme.
 - **Authentic Brand App Icons ([`public/icons/`](file:///d:/xcharge-ev-platform/public/icons/))**:
