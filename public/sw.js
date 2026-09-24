@@ -1,6 +1,5 @@
-// ChargeLink GH Progressive Web App — Service Worker
-// Cache version v7 forces eviction of any older caches and loads authentic ChargeLink GH icons & splash screen.
-const CACHE_NAME = 'chargelink-pwa-v7';
+// Cache version v8 forces eviction of any older caches and ensures instant launch without lag.
+const CACHE_NAME = 'chargelink-pwa-v8';
 
 const STATIC_ASSETS = [
   '/',

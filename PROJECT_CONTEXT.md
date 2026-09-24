@@ -84,7 +84,7 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
   - Fully mirrors the mobile auth experience with web-optimized components ([`LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx), [`SignUpScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/SignUpScreen.tsx), [`OtpVerificationScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpVerificationScreen.tsx), [`OtpSuccessScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/OtpSuccessScreen.tsx)).
   - Driver Profile & Sign Out modal in [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) with session persistence in `localStorage`.
 - **Live Moolre SMS Gateway & Stateless Deterministic Verification**:
-  - Integrated in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) with `MOOLRE_VAS_KEY` and Sender ID `Business_Ad`.
+  - Integrated in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) with `MOOLRE_VAS_KEY` and Sender ID `ChargeLink`.
   - **Stateless HMAC-SHA256 OTP Engine**: Resolved the serverless lambda cross-instance gap where `send-otp` and `verify-otp` run on separate microVMs. Codes are generated and verified deterministically via `getDeterministicOtp(phone, windowOffset)` across sliding 5-minute time windows (`[0, -1, -2, -3, +1]`), providing up to 20 minutes of validity to absorb telecom carrier SMS delays.
   - **Comprehensive MSISDN Normalization**: Normalizes standard Ghanaian phone numbers into strict `+233XXXXXXXXX` format across all variants, including 13-digit inputs with accidental zero prefixes (`+233 024...` -> `+23324...`).
   - **Universal Instant Demo Passcode**: Retains developer bypass code `123456` across all web and mobile screens with one-tap Auto-fill pills on both Web PWA and Expo Mobile (`OtpVerificationScreen.tsx`).
@@ -161,8 +161,8 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
   - Bumped Service Worker cache version to `xcharge-pwa-v4` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) and added automatic `controllerchange` listener and `skipWaiting()` dispatch in [`src/registerServiceWorker.ts`](file:///d:/xcharge-ev-platform/src/registerServiceWorker.ts) so physical phones instantly update and reload without running stale cached JS.
   - Zero-block driver authentication flow in [`src/components/LoginScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LoginScreen.tsx) and [`expo-mobile/screens/LoginScreen.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/screens/LoginScreen.tsx): Drivers always transition straight to the OTP screen upon tapping "SEND VERIFICATION CODE", eliminating all blocking error banners while live Moolre SMS dispatches in the background.
   - Exported `PRODUCTION_MOOLRE_VAS_KEY` and `PRODUCTION_MOOLRE_SENDER_ID` directly in [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts), ensuring Vercel serverless function instances always possess the live Moolre VAS credentials even if Vercel dashboard environment variables were omitted.
-  - Guarded against unapproved sender IDs by normalizing to `Business_Ad` (Moolre rejects `XCharge` with `ASMS07`), with automatic retry on `ASMS07`.
-  - Pure Real-Time SMS Flow: Removed all testing passcodes and auto-fill hints on standard phone entry across both Web and Mobile (`src/components/LoginScreen.tsx`, `src/components/OtpVerificationScreen.tsx`, `expo-mobile/screens/LoginScreen.tsx`, `expo-mobile/screens/OtpVerificationScreen.tsx`). Drivers enter the live 6-digit passcode delivered to their phone via Moolre SMS (`Business_Ad`).
+  - Primary sender ID configured to official brand `ChargeLink`, with automated resilience retry on `ASMS07` (unapproved sender ID fallback).
+  - Pure Real-Time SMS Flow: Removed all testing passcodes and auto-fill hints on standard phone entry across both Web and Mobile (`src/components/LoginScreen.tsx`, `src/components/OtpVerificationScreen.tsx`, `expo-mobile/screens/LoginScreen.tsx`, `expo-mobile/screens/OtpVerificationScreen.tsx`). Drivers enter the live 6-digit passcode delivered to their phone via Moolre SMS (`ChargeLink`).
   - Moolre SMS Bundle Balance Tracking (`ASMS06`): Direct live query to `https://api.moolre.com/open/sms/send` verified that Moolre currently returns `ASMS06` ("SMS Bundle Balance Insufficient, Please login on app.moolre.com to top up your balance."). Added transparent `gatewayNotice` banner display on `OtpVerificationScreen.tsx` so users and admins know immediately when Moolre account credits need topping up.
 
 ### F. Phase 6: Driver Profile & Custom Settings Engine (100% Complete & Verified)
@@ -227,14 +227,15 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
     - `expo-mobile/assets/icon.png` (1024x1024)
     - `expo-mobile/assets/adaptive-icon.png` (1024x1024 with 80% safe zone padding)
     - `expo-mobile/assets/splash.png` (1284x2778 portrait mobile splash screen)
-- **Instant Pre-Mount PWA Launch Screen ([`index.html`](file:///d:/xcharge-ev-platform/index.html))**:
-  - Inline zero-dependency launch screen inside `<div id="root">` featuring the official `chargelink-logo.jpeg`, glowing ambient green backlight, animated pulse indicator, and tagline *"Powering a Cleaner Tomorrow"*.
-  - Eliminates all blank/white flashes when opening the PWA in standalone mode or web browsers prior to JavaScript bundle compilation.
+- **Instant Non-Blocking Pre-Mount PWA Launch Screen ([`index.html`](file:///d:/xcharge-ev-platform/index.html))**:
+  - Clean pre-mount launch screen inside `<div id="root">` featuring the official `chargelink-logo.jpeg`, glowing ambient green backlight, spinner, and tagline *"Powering a Cleaner Tomorrow"*.
+  - Removed all `CHARGELINK GH OS` badge text for a clean, distraction-free automotive brand impression.
+  - Non-blocking with tap-to-dismiss `onclick="this.remove()"` and instant replacement upon React hydration.
   - Linked iOS startup image: `<link rel="apple-touch-startup-image" href="/icons/apple-splash.png" />`.
-  - Service worker cache version bumped to `chargelink-pwa-v7` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) to force instant eviction of legacy icon and markup caches.
-- **Interactive In-App Launch Experience ([`src/components/LaunchScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LaunchScreen.tsx) & [`src/App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx))**:
-  - Created animated ChargeLink GH launch screen with spring physics, progress loader, and smooth fade-out into driver HUD.
-  - Wired into `ModernHeader.tsx` replay button for on-demand branding demonstrations.
+  - Service worker cache version bumped to `chargelink-pwa-v8` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js) to force instant eviction of legacy caches across mobile browsers.
+- **Immediate Console Access & Replayable Launch HUD ([`src/components/LaunchScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/LaunchScreen.tsx) & [`src/App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx))**:
+  - Eliminated artificial loading screen hold on initial app open (`showLaunch: false`), taking drivers straight into the live interactive map and wallet without latency.
+  - Replay button in [`ModernHeader.tsx`](file:///d:/xcharge-ev-platform/src/components/ModernHeader.tsx) allows instant on-demand launch screen demonstrations with click-to-dismiss.
   - Modernized local session persistence to `chargelink_user_session` with fallback support for legacy sessions.
 - **Legacy Vector Asset Replacement**:
   - Replaced legacy cyan blades and old XCharge text in [`public/logos/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/public/logos/xcharge-logo.svg) and [`expo-mobile/assets/xcharge-logo.svg`](file:///d:/xcharge-ev-platform/expo-mobile/assets/xcharge-logo.svg) with official ChargeLink GH vector typography.
@@ -329,7 +330,7 @@ PORT=5173
 
 # Moolre Ghana SMS Gateway (Live SMS OTP Delivery)
 MOOLRE_VAS_KEY="<JWT-Bearer-Token>"
-MOOLRE_SENDER_ID="Business_Ad"
+MOOLRE_SENDER_ID="ChargeLink"
 
 # Google Cloud Firebase
 FIREBASE_PROJECT_ID="gen-lang-client-0824141968"

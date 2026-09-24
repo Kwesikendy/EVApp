@@ -20,17 +20,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { ChargingStation, ActiveTelemetrySession } from './types';
 
 export default function App() {
-  // Launch screen state (displays official ChargeLink GH logo on initial load or replay)
-  const [showLaunch, setShowLaunch] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const hasLaunched = sessionStorage.getItem('chargelink_has_launched');
-      if (!hasLaunched) {
-        sessionStorage.setItem('chargelink_has_launched', '1');
-        return true;
-      }
-    }
-    return false;
-  });
+  // Launch screen state (can be replayed on demand from header)
+  const [showLaunch, setShowLaunch] = useState<boolean>(false);
 
   // Video splash screen state (optional cinematic replay)
   const [showSplash, setShowSplash] = useState<boolean>(false);
@@ -179,7 +170,7 @@ export default function App() {
         <div className="hidden lg:flex items-center justify-between w-full max-w-4xl px-4 py-1.5 mb-1 shrink-0 z-20">
           <div className="flex items-center gap-2.5">
             <span className="text-[11px] font-mono font-semibold text-slate-400">
-              CHARGELINK GH OS <span className="text-[#4ade80]">v2.4 WEB</span>
+              CHARGELINK GH <span className="text-[#4ade80]">v2.4 WEB</span>
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">
               KUMASI & ACCRA NETWORK

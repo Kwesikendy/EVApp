@@ -208,7 +208,7 @@ export function normalizeGhanaPhoneNumber(rawPhone: string): string {
 }
 
 export const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0';
-export const PRODUCTION_MOOLRE_SENDER_ID = 'Business_Ad';
+export const PRODUCTION_MOOLRE_SENDER_ID = 'ChargeLink';
 
 /**
  * Send OTP via Moolre Ghana Messaging API (https://api.moolre.com/open/sms/send) or dev sandbox
@@ -227,13 +227,13 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
   });
 
   const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || PRODUCTION_MOOLRE_VAS_KEY).replace(/^["']|["']$/g, '').trim();
-  const moolreSenderId = 'Business_Ad';
+  const moolreSenderId = (process.env.MOOLRE_SENDER_ID || PRODUCTION_MOOLRE_SENDER_ID).replace(/^["']|["']$/g, '').trim();
   const rawRecipient = normalized.startsWith('+') ? normalized.substring(1) : normalized;
 
   // If live Moolre API/VAS key is configured, dispatch live SMS via Moolre
   if (moolreVasKey) {
     try {
-      const messageText = `Your XCharge EV code is ${code}. Valid for 5 minutes.`;
+      const messageText = `Your ChargeLink GH code is ${code}. Valid for 5 minutes.`;
       const url = new URL('https://api.moolre.com/open/sms/send');
       url.searchParams.append('type', '1');
       url.searchParams.append('senderid', moolreSenderId);

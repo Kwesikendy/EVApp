@@ -253,9 +253,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       <div className="relative z-20 p-5 sm:p-6 flex items-center justify-between pointer-events-auto">
         <div className="flex items-center gap-3">
           <XChargeLogo size="md" variant="full" />
-          <span className="text-[10px] text-[#4ade80] font-mono font-medium px-2 py-0.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30">
-            CHARGELINK OS 4.0
-          </span>
         </div>
 
         {/* Action Controls */}

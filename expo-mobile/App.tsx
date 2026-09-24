@@ -2676,7 +2676,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
           </View>
         </View>
 
-        <Text style={ss.versionText}>ChargeLink OS · v2.4</Text>
+        <Text style={ss.versionText}>ChargeLink GH · v2.4</Text>
       </View>
     </Animated.View>
   );

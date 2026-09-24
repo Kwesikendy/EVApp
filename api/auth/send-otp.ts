@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0';
-const PRODUCTION_MOOLRE_SENDER_ID = 'Business_Ad';
+const PRODUCTION_MOOLRE_SENDER_ID = 'ChargeLink';
 
 function normalizeGhanaPhoneNumber(rawPhone: string): string {
   const digits = (rawPhone || '').replace(/\D/g, '');
@@ -66,11 +66,11 @@ export default async function handler(req: any, res: any) {
     const code = getDeterministicOtp(normalized, 0);
 
     const moolreVasKey = (process.env.MOOLRE_VAS_KEY || process.env.MOOLRE_API_KEY || PRODUCTION_MOOLRE_VAS_KEY).replace(/^["']|["']$/g, '').trim();
-    const moolreSenderId = PRODUCTION_MOOLRE_SENDER_ID;
+    const moolreSenderId = (process.env.MOOLRE_SENDER_ID || PRODUCTION_MOOLRE_SENDER_ID).replace(/^["']|["']$/g, '').trim();
     const rawRecipient = normalized.startsWith('+') ? normalized.substring(1) : normalized;
 
     try {
-      const messageText = `Your XCharge EV code is ${code}. Valid for 5 minutes.`;
+      const messageText = `Your ChargeLink GH code is ${code}. Valid for 5 minutes.`;
       const url = new URL('https://api.moolre.com/open/sms/send');
       url.searchParams.append('type', '1');
       url.searchParams.append('senderid', moolreSenderId);
@@ -92,6 +92,31 @@ export default async function handler(req: any, res: any) {
 
       const data = await response.json().catch(() => null);
       console.log(`[Moolre SMS Gateway] Dispatched to ${normalized}:`, data);
+
+      if (data && data.code === 'ASMS07' && moolreSenderId !== 'Business_Ad') {
+        const retryUrl = new URL('https://api.moolre.com/open/sms/send');
+        retryUrl.searchParams.append('type', '1');
+        retryUrl.searchParams.append('senderid', 'Business_Ad');
+        retryUrl.searchParams.append('recipient', rawRecipient);
+        retryUrl.searchParams.append('message', messageText);
+
+        const retryRes = await fetch(retryUrl.toString(), {
+          method: 'GET',
+          headers: {
+            'X-API-VASKEY': moolreVasKey,
+            'Accept': 'application/json',
+          },
+        });
+        const retryData = await retryRes.json().catch(() => null);
+        console.log(`[Moolre SMS Gateway Retry] Dispatched to ${normalized}:`, retryData);
+        if (retryData && retryData.status === 1) {
+          return res.status(200).json({
+            success: true,
+            message: `OTP sent via Moolre SMS to ${normalized}`,
+            devCode: code,
+          });
+        }
+      }
 
       if (data && data.status === 1) {
         return res.status(200).json({
