@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>ChargeLink GH — Powering a Cleaner Tomorrow</title>
+    
+    <!-- Icons & Manifest -->
     <link rel="icon" type="image/jpeg" href="./chargelink-logo.jpeg" />
-    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" sizes="48x48" href="./favicon.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <!-- iOS PWA Startup / Launch Screen -->
+    <link rel="apple-touch-startup-image" href="./icons/apple-splash.png" />
     
     <!-- PWA & Mobile Web App Meta -->
     <meta name="theme-color" content="#1e4d2b" />
@@ -15,7 +21,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ChargeLink GH" />
     <meta name="application-name" content="ChargeLink GH" />
-    <meta name="msapplication-TileColor" content="#1e4d2b" />
+    <meta name="msapplication-TileColor" content="#0a0e14" />
 
     <meta name="description" content="ChargeLink GH — Ghana's premier electric vehicle fast-charging network. Greenwood Event Center, Kumasi. Powered by MaxPower VCP160 | OCPP 1.6J." />
     <meta property="og:title" content="ChargeLink GH — Powering a Cleaner Tomorrow" />
@@ -25,14 +31,81 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="ChargeLink GH" />
     <meta name="twitter:description" content="Powering a Cleaner Tomorrow — Ghana's EV charging platform." />
+    <meta name="twitter:image" content="./chargelink-logo.jpeg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script type="module" crossorigin src="./assets/index-DrKMkmPz.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BmEGfUSk.css">
+
+    <style>
+      /* Standalone Launch Screen Animation */
+      @keyframes cl-pulse {
+        0%, 100% { opacity: 0.35; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.08); }
+      }
+      @keyframes cl-bar {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(30%); }
+        100% { transform: translateX(100%); }
+      }
+      .cl-prelaunch-glow {
+        animation: cl-pulse 2.4s ease-in-out infinite;
+      }
+      .cl-prelaunch-progress {
+        animation: cl-bar 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-VEyQH8sm.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C5WTNf_3.css">
   </head>
   <body class="bg-[#0a0e14] text-slate-100 antialiased overflow-hidden font-sans">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Instant Pre-Mount PWA Launch Screen (Zero Blank Flash) -->
+      <div id="pwa-launch-screen" style="position: fixed; inset: 0; background: #0a0e14; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 3rem 1.5rem; z-index: 9999; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-user-select: none; user-select: none;">
+        
+        <!-- Top Status Pill -->
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: 9999px; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); font-family: monospace; font-size: 0.6875rem; color: #4ade80;">
+          <span style="width: 0.45rem; height: 0.45rem; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+          <span style="font-weight: 700; letter-spacing: 0.05em;">CHARGELINK GH OS</span>
+        </div>
+
+        <!-- Center Brand Emblem with Ambient Green Glow -->
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem;">
+          <div style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;">
+            <!-- Ambient green backlight -->
+            <div class="cl-prelaunch-glow" style="position: absolute; inset: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(30, 77, 43, 0.15) 60%, transparent 80%); filter: blur(12px);"></div>
+            
+            <!-- Official Logo -->
+            <img 
+              src="./chargelink-logo.jpeg" 
+              alt="ChargeLink GH" 
+              style="width: 130px; height: 130px; object-fit: cover; object-position: center; border-radius: 1.5rem; border: 1.5px solid rgba(74, 222, 128, 0.35); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(34, 197, 94, 0.25); position: relative; z-index: 2;"
+            />
+          </div>
+
+          <div>
+            <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
+              Charge<span style="color: #22c55e;">Link</span> <span style="color: #4ade80; font-weight: 900;">GH</span>
+            </h1>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.8125rem; color: #94a3b8; font-weight: 500;">
+              Powering a Cleaner Tomorrow
+            </p>
+          </div>
+
+          <!-- Glowing Loading Track -->
+          <div style="width: 140px; height: 3px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; overflow: hidden; margin-top: 0.5rem; position: relative;">
+            <div class="cl-prelaunch-progress" style="width: 60%; height: 100%; background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80); border-radius: 9999px; box-shadow: 0 0 10px #22c55e;"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Station Indicator -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-family: monospace; font-size: 0.625rem; color: #64748b;">
+          <span style="color: #94a3b8;">GREENWOOD EVENT CENTER · KUMASI</span>
+          <span>160 kW HIGH-SPEED DC FAST CHARGING</span>
+        </div>
+
+      </div>
+    </div>
   </body>
 </html>
