@@ -1,5 +1,5 @@
 // Wilpower cache v6 ships the in-app route map without a Google Maps API key.
-const CACHE_NAME = 'wilpower-pwa-v6';
+const CACHE_NAME = 'wilpower-pwa-v7';
 
 const STATIC_ASSETS = [
   '/',

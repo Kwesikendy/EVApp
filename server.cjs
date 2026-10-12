@@ -37,8 +37,8 @@ __export(server_exports, {
 module.exports = __toCommonJS(server_exports);
 var import_config = require("dotenv/config");
 var import_express = __toESM(require("express"), 1);
-var import_path2 = __toESM(require("path"), 1);
-var import_fs2 = __toESM(require("fs"), 1);
+var import_path3 = __toESM(require("path"), 1);
+var import_fs3 = __toESM(require("fs"), 1);
 
 // server/auth.ts
 var import_fs = __toESM(require("fs"), 1);
@@ -626,10 +626,14 @@ function handleMomoWebhook(payload) {
 
 // server/admin.ts
 var import_crypto2 = __toESM(require("crypto"), 1);
+var import_fs2 = __toESM(require("fs"), 1);
+var import_path2 = __toESM(require("path"), 1);
 var ADMIN_COOKIE = "wilpower_admin_session";
 var SESSION_TTL_SECONDS = 60 * 60 * 8;
-var DEV_EMAIL = "admin@wilpower.local";
-var DEV_PASSWORD = "WilpowerLocalAdmin!2026";
+var DEFAULT_ADMIN_EMAIL = "admin@wilpower.local";
+var DEFAULT_ADMIN_PASSWORD = "WilpowerLocalAdmin!2026";
+var ADMIN_DATA_DIR = process.env.VERCEL ? import_path2.default.join("/tmp", "xcharge-data") : import_path2.default.join(process.cwd(), "data");
+var ADMIN_PASSWORD_FILE = import_path2.default.join(ADMIN_DATA_DIR, "admin-password.json");
 function isProduction() {
   return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
 }
@@ -638,11 +642,49 @@ function sessionSecret() {
 }
 function configuredCredentials() {
   return {
-    email: (process.env.WILPOWER_ADMIN_EMAIL || (isProduction() ? "" : DEV_EMAIL)).trim().toLowerCase(),
-    password: process.env.WILPOWER_ADMIN_PASSWORD || (isProduction() ? "" : DEV_PASSWORD),
+    email: (process.env.WILPOWER_ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL).trim().toLowerCase(),
+    password: process.env.WILPOWER_ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD,
     displayName: process.env.WILPOWER_ADMIN_NAME || "Wilpower Administrator",
     role: process.env.WILPOWER_ADMIN_ROLE || "super_admin"
   };
+}
+function readPasswordOverride() {
+  try {
+    if (!import_fs2.default.existsSync(ADMIN_PASSWORD_FILE)) return null;
+    const value = JSON.parse(import_fs2.default.readFileSync(ADMIN_PASSWORD_FILE, "utf8"));
+    return value?.salt && value?.hash ? value : null;
+  } catch {
+    return null;
+  }
+}
+function hashPassword(password, salt = import_crypto2.default.randomBytes(16).toString("hex")) {
+  return {
+    salt,
+    hash: import_crypto2.default.scryptSync(password, salt, 64).toString("hex")
+  };
+}
+function passwordMatches(password) {
+  const override = readPasswordOverride();
+  if (override) {
+    const candidate = Buffer.from(hashPassword(password, override.salt).hash, "hex");
+    const expected = Buffer.from(override.hash, "hex");
+    return candidate.length === expected.length && import_crypto2.default.timingSafeEqual(candidate, expected);
+  }
+  return safeEqual(password, configuredCredentials().password);
+}
+function hasConfiguredPasswordOverride() {
+  return Boolean(readPasswordOverride() || process.env.WILPOWER_ADMIN_PASSWORD);
+}
+function savePasswordOverride(password) {
+  const hashed = hashPassword(password);
+  try {
+    if (!import_fs2.default.existsSync(ADMIN_DATA_DIR)) import_fs2.default.mkdirSync(ADMIN_DATA_DIR, { recursive: true });
+    import_fs2.default.writeFileSync(ADMIN_PASSWORD_FILE, JSON.stringify({ ...hashed, changedAt: (/* @__PURE__ */ new Date()).toISOString() }, null, 2), "utf8");
+    return true;
+  } catch (error) {
+    console.error("[Admin Auth] Could not persist password change:", error);
+    return false;
+  }
 }
 function safeEqual(left, right) {
   const leftBuffer = Buffer.from(left);
@@ -661,13 +703,19 @@ function sign(value) {
 function authenticateAdmin(email, password) {
   const credentials = configuredCredentials();
   if (!credentials.email || !credentials.password) return null;
-  if (!safeEqual(email.trim().toLowerCase(), credentials.email) || !safeEqual(password, credentials.password)) return null;
+  if (!safeEqual(email.trim().toLowerCase(), credentials.email) || !passwordMatches(password)) return null;
   return {
     id: "admin-primary",
     email: credentials.email,
     displayName: credentials.displayName,
-    role: credentials.role
+    role: credentials.role,
+    mustChangePassword: !hasConfiguredPasswordOverride()
   };
+}
+function changeAdminPassword(admin, currentPassword, newPassword) {
+  if (!admin?.email || newPassword.length < 12 || !passwordMatches(currentPassword)) return null;
+  if (!savePasswordOverride(newPassword)) return null;
+  return { ...admin, mustChangePassword: false };
 }
 function issueAdminSession(identity) {
   const payload = encode(JSON.stringify({ ...identity, exp: Date.now() + SESSION_TTL_SECONDS * 1e3 }));
@@ -684,7 +732,7 @@ function readAdminSession(req) {
   try {
     const parsed = JSON.parse(decode(payload));
     if (!parsed.exp || parsed.exp < Date.now() || !parsed.email || !parsed.role) return null;
-    return { id: parsed.id, email: parsed.email, displayName: parsed.displayName, role: parsed.role };
+    return { id: parsed.id, email: parsed.email, displayName: parsed.displayName, role: parsed.role, mustChangePassword: parsed.mustChangePassword === true };
   } catch {
     return null;
   }
@@ -720,7 +768,12 @@ function requireAdminRole(...roles) {
   };
 }
 function adminDevelopmentInfo() {
-  return { localCredentialsEnabled: !isProduction(), email: isProduction() ? void 0 : DEV_EMAIL };
+  const credentials = configuredCredentials();
+  return {
+    localCredentialsEnabled: !isProduction(),
+    defaultCredentialsEnabled: !hasConfiguredPasswordOverride(),
+    email: credentials.email
+  };
 }
 
 // server.ts
@@ -742,15 +795,15 @@ app.use((req, _res, next) => {
   }
   next();
 });
-var publicDir = import_path2.default.join(process.cwd(), "public");
+var publicDir = import_path3.default.join(process.cwd(), "public");
 app.use(import_express.default.static(publicDir));
 app.get(["/electric_vehicle_charging.mp4", "/electric%20vehical%20charging.mp4", "/electric vehical charging.mp4"], (req, res) => {
   const candidateFiles = [
-    import_path2.default.join(publicDir, "electric_vehicle_charging.mp4"),
-    import_path2.default.join(publicDir, "electric vehical charging.mp4")
+    import_path3.default.join(publicDir, "electric_vehicle_charging.mp4"),
+    import_path3.default.join(publicDir, "electric vehical charging.mp4")
   ];
   for (const file of candidateFiles) {
-    if (import_fs2.default.existsSync(file)) {
+    if (import_fs3.default.existsSync(file)) {
       return res.sendFile(file);
     }
   }
@@ -758,10 +811,10 @@ app.get(["/electric_vehicle_charging.mp4", "/electric%20vehical%20charging.mp4",
 });
 app.post("/api/upload-video", import_express.default.raw({ type: "*/*", limit: "100mb" }), (req, res) => {
   try {
-    const target1 = import_path2.default.join(publicDir, "electric_vehicle_charging.mp4");
-    const target2 = import_path2.default.join(publicDir, "electric vehical charging.mp4");
-    import_fs2.default.writeFileSync(target1, req.body);
-    import_fs2.default.writeFileSync(target2, req.body);
+    const target1 = import_path3.default.join(publicDir, "electric_vehicle_charging.mp4");
+    const target2 = import_path3.default.join(publicDir, "electric vehical charging.mp4");
+    import_fs3.default.writeFileSync(target1, req.body);
+    import_fs3.default.writeFileSync(target2, req.body);
     res.json({ success: true, url: "/electric_vehicle_charging.mp4" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -996,6 +1049,26 @@ app.post("/api/admin/auth/login", (req, res) => {
   }
   setAdminCookie(res, issueAdminSession(admin));
   res.json({ success: true, admin });
+});
+app.post("/api/admin/auth/change-password", requireAdmin, (req, res) => {
+  const admin = readAdminSession(req);
+  const currentPassword = String(req.body?.currentPassword || "");
+  const newPassword = String(req.body?.newPassword || "");
+  if (!admin) {
+    res.status(401).json({ error: "Admin authentication required." });
+    return;
+  }
+  if (newPassword.length < 12) {
+    res.status(400).json({ error: "New password must be at least 12 characters." });
+    return;
+  }
+  const updatedAdmin = changeAdminPassword(admin, currentPassword, newPassword);
+  if (!updatedAdmin) {
+    res.status(400).json({ error: "Current password is incorrect or the new password could not be saved." });
+    return;
+  }
+  setAdminCookie(res, issueAdminSession(updatedAdmin));
+  res.json({ success: true, admin: updatedAdmin });
 });
 app.get("/api/admin/auth/me", requireAdmin, (req, res) => {
   res.json({ authenticated: true, admin: readAdminSession(req) });
@@ -1568,7 +1641,17 @@ app.put("/api/user/profile", (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: "Phone number required" });
   }
-  const updated = updateUserProfile(phone, req.body);
+  const allowedUpdates = {
+    displayName: typeof req.body.displayName === "string" ? req.body.displayName.trim().slice(0, 120) : void 0,
+    email: typeof req.body.email === "string" ? req.body.email.trim().slice(0, 160) : void 0,
+    avatarUrl: typeof req.body.avatarUrl === "string" ? req.body.avatarUrl.slice(0, 45e4) : void 0,
+    ghanaCardId: typeof req.body.ghanaCardId === "string" ? req.body.ghanaCardId.trim().slice(0, 80) : void 0,
+    targetChargeLimit: Number.isFinite(Number(req.body.targetChargeLimit)) ? Math.min(100, Math.max(50, Number(req.body.targetChargeLimit))) : void 0,
+    smsReceiptsEnabled: typeof req.body.smsReceiptsEnabled === "boolean" ? req.body.smsReceiptsEnabled : void 0,
+    defaultPaymentMethod: ["MTN_MOMO", "TELECEL_CASH", "MASTERCARD"].includes(req.body.defaultPaymentMethod) ? req.body.defaultPaymentMethod : void 0,
+    registeredVehicles: Array.isArray(req.body.registeredVehicles) ? req.body.registeredVehicles : void 0
+  };
+  const updated = updateUserProfile(phone, Object.fromEntries(Object.entries(allowedUpdates).filter(([, value]) => value !== void 0)));
   if (!updated) {
     return res.status(404).json({ error: "User not found" });
   }
@@ -1583,10 +1666,10 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = import_path2.default.join(process.cwd(), "dist");
+    const distPath = import_path3.default.join(process.cwd(), "dist");
     app.use(import_express.default.static(distPath));
     app.get("*", (_req, res) => {
-      res.sendFile(import_path2.default.join(distPath, "index.html"));
+      res.sendFile(import_path3.default.join(distPath, "index.html"));
     });
   }
   app.listen(PORT, "0.0.0.0", () => {
