@@ -192,16 +192,16 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
   - **Seamless State & Storage Persistence**:
     - All edits persist to both `currentUser` state and `localStorage` (`xcharge_user_session`), synchronizing across the entire app.
 
-### G. Phase 7: Live GPS Geolocation & Google Maps Navigation Engine (100% Complete & Verified)
+### G. Phase 7: Live GPS Geolocation & Navigation Engine (100% Complete & Verified)
 - **Live User Geolocation on Launch ([`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx))**:
   - Automatically queries and watches user's live coordinates via `navigator.geolocation.watchPosition` with high accuracy mode.
   - Automatically concentrates and flies the map viewport directly to the driver's live GPS coordinates upon opening (`map.flyTo([lat, lng], 14)`).
   - Renders a live pulsing GPS green dot tracking the driver's physical position in real time.
   - Recalculates real-time distance and ETA for all charging hubs dynamically using the Haversine formula (`calculateDistanceKm`) based on the driver's actual position rather than static placeholders.
   - Live GPS status indicator in top search bar (`Locating...`, `Live GPS`, `GPS Off · Tap to Enable`) with 1-tap recenter button.
-- **Turn-by-Turn Google Maps Navigation**:
-  - Integrated universal Google Maps driving directions into the "Navigate" CTA in [`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx).
-  - Also upgraded the mobile app's navigation CTA in [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) via `Linking.openURL(...)` to immediately launch native Google Maps navigation with origin and destination coordinates preset.
+- **Navigation surfaces**:
+  - The current Wilpower web/PWA discovery flow uses the in-app route panel documented in the latest session handoff below, with OSRM driving geometry, route steps, distance, ETA, and recentering.
+  - The older station-map component in [`src/components/StationMapScreen.tsx`](file:///d:/xcharge-ev-platform/src/components/StationMapScreen.tsx) and the native client navigation CTA in [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) still use their existing Google Maps handoff until migrated separately.
 
 ### H. Phase 8: Legal Defense & Ghana Data Protection Act (Act 843) Suite (100% Complete & Verified)
 - **Single Source of Truth Legal Repository ([`src/legalData.ts`](file:///d:/xcharge-ev-platform/src/legalData.ts) & [`expo-mobile/legalData.ts`](file:///d:/xcharge-ev-platform/expo-mobile/legalData.ts))**:
@@ -380,7 +380,7 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 ### Web/PWA visual direction refresh (2026-10-12)
 
 - The first Wilpower web pass was intentionally replaced with a darker, more expressive Night Drive interface after review.
-- `src/index.css` now defines the current visual system: Obsidian void background, Will Lime accents, dotted technical texture, translucent frosted panels, blurred/sticky bars, editorial type scale, high-contrast focus states, responsive glass bottom navigation, and reduced-motion fallbacks.
+- `src/index.css` now defines the current visual system: Obsidian void background, Will Lime accents, dotted technical texture, translucent frosted panels, blurred/sticky bars, editorial type scale, high-contrast focus states, hamburger-only mobile navigation, and reduced-motion fallbacks.
 - `src/components/WillPowerApp.tsx` now includes a richer home composition with network signal, live account stats, animated image grid overlay, clearer status values, and plain-text punctuation suitable for a polished product surface.
 - `index.html` pre-mount launch screen now matches the same dotted, orbital, dark glass direction.
 - `public/sw.js` cache identifier was advanced to `wilpower-pwa-v5` so installed PWA clients evict earlier shells and receive the refreshed CSS, launch screen, naming, logo assets, themes, and mobile refinements.
@@ -399,9 +399,17 @@ The current hero photography is still a temporary source asset and should be rep
 - Added a persistent theme selector to the authenticated web/PWA shell with Night Drive, Mint Light, and Paper Light options. The selected theme is stored under `wilpower_theme`; the previous `willpower_theme` key remains readable and is updated for compatibility.
 - Light themes switch to the transparent primary wordmark, while Night Drive uses the transparent reverse wordmark. The full wordmark SVGs now render the exact product casing `Wilpower`; the Expo reverse wordmark PNG was regenerated from the corrected SVG.
 - Removed the customer-facing `DESIGN CONCEPT` and `CAMPAIGN IMAGE / VISUAL CONCEPT` labels. Generic live/network status badges remain available for operational state.
-- Tightened the mobile experience with a compact theme control, safe bottom-navigation spacing, full-width primary actions, resilient stat wrapping, smaller mobile page headings, flexible detail rows, and viewport-safe modal sizing.
+- Tightened the mobile experience with a compact theme control, hamburger-only navigation, full-width primary actions, resilient stat wrapping, smaller mobile page headings, flexible detail rows, and viewport-safe modal sizing.
 - Bumped `public/sw.js` to `wilpower-pwa-v5` so installed PWA clients receive the theme and mobile shell changes.
 - Root TypeScript validation passed after the theme and responsive changes. Production build and mobile TypeScript validation remain required before the next push.
+
+### Wilpower in-app navigation (2026-10-12)
+
+- Removed the duplicate bottom navigation from [`src/components/WillPowerApp.tsx`](file:///d:/xcharge-ev-platform/src/components/WillPowerApp.tsx). On mobile, the hamburger drawer is now the single navigation surface.
+- Replaced the web/PWA Directions link to Google Maps with an in-app navigation panel. The panel uses browser geolocation, Leaflet with Carto Voyager tiles, and the OSRM driving router to draw a route inside Wilpower, show distance and ETA, list route steps, and recenter on the driver's position.
+- The in-app route is honest about browser permissions and connectivity: if location is denied or routing is unavailable, the panel keeps the user inside Wilpower and presents a clear recovery action instead of silently launching another app.
+- The native Expo client and older station-map component retain their existing Google Maps handoff until their navigation surface is migrated separately.
+- Root TypeScript validation and production build passed after the in-app navigation change.
 
 ### Latest session handoff (2026-10-12)
 
