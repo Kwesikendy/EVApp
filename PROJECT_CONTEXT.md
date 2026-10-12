@@ -383,7 +383,7 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 - `src/index.css` now defines the current visual system: Obsidian void background, Will Lime accents, dotted technical texture, translucent frosted panels, blurred/sticky bars, editorial type scale, high-contrast focus states, hamburger-only mobile navigation, and reduced-motion fallbacks.
 - `src/components/WillPowerApp.tsx` now includes a richer home composition with network signal, live account stats, animated image grid overlay, clearer status values, and plain-text punctuation suitable for a polished product surface.
 - `index.html` pre-mount launch screen now matches the same dotted, orbital, dark glass direction.
-- `public/sw.js` cache identifier was advanced to `wilpower-pwa-v5` so installed PWA clients evict earlier shells and receive the refreshed CSS, launch screen, naming, logo assets, themes, and mobile refinements.
+- `public/sw.js` cache identifier was advanced to `wilpower-pwa-v6` so installed PWA clients evict earlier shells and receive the refreshed CSS, launch screen, naming, logo assets, themes, mobile refinements, and keyless map shell.
 - Customer-facing brand spelling is now standardized as `Wilpower` throughout the web metadata, PWA manifest, auth and dashboard copy, mobile app copy, and documentation. Legacy `willpower_user_session` storage is retained as a fallback for existing browser sessions.
 - Full wordmark SVG backgrounds were removed. The transparent primary and reverse SVGs are used for web, and the Expo reverse wordmark PNG was regenerated with alpha transparency. The app icon intentionally keeps its background for launcher legibility.
 - Motion is implemented with CSS transitions and keyframes across page entry, card hover lift, hero image zoom, map pins, mobile navigation, modal entry, toast entry, signal pulses, and ambient background movement.
@@ -400,14 +400,14 @@ The current hero photography is still a temporary source asset and should be rep
 - Light themes switch to the transparent primary wordmark, while Night Drive uses the transparent reverse wordmark. The full wordmark SVGs now render the exact product casing `Wilpower`; the Expo reverse wordmark PNG was regenerated from the corrected SVG.
 - Removed the customer-facing `DESIGN CONCEPT` and `CAMPAIGN IMAGE / VISUAL CONCEPT` labels. Generic live/network status badges remain available for operational state.
 - Tightened the mobile experience with a compact theme control, hamburger-only navigation, full-width primary actions, resilient stat wrapping, smaller mobile page headings, flexible detail rows, and viewport-safe modal sizing.
-- Bumped `public/sw.js` to `wilpower-pwa-v5` so installed PWA clients receive the theme and mobile shell changes.
+- Bumped `public/sw.js` to `wilpower-pwa-v6` so installed PWA clients receive the theme, mobile shell, and keyless map changes.
 - Root TypeScript validation passed after the theme and responsive changes. Production build and mobile TypeScript validation remain required before the next push.
 
 ### Wilpower in-app navigation (2026-10-12)
 
 - Removed the duplicate bottom navigation from [`src/components/WillPowerApp.tsx`](file:///d:/xcharge-ev-platform/src/components/WillPowerApp.tsx). On mobile, the hamburger drawer is now the single navigation surface.
-- Replaced the web/PWA Directions link to Google Maps with an in-app navigation panel. The panel uses browser geolocation, Leaflet with Carto Voyager tiles, and the OSRM driving router to draw a route inside Wilpower, show distance and ETA, list route steps, and recenter on the driver's position.
-- The in-app route is honest about browser permissions and connectivity: if location is denied or routing is unavailable, the panel keeps the user inside Wilpower and presents a clear recovery action instead of silently launching another app.
+- Replaced the web/PWA Directions link to Google Maps with an in-app navigation panel. The panel uses browser geolocation, Leaflet with OpenStreetMap tiles, and the OSRM driving router to draw a route inside Wilpower, show distance and ETA, list route steps, and recenter on the driver's position.
+- The in-app route uses direct OpenStreetMap tiles and the OSRM driving router, so the active web/PWA experience does not require a Google Maps API key. If location is denied or routing is unavailable, the panel keeps the user inside Wilpower and presents a clear recovery action instead of silently launching another app.
 - The native Expo client and older station-map component retain their existing Google Maps handoff until their navigation surface is migrated separately.
 - Root TypeScript validation and production build passed after the in-app navigation change.
 

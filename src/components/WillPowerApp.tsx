@@ -663,7 +663,7 @@ function InAppNavigation({ station, onClose }: InAppNavigationProps) {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
     const map = L.map(mapContainerRef.current, { center: [station.latitude, station.longitude], zoom: 14, zoomControl: false, attributionControl: false });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc', maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     const destinationIcon = L.divIcon({ className: 'wp-route-destination', html: '<span>W</span>', iconSize: [38, 38], iconAnchor: [19, 19] });
     L.marker([station.latitude, station.longitude], { icon: destinationIcon }).addTo(map).bindTooltip(station.name, { direction: 'top', offset: [0, -16] });

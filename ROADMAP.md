@@ -24,7 +24,7 @@
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Web/PWA in-app route preview with browser geolocation, Leaflet map rendering, OSRM driving route, dynamic distance/ETA, route steps, and recentering. |
-| **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with official ChargeLink GH branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v5 with auto-controller reload, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
+| **Store Distribution & PWA** | **100%** | **PWA Production Ready** | PWA installable on iOS & Android with official ChargeLink GH branding, safe-area responsiveness, native Vercel serverless API routing (`api/auth/*`, `api/stations`, `api/session/active`), offline caching v6 with auto-controller reload, keyless OpenStreetMap route tiles, zero-block auth pipeline, and persistent browser prompt with fallback pill. |
 | **Legal Defense & Privacy Suite (Act 843)** | **100%** | **Production Ready** | Statutory Terms of Service & Privacy Policy protecting CHARGELINK GH LTD across high-voltage DC fast charging, utility grid surges, MoMo escrow, drive-off damages, idle fees, and DPC data privacy rights with interactive viewers on Web and Mobile. |
 | **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, cloud serverless routing, and legal compliance suite complete; entering hardware ingress. |
 
@@ -46,7 +46,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Reworked the web/PWA visual system into the Wilpower Night Drive direction: dark editorial layout, frosted glass surfaces, lime signal accents, dot-grid texture, animated map geometry, hover lift, page transitions, modal motion, and hamburger-only mobile navigation.
 - [x] Added persistent Night Drive, Mint Light, and Paper Light web/PWA themes with light-theme wordmark switching and mobile-responsive controls.
 - [x] Refined mobile card sizing, action widths, detail-row wrapping, theme access, safe-area spacing, and viewport-safe modals.
-- [x] Removed the redundant bottom navigation and added an in-app Wilpower route panel with live location, OSRM driving geometry, route distance, ETA, route steps, and recentering.
+- [x] Removed the redundant bottom navigation and added an in-app Wilpower route panel with live location, OpenStreetMap tiles, OSRM driving geometry, route distance, ETA, route steps, and recentering. No Google Maps API key is required by the active web/PWA route.
 - [x] Removed visible em-dash, en-dash, ellipsis, and mojibake punctuation from the Wilpower web experience and replaced ambiguous status glyphs with clear text values.
 - [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
