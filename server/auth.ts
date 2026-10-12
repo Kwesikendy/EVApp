@@ -213,7 +213,7 @@ export const PRODUCTION_MOOLRE_SENDER_ID = 'ChargeLink';
 /**
  * Send OTP via Moolre Ghana Messaging API (https://api.moolre.com/open/sms/send) or dev sandbox
  */
-export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; message: string; devCode?: string }> {
+export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; message?: string; error?: string; code?: string; devCode?: string }> {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   
   // Generate deterministic 6-digit code for the current 5-minute window

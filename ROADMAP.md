@@ -1,9 +1,10 @@
 # ChargeLink GH EV Platform — Commercial Production Roadmap
 
-**Brand:** ChargeLink GH | "Powering a Cleaner Tomorrow"  
+**Customer-facing brand:** Will Power | "Power Every Journey."
+**Legal / merchant entity:** CHARGELINK GH LTD
 **Target:** Commercial launch of Ghana's premier electric vehicle fast-charging network.  
 **Currency:** Ghana Cedi (`GH₵`)  
-**Design Standard:** ChargeLink OS Dark (`#10141a` base, `#22c55e` ChargeLink Green)  
+**Design Standard:** Will Power Night Drive glass system (`#07110b` void, `#BDF22E` Will Lime, dotted field, frosted surfaces)
 **Hardware Protocol:** OCPP 1.6J (MaxPower VCP160 @ Greenwood Event Center, Kumasi)  
 **SMS & MoMo Provider:** Moolre Ghana Gateway | Merchant: CHARGELINK GH LTD  
 
@@ -28,6 +29,23 @@
 | **Overall Commercial Progress** | **~99%** | **Production Ready** | PWA, telephony, auth, payments, escrow, telemetry, motion, driver profile, live navigation, cloud serverless routing, and legal compliance suite complete; entering hardware ingress. |
 
 ---
+
+## Current Product Experience Update
+
+### Will Power rebrand and experience overhaul
+
+Status: Web and native presentation layer implemented and connected to existing backend contracts.
+
+- [x] Replaced the web ChargeLink/XCHARGE shell with the Will Power workspace.
+- [x] Added Will Power auth, responsive navigation, home overview, station explorer, charging session view, wallet ledger, payment top-up flow, and operator diagnostics.
+- [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, and MoMo endpoints.
+- [x] Added the Will Power logo masters, app icon, concept photography, metadata, and PWA identity.
+- [x] Updated the Expo brand assets, mobile theme tokens, app identity, and visible onboarding/session copy.
+- [x] Reworked the web/PWA visual system into the Will Power Night Drive direction: dark editorial layout, frosted glass surfaces, lime signal accents, dot-grid texture, animated map geometry, hover lift, page transitions, modal motion, and frosted mobile navigation.
+- [x] Removed visible em-dash, en-dash, ellipsis, and mojibake punctuation from the Will Power web experience and replaced ambiguous status glyphs with clear text values.
+- [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
+- [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
+- [ ] Connect physical charger WebSocket ingress and update the station registry from commissioning data.
 
 ## Detailed Roadmap Phases
 

@@ -3,95 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>ChargeLink GH — Powering a Cleaner Tomorrow</title>
-    
-    <!-- Icons & Manifest -->
-    <link rel="icon" type="image/jpeg" href="/chargelink-logo.jpeg" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>Will Power - Power Every Journey</title>
+    <link rel="icon" type="image/svg+xml" href="/willpower/WillPower_App_Icon_V3.svg" />
+    <link rel="apple-touch-icon" href="/willpower/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
-
-    <!-- iOS PWA Startup / Launch Screen -->
-    <link rel="apple-touch-startup-image" href="/icons/apple-splash.png" />
-    
-    <!-- PWA & Mobile Web App Meta -->
-    <meta name="theme-color" content="#1e4d2b" />
+    <meta name="theme-color" content="#0D1710" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ChargeLink GH" />
-    <meta name="application-name" content="ChargeLink GH" />
-    <meta name="msapplication-TileColor" content="#0a0e14" />
-
-    <meta name="description" content="ChargeLink GH — Ghana's premier electric vehicle fast-charging network. Greenwood Event Center, Kumasi. Powered by MaxPower VCP160 | OCPP 1.6J." />
-    <meta property="og:title" content="ChargeLink GH — Powering a Cleaner Tomorrow" />
-    <meta property="og:description" content="Ghana's premier EV charging network. Real-time OCPP telemetry, Mobile Money payments, and fleet management." />
-    <meta property="og:image" content="/chargelink-logo.jpeg" />
+    <meta name="apple-mobile-web-app-title" content="Will Power" />
+    <meta name="application-name" content="Will Power" />
+    <meta name="description" content="Will Power - a simpler way to find, understand and pay for EV charging in Ghana." />
+    <meta property="og:title" content="Will Power - Power Every Journey" />
+    <meta property="og:description" content="Find a charging point, follow your session and keep moving with confidence." />
+    <meta property="og:image" content="/willpower/Photo_Concept_Only.jpg" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ChargeLink GH" />
-    <meta name="twitter:description" content="Powering a Cleaner Tomorrow — Ghana's EV charging platform." />
-    <meta name="twitter:image" content="/chargelink-logo.jpeg" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      /* Standalone Launch Screen Animation */
-      @keyframes cl-pulse {
-        0%, 100% { opacity: 0.35; transform: scale(1); }
-        50% { opacity: 0.85; transform: scale(1.08); }
-      }
-      @keyframes cl-bar {
-        0% { transform: translateX(-100%); }
-        50% { transform: translateX(30%); }
-        100% { transform: translateX(100%); }
-      }
-      .cl-prelaunch-glow {
-        animation: cl-pulse 2.4s ease-in-out infinite;
-      }
-      @keyframes cl-spin {
-        to { transform: rotate(360deg); }
-      }
+      html, body { margin: 0; min-height: 100%; background: #07110B; }
+      #pwa-launch-screen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 35%, rgba(189,242,46,.12), transparent 26rem), #07110B; color: #F8FBF4; font-family: Inter, system-ui, sans-serif; cursor: pointer; }
+      #pwa-launch-screen::before { content: ''; position: absolute; inset: 0; opacity: .36; background-image: radial-gradient(rgba(218,255,185,.35) .75px, transparent .75px); background-size: 21px 21px; mask-image: linear-gradient(to bottom, black, transparent 84%); }
+      #pwa-launch-screen::after { content: ''; position: absolute; width: 21rem; height: 21rem; border: 1px solid rgba(189,242,46,.18); border-radius: 50%; box-shadow: 0 0 0 42px rgba(189,242,46,.04), 0 0 0 84px rgba(189,242,46,.025); }
+      #pwa-launch-screen .launch-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 17px; text-align: center; }
+      #pwa-launch-screen img { width: 126px; height: 126px; border-radius: 28px; box-shadow: 0 20px 45px rgba(0,0,0,.35); animation: launch-float 4s ease-in-out infinite; }
+      #pwa-launch-screen h1 { margin: 0; font-size: 29px; letter-spacing: -1.5px; }
+      #pwa-launch-screen p { margin: -8px 0 0; color: #B7C8B7; font-size: 12px; }
+      #pwa-launch-screen .launch-status { display: flex; align-items: center; gap: 8px; color: #BDF22E; font-size: 11px; }
+      #pwa-launch-screen .launch-status i { width: 12px; height: 12px; border: 2px solid rgba(189,242,46,.25); border-top-color: #BDF22E; border-radius: 50%; animation: launch-spin .7s linear infinite; }
+      @keyframes launch-spin { to { transform: rotate(360deg); } } @keyframes launch-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
     </style>
   </head>
-  <body class="bg-[#0a0e14] text-slate-100 antialiased overflow-hidden font-sans">
+  <body>
     <div id="root">
-      <!-- Instant Pre-Mount PWA Launch Screen (Zero Blank Flash) -->
-      <div id="pwa-launch-screen" onclick="this.remove()" style="position: fixed; inset: 0; background: #0a0e14; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1.5rem; z-index: 9999; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-user-select: none; user-select: none; cursor: pointer;">
-        
-        <!-- Center Brand Emblem with Ambient Green Glow -->
-        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem;">
-          <div style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;">
-            <!-- Ambient green backlight -->
-            <div class="cl-prelaunch-glow" style="position: absolute; inset: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(30, 77, 43, 0.15) 60%, transparent 80%); filter: blur(12px);"></div>
-            
-            <!-- Official Logo -->
-            <img 
-              src="/chargelink-logo.jpeg" 
-              alt="ChargeLink GH" 
-              style="width: 130px; height: 130px; object-fit: cover; object-position: center; border-radius: 1.5rem; border: 1.5px solid rgba(74, 222, 128, 0.35); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(34, 197, 94, 0.25); position: relative; z-index: 2;"
-            />
-          </div>
-
-          <div>
-            <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-              Charge<span style="color: #22c55e;">Link</span> <span style="color: #4ade80; font-weight: 900;">GH</span>
-            </h1>
-            <p style="margin: 0.25rem 0 0 0; font-size: 0.8125rem; color: #94a3b8; font-weight: 500;">
-              Powering a Cleaner Tomorrow
-            </p>
-          </div>
-
-          <!-- Sleek Loading Indicator -->
-          <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">
-            <div style="width: 14px; height: 14px; border: 2px solid rgba(34, 197, 94, 0.25); border-top-color: #22c55e; border-radius: 50%; animation: cl-spin 0.75s linear infinite;"></div>
-            <span>Starting console...</span>
-          </div>
+      <div id="pwa-launch-screen" onclick="this.remove()">
+        <div class="launch-inner">
+          <img src="/willpower/WillPower_App_Icon_V3.svg" alt="Will Power" />
+          <h1>will<span style="font-weight: 500">power</span></h1>
+          <p>Power Every Journey.</p>
+          <span class="launch-status"><i></i> Starting Will Power...</span>
         </div>
-
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

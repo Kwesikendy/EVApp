@@ -1,39 +1,39 @@
-# XCHARGE EV Platform
+# Will Power EV Platform
 
-> **Ghana's Premier High-Speed Electric Vehicle Charging & Commercial Fleet Network**
+> Power Every Journey.
 
-Built with **React Native / Expo** for mobile drivers, powered by an **Express / OCPP 2.0.1 (CitrineOS)** backend, and integrated with the **Moolre Ghana Messaging Gateway** for live SMS OTP verification and Ghana Mobile Money.
-
----
+Will Power is a Ghana-focused EV charging and fleet platform built with React/Vite for the responsive web workspace and React Native/Expo for mobile drivers. It is powered by an Express/OCPP backend with Moolre Ghana SMS OTP, Ghana Mobile Money, persistent wallets, fleet data, and charging-session telemetry.
 
 ## Quick Navigation
 
-- 📖 **[Complete Project Context & Architecture (`PROJECT_CONTEXT.md`)](./PROJECT_CONTEXT.md)**: Deep dive into the architecture, design tokens, active credentials, file directory, and full implementation state.
-- 🗺️ **[Commercial Production Roadmap (`ROADMAP.md`)](./ROADMAP.md)**: Milestone breakdown, progress scorecard, and next tasks from Phase 1 through Phase 4 (App Store / Play Store release).
-
----
+- PROJECT_CONTEXT.md: architecture, API contracts, persistence, and current implementation state.
+- ROADMAP.md: delivery scorecard and remaining production work.
+- Willpower.zip: supplied brand and product experience handoff.
 
 ## Quick Start
 
-### 1. Start the Backend API Server
-```bash
-npm install
-npm run dev
-```
-The server runs on `http://0.0.0.0:3000`.
+### Backend and web workspace
 
-### 2. Start the Mobile Driver App
-```bash
-cd expo-mobile
-npm install
-npx expo start
-```
-Scan the QR code with Expo Go on your physical Android or iOS device connected to the same Wi-Fi network.
+    npm install
+    npm run dev
 
----
+The server runs on http://0.0.0.0:5173.
+
+### Production build
+
+    npm run build
+
+### Mobile driver app
+
+    cd expo-mobile
+    npm install
+    npm run tunnel
 
 ## Core Specifications
-- **Currency:** Ghana Cedi (`GH₵`)
-- **Theme:** Hypercharge OS Dark (`#10141a` Obsidian, `#00f0ff` Electric Cyan)
-- **SMS Gateway:** Moolre Ghana API (`https://api.moolre.com/open/sms/send`)
-- **Persistence:** Local atomic JSON store (`data/users.json`) & Cloud Firestore (`firebase-applet-config.json`)
+
+- Currency: Ghana Cedi (GH₵ / GHS)
+- Web identity: Will Power, using Will Lime, Obsidian, Warm Paper, and Deep Green.
+- SMS gateway: Moolre Ghana API.
+- Payments: MTN MoMo, Telecel Cash, Mastercard, wallet top-ups, and escrow settlement.
+- Persistence: atomic JSON store at data/users.json.
+- Hardware protocol: OCPP 1.6J charger compatibility with OCPP 2.0.1 CSMS architecture.

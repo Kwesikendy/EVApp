@@ -23,6 +23,7 @@ import {
   LEGAL_ENTITY_NAME,
   LEGAL_JURISDICTION,
   LEGAL_CONTACT_EMAIL,
+  LEGAL_STATION_HQ,
   LegalSection,
 } from '../legalData';
 

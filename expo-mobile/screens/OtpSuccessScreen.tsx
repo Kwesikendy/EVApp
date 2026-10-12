@@ -55,7 +55,7 @@ export const OtpSuccessScreen: React.FC<OtpSuccessScreenProps> = ({ navigation, 
         <XChargeLogoNative width={180} height={52} showSubtitle={false} style={{ marginBottom: 10 }} />
         <Text style={styles.heroTitle}>Identity Verified</Text>
         <Text style={styles.heroSub}>
-          Welcome back, {user?.displayName || 'Driver'}. Establishing real-time telemetry link to ChargeLink Kumasi & Accra Grid.
+          Welcome back, {user?.displayName || 'Driver'}. Establishing your Will Power charging link across Ghana.
         </Text>
       </View>
 

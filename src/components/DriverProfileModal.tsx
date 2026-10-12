@@ -79,6 +79,7 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
   onUpdateUser,
   onOpenAdmin,
   onSignOut,
+  onOpenLegal,
 }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'vehicles' | 'preferences'>('info');
 

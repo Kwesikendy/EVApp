@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "chargeLink Gh",
-    "slug": "chargelink-mobile-app",
+    "name": "Will Power",
+    "slug": "willpower-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "chargelink",
+    "scheme": "willpower",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0e14"
+      "backgroundColor": "#0D1710"
     },
     "platforms": [
       "ios",
@@ -20,7 +20,7 @@
       "package": "com.kwesii.xchargemobileapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0a0e14"
+        "backgroundColor": "#0D1710"
       },
       "navigationBar": {
         "visible": "sticky-immersive",
@@ -41,7 +41,7 @@
       "bundleIdentifier": "com.kwesii.xchargemobileapp",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "ChargeLink Gh needs your location to find nearby EV charging stations across Ghana."
+        "NSLocationWhenInUseUsageDescription": "Will Power uses your location to help you find nearby EV charging stations across Ghana."
       }
     },
     "extra": {
