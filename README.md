@@ -29,18 +29,20 @@ The driver workspace and administrator workspace are separate interfaces. Start 
 
     http://localhost:5173/admin
 
-For local development only, sign in with:
+The built-in first-login credentials are:
 
     Email: admin@wilpower.local
     Password: WilpowerLocalAdmin!2026
 
-Before deployment, set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the server environment. The local fallback credentials are disabled when `NODE_ENV=production`.
+After signing in with the initial password, the portal requires you to choose a new password of at least 12 characters. For a custom administrator identity, set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the server environment.
 
 For Vercel, add those three variables under Project Settings -> Environment Variables for the Production environment, then redeploy. Your hosted admin URL is:
 
     https://your-vercel-domain.vercel.app/admin
 
-The Vercel deployment exposes the admin API through `api/admin/[...path].ts`. Admin station and telemetry data on Vercel currently reflects the serverless runtime snapshot; persistent admin audit and station management are still roadmap work.
+The Vercel deployment exposes the admin API through `api/admin/[...path].ts`, using the API-local auth helper in `api/_adminAuth.ts`. Admin station and telemetry data on Vercel currently reflects the serverless runtime snapshot; persistent admin audit and station management are still roadmap work.
+
+The normal driver workspace now includes a Profile page from the sidebar and account card. Drivers can save their name, email, Ghana Card or Driver ID, profile photo, EV garage, payment preference, charge limit, and SMS receipt preference. Profile updates are written through `/api/user/profile` and persisted in the JSON user store used by the backend.
 
 ### Mobile driver app
 

@@ -13,7 +13,10 @@ function readStoredUser() {
 }
 
 export default function App() {
-  if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
+  // Support both the Vercel root deployment (/admin) and hosted project
+  // base paths such as /EVApp/admin without mounting the driver shell.
+  const isAdminPath = /(^|\/)admin(?:\/|$)/.test(window.location.pathname);
+  if (isAdminPath) {
     return <WilpowerAdmin />;
   }
   return <DriverApp />;
@@ -58,6 +61,8 @@ function DriverApp() {
         try {
           localStorage.setItem('wilpower_user_session', JSON.stringify(updated));
           localStorage.setItem('willpower_user_session', JSON.stringify(updated));
+          localStorage.setItem('chargelink_user_session', JSON.stringify(updated));
+          localStorage.setItem('xcharge_user_session', JSON.stringify(updated));
         } catch {}
       }}
     />

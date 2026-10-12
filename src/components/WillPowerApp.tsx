@@ -34,12 +34,14 @@ import {
   SquareArrowOutUpRight,
   WalletCards,
   Sun,
+  UserRound,
   X,
   Zap,
 } from 'lucide-react';
 import type { ActiveTelemetrySession, ChargingStation, FleetAccount, WalletTransaction } from '../types';
+import { DriverProfileModal } from './DriverProfileModal';
 
-type ViewKey = 'home' | 'discover' | 'charging' | 'wallet' | 'operator';
+type ViewKey = 'home' | 'discover' | 'charging' | 'wallet' | 'operator' | 'profile';
 type ThemeKey = 'night' | 'mint' | 'light';
 
 interface WillPowerAppProps {
@@ -71,6 +73,7 @@ const NAV_ITEMS: { id: ViewKey; label: string; icon: React.ElementType }[] = [
   { id: 'charging', label: 'Charging session', icon: Zap },
   { id: 'wallet', label: 'Wallet & history', icon: CreditCard },
   { id: 'operator', label: 'Operator portal', icon: Grid2X2 },
+  { id: 'profile', label: 'Profile', icon: UserRound },
 ];
 
 const THEME_OPTIONS: { id: ThemeKey; label: string; note: string; icon: React.ElementType }[] = [
@@ -394,8 +397,10 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
             <p>Good journeys start with certainty.</p>
           </div>
           <div className="wp-user-card">
-            <div className="wp-avatar">{(user?.displayName || 'WP').slice(0, 2).toUpperCase()}</div>
-            <div><strong>{user?.displayName || 'Driver'}</strong><span>{primaryVehicle ? primaryVehicle.make + ' ' + primaryVehicle.model : 'Driver profile'}</span></div>
+            <button className="wp-user-card-main" onClick={() => selectView('profile')} aria-label="Open profile">
+              {user?.avatarUrl ? <img className="wp-avatar wp-avatar-image" src={user.avatarUrl} alt="" /> : <span className="wp-avatar">{(user?.displayName || 'WP').slice(0, 2).toUpperCase()}</span>}
+              <span><strong>{user?.displayName || 'Driver'}</strong><small>{primaryVehicle ? primaryVehicle.make + ' ' + primaryVehicle.model : 'Driver profile'}</small></span>
+            </button>
             <button onClick={onSignOut} aria-label="Sign out"><SquareArrowOutUpRight size={16} /></button>
           </div>
         </div>
@@ -442,6 +447,21 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
           onClose={() => { setShowTopup(false); setMomoRequest(null); setMomoPin(''); }}
         />
       )}
+      <DriverProfileModal
+        isOpen={view === 'profile'}
+        onClose={() => selectView('home')}
+        user={user}
+        activeVehicle={primaryVehicle ? primaryVehicle.make + ' ' + primaryVehicle.model : ''}
+        onSelectVehicle={(vehicleName) => {
+          const updatedVehicles = (user?.registeredVehicles || []).map((vehicle: any) => ({
+            ...vehicle,
+            isDefault: `${vehicle.make} ${vehicle.model}` === vehicleName,
+          }));
+          if (onUpdateUser) onUpdateUser({ ...user, registeredVehicles: updatedVehicles });
+        }}
+        onUpdateUser={(updated) => onUpdateUser?.(updated)}
+        onSignOut={onSignOut}
+      />
       {navigationStation && <InAppNavigation station={navigationStation} onClose={() => setNavigationStation(null)} />}
       {toast && <div className="wp-toast" role="status">{toast}</div>}
     </div>

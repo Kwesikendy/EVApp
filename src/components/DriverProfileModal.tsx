@@ -85,8 +85,8 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
 
   // Form State
   const [displayName, setDisplayName] = useState(user?.displayName || 'Kofi Mensah');
-  const [email, setEmail] = useState(user?.email || 'kofi.mensah@chargelink.com.gh');
-  const [ghanaCardId, setGhanaCardId] = useState(user?.ghanaCardId || 'GHA-729104821-4');
+  const [email, setEmail] = useState(user?.email || '');
+  const [ghanaCardId, setGhanaCardId] = useState(user?.ghanaCardId || '');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.avatarUrl);
   const [paymentMethod, setPaymentMethod] = useState<'MTN_MOMO' | 'TELECEL_CASH' | 'MASTERCARD'>(
     user?.defaultPaymentMethod || 'MTN_MOMO'
@@ -140,17 +140,26 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit (under 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Photo must be under 5MB');
+    // Keep the data URI small enough for localStorage and the JSON profile store.
+    if (file.size > 8 * 1024 * 1024) {
+      alert('Photo must be under 8MB');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setAvatarUrl(reader.result);
-      }
+      if (typeof reader.result !== 'string') return;
+      const image = new Image();
+      image.onload = () => {
+        const size = Math.min(640, Math.max(image.naturalWidth, image.naturalHeight));
+        const scale = size / Math.max(image.naturalWidth, image.naturalHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+        setAvatarUrl(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      image.src = reader.result;
     };
     reader.readAsDataURL(file);
   };
@@ -200,13 +209,17 @@ export const DriverProfileModal: React.FC<DriverProfileModalProps> = ({
 
     // Sync with backend API
     try {
-      await fetch('/api/user/profile', {
+      const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
+      if (!response.ok) throw new Error('Profile API returned an error');
     } catch (e) {
       console.warn('Backend sync error:', e);
+      setSaveNotice('Saved on this device. Server sync is unavailable.');
+      setIsSaving(false);
+      return;
     }
 
     setIsSaving(false);

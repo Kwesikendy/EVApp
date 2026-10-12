@@ -32,6 +32,7 @@ interface AdminIdentity {
   email: string;
   displayName: string;
   role: string;
+  mustChangePassword?: boolean;
 }
 
 interface AdminOverviewData {
@@ -45,6 +46,7 @@ interface AdminOverviewData {
 
 interface AdminConfig {
   localCredentialsEnabled: boolean;
+  defaultCredentialsEnabled?: boolean;
   email?: string;
 }
 
@@ -60,7 +62,12 @@ function adminMoney(value: number) {
 }
 
 async function adminRequest<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...options, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) } });
+  let response: Response;
+  try {
+    response = await fetch(url, { ...options, cache: 'no-store', credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) } });
+  } catch {
+    throw new Error(`Unable to reach the admin API at ${url}. Confirm that this is the Vercel deployment URL and redeploy the latest commit.`);
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Admin request failed.');
   return data as T;
@@ -80,8 +87,62 @@ export const WilpowerAdmin: React.FC = () => {
 
   if (checkingSession) return <div className="wa-loading"><div className="wa-loading-mark">W</div><span>Securing admin workspace...</span></div>;
   if (!admin) return <AdminLogin config={config} onAuthenticated={setAdmin} />;
+  if (admin.mustChangePassword) return <AdminPasswordChange admin={admin} onAuthenticated={setAdmin} />;
   return <AdminWorkspace admin={admin} onSignOut={() => { void adminRequest('/api/admin/auth/logout', { method: 'POST' }).finally(() => setAdmin(null)); }} />;
 };
+
+function AdminPasswordChange({ admin, onAuthenticated }: { admin: AdminIdentity; onAuthenticated: (admin: AdminIdentity) => void }) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (newPassword.length < 12) {
+      setError('Choose a password with at least 12 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('The new passwords do not match.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const result = await adminRequest<{ admin: AdminIdentity }>('/api/admin/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      onAuthenticated(result.admin);
+    } catch (requestError: any) {
+      setError(requestError.message || 'Unable to change the administrator password.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="wa-auth-shell">
+      <div className="wa-auth-orbit" aria-hidden="true" />
+      <section className="wa-auth-panel">
+        <div className="wa-brand-lockup"><div className="wa-brand-mark">W</div><div><strong>Wilpower</strong><span>Network control</span></div></div>
+        <span className="wa-eyebrow">FIRST LOGIN SECURITY CHECK</span>
+        <h1>Set your private access key.</h1>
+        <p>You are using the initial administrator password. Create a new password before entering the operations portal.</p>
+        <form className="wa-auth-form" onSubmit={submit}>
+          <label><span>Current password</span><input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type="password" autoComplete="current-password" required /></label>
+          <label><span>New password</span><input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type="password" autoComplete="new-password" minLength={12} required /></label>
+          <label><span>Confirm new password</span><input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" autoComplete="new-password" minLength={12} required /></label>
+          {error && <div className="wa-error" role="alert"><AlertTriangle size={16} />{error}</div>}
+          <button className="wa-primary-button" disabled={busy}>{busy ? 'Saving secure password...' : 'Save password and continue'} <ArrowRight size={16} /></button>
+        </form>
+        <div className="wa-dev-note"><ShieldCheck size={15} /><span>Use at least 12 characters. Your current password is never displayed.</span></div>
+      </section>
+    </div>
+  );
+}
 
 function AdminLogin({ config, onAuthenticated }: { config: AdminConfig | null; onAuthenticated: (admin: AdminIdentity) => void }) {
   const [email, setEmail] = useState(config?.email || '');
@@ -121,7 +182,7 @@ function AdminLogin({ config, onAuthenticated }: { config: AdminConfig | null; o
           {error && <div className="wa-error" role="alert"><AlertTriangle size={16} />{error}</div>}
           <button className="wa-primary-button" disabled={busy}>{busy ? 'Authenticating...' : 'Enter operations portal'} <ArrowRight size={16} /></button>
         </form>
-        {config?.localCredentialsEnabled && <div className="wa-dev-note"><ShieldCheck size={15} /><span>Local development access is enabled. Set `WILPOWER_ADMIN_EMAIL` and `WILPOWER_ADMIN_PASSWORD` before deployment.</span></div>}
+        {config?.defaultCredentialsEnabled && <div className="wa-dev-note"><ShieldCheck size={15} /><span>Initial access is enabled for {config.email || 'the configured administrator'} and requires a password change after login.</span></div>}
         <a className="wa-back-link" href="/">Return to driver experience <ChevronRight size={14} /></a>
       </section>
     </div>

@@ -205,6 +205,15 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [ ] Build finance reporting, tariff management, driver/fleet administration, staff permissions, and role assignment screens.
 - [ ] Add production hardening: rate limiting, CSRF protection, restricted admin origins, secret rotation, and external identity provider or MFA.
 - [x] Expose the admin authentication and operations surface through Vercel serverless routing at `api/admin/[...path].ts`.
+- [x] Provide built-in first-login admin credentials and a signed-session password-change flow with hashed runtime persistence.
+- [x] Keep the hosted admin function self-contained under `api/` to avoid Vercel serverless import failures.
+- [x] Preserve the isolated admin shell under both root and project-base-path deployments, with a cache-bumped PWA update.
 - [ ] Move the serverless admin station snapshot and diagnostics to a shared persistent store so changes survive function instances and deployments.
+
+### Driver profile workspace update (2026-10-12)
+
+- [x] Added Profile navigation and account-card entry to the normal driver workspace.
+- [x] Connected photo upload, name, email, Ghana Card or Driver ID, garage, payment preference, charge limit, and SMS receipt settings to the persistent profile API.
+- [ ] Move profile media and serverless profile persistence to durable object storage before high-volume production launch.
 
 

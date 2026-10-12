@@ -1,12 +1,13 @@
 import {
   adminDevelopmentInfo,
   authenticateAdmin,
+  changeAdminPassword,
   clearAdminCookie,
   issueAdminSession,
   readAdminSession,
   setAdminCookie,
   type AdminRole,
-} from '../../server/admin';
+} from '../_adminAuth';
 
 type VercelRequest = any;
 type VercelResponse = any;
@@ -66,7 +67,9 @@ function canOperate(admin: { role: AdminRole }) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  if (origin) res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Vary', 'Origin');
@@ -86,6 +89,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!admin) return res.status(401).json({ success: false, error: 'Invalid administrator credentials.' });
     setAdminCookie(res as any, issueAdminSession(admin));
     return res.status(200).json({ success: true, admin });
+  }
+
+  if (route === 'auth/change-password' && req.method === 'POST') {
+    const admin = requireAdmin(req, res);
+    if (!admin) return;
+    const body = parseBody(req);
+    const currentPassword = String(body.currentPassword || '');
+    const newPassword = String(body.newPassword || '');
+    if (newPassword.length < 12) return res.status(400).json({ error: 'New password must be at least 12 characters.' });
+    const updatedAdmin = changeAdminPassword(admin, currentPassword, newPassword);
+    if (!updatedAdmin) return res.status(400).json({ error: 'Current password is incorrect or the new password could not be saved.' });
+    setAdminCookie(res as any, issueAdminSession(updatedAdmin));
+    return res.status(200).json({ success: true, admin: updatedAdmin });
   }
 
   if (route === 'auth/me' && req.method === 'GET') {

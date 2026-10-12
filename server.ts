@@ -15,7 +15,7 @@ import {
   settleAndReleaseEscrow,
 } from './server/auth';
 import { initiateMomoPayment, confirmMomoPayment, handleMomoWebhook } from './server/momo';
-import { adminDevelopmentInfo, authenticateAdmin, clearAdminCookie, issueAdminSession, readAdminSession, requireAdmin, requireAdminRole, setAdminCookie } from './server/admin';
+import { adminDevelopmentInfo, authenticateAdmin, changeAdminPassword, clearAdminCookie, issueAdminSession, readAdminSession, requireAdmin, requireAdminRole, setAdminCookie } from './server/admin';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
@@ -342,6 +342,27 @@ app.post('/api/admin/auth/login', (req, res) => {
   }
   setAdminCookie(res, issueAdminSession(admin));
   res.json({ success: true, admin });
+});
+
+app.post('/api/admin/auth/change-password', requireAdmin, (req, res) => {
+  const admin = readAdminSession(req);
+  const currentPassword = String(req.body?.currentPassword || '');
+  const newPassword = String(req.body?.newPassword || '');
+  if (!admin) {
+    res.status(401).json({ error: 'Admin authentication required.' });
+    return;
+  }
+  if (newPassword.length < 12) {
+    res.status(400).json({ error: 'New password must be at least 12 characters.' });
+    return;
+  }
+  const updatedAdmin = changeAdminPassword(admin, currentPassword, newPassword);
+  if (!updatedAdmin) {
+    res.status(400).json({ error: 'Current password is incorrect or the new password could not be saved.' });
+    return;
+  }
+  setAdminCookie(res, issueAdminSession(updatedAdmin));
+  res.json({ success: true, admin: updatedAdmin });
 });
 
 app.get('/api/admin/auth/me', requireAdmin, (req, res) => {
@@ -1033,7 +1054,17 @@ app.put('/api/user/profile', (req, res) => {
   if (!phone) {
     return res.status(400).json({ error: 'Phone number required' });
   }
-  const updated = updateUserProfile(phone, req.body);
+  const allowedUpdates = {
+    displayName: typeof req.body.displayName === 'string' ? req.body.displayName.trim().slice(0, 120) : undefined,
+    email: typeof req.body.email === 'string' ? req.body.email.trim().slice(0, 160) : undefined,
+    avatarUrl: typeof req.body.avatarUrl === 'string' ? req.body.avatarUrl.slice(0, 450_000) : undefined,
+    ghanaCardId: typeof req.body.ghanaCardId === 'string' ? req.body.ghanaCardId.trim().slice(0, 80) : undefined,
+    targetChargeLimit: Number.isFinite(Number(req.body.targetChargeLimit)) ? Math.min(100, Math.max(50, Number(req.body.targetChargeLimit))) : undefined,
+    smsReceiptsEnabled: typeof req.body.smsReceiptsEnabled === 'boolean' ? req.body.smsReceiptsEnabled : undefined,
+    defaultPaymentMethod: ['MTN_MOMO', 'TELECEL_CASH', 'MASTERCARD'].includes(req.body.defaultPaymentMethod) ? req.body.defaultPaymentMethod : undefined,
+    registeredVehicles: Array.isArray(req.body.registeredVehicles) ? req.body.registeredVehicles : undefined,
+  };
+  const updated = updateUserProfile(phone, Object.fromEntries(Object.entries(allowedUpdates).filter(([, value]) => value !== undefined)));
   if (!updated) {
     return res.status(404).json({ error: 'User not found' });
   }

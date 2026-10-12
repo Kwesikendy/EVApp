@@ -29,6 +29,10 @@ export interface UserProfile {
   phoneNumber: string;
   displayName: string;
   email?: string;
+  avatarUrl?: string;
+  ghanaCardId?: string;
+  targetChargeLimit?: number;
+  smsReceiptsEnabled?: boolean;
   walletBalance: number;
   heldEscrow: number;
   defaultPaymentMethod: 'MTN_MOMO' | 'TELECEL_CASH' | 'MASTERCARD';
