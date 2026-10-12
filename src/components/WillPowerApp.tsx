@@ -333,7 +333,7 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
     <div className="wp-app">
       <aside className={showMobileNav ? 'wp-sidebar is-open' : 'wp-sidebar'}>
         <div className="wp-sidebar-top">
-          <div className="wp-sidebar-brand"><img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Willpower" /></div>
+          <div className="wp-sidebar-brand"><img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Wilpower" /></div>
           <button className="wp-mobile-close" onClick={() => setShowMobileNav(false)} aria-label="Close navigation"><X size={20} /></button>
         </div>
         <div className="wp-side-label">YOUR SPACE</div>
@@ -365,7 +365,7 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
       <section className="wp-content">
         <header className="wp-topbar">
           <button className="wp-mobile-menu" onClick={() => setShowMobileNav(true)} aria-label="Open navigation"><Menu size={21} /></button>
-          <div className="wp-breadcrumb"><span>Willpower</span><i>/</i><strong>{NAV_ITEMS.find((item) => item.id === view)?.label}</strong></div>
+          <div className="wp-breadcrumb"><span>Wilpower</span><i>/</i><strong>{NAV_ITEMS.find((item) => item.id === view)?.label}</strong></div>
           <div className="wp-topbar-actions">
             <span className="wp-location"><span className="wp-topbar-pulse" aria-hidden="true" /><MapPin size={15} aria-hidden="true" /> Kumasi, Ghana</span>
             <span className="wp-concept-badge">{health?.status === 'ok' ? 'LIVE NETWORK' : 'DESIGN CONCEPT'}</span>
@@ -415,7 +415,7 @@ function HomeView({ user, vehicle, wallet, session, station, onFind, onCharging,
       <section className="wp-hero">
         <div className="wp-hero-copy">
           <div className="wp-hero-signal"><span className="wp-status-dot" /> NETWORK READY <span>01 / KUMASI</span></div>
-          <span className="wp-kicker wp-kicker-lime">WILLPOWER / KUMASI</span>
+          <span className="wp-kicker wp-kicker-lime">WILPOWER / KUMASI</span>
           <h2>Less waiting.<br />More going.</h2>
           <p>Find the right connector, understand your charging session and get back on the road.</p>
           <button className="wp-primary-button" onClick={onFind}>Find a charging point <ArrowRight size={16} /></button>
@@ -510,8 +510,8 @@ function WalletView({ wallet, onTopup }: any) {
     <div className="wp-page">
       <PageHeader kicker="PAYMENTS" title="A simpler way to pay." description="One place for payment methods, receipts and every session." action={<button className="wp-primary-button" onClick={onTopup}>Add funds <ArrowRight size={16} /></button>} />
       <div className="wp-wallet-grid">
-        <section className="wp-credit-card"><div className="wp-credit-heading"><div><span className="wp-kicker wp-kicker-lime">WILLPOWER WALLET</span><h2>{money(wallet?.availableBalance)}</h2></div><WalletCards size={24} /></div><div className="wp-credit-footer"><span>Available balance</span><span>{wallet?.heldBalance ? money(wallet.heldBalance) + ' held' : 'No active hold'}</span></div></section>
-        <section className="wp-detail-card"><h2>Payment methods</h2><DetailRow label="Primary method" value={(wallet?.momoProvider || 'MTN') + ' Mobile Money'} /><DetailRow label="Billing currency" value="Ghana cedi (GHS)" /><DetailRow label="Account number" value={wallet?.phoneNumber || 'Not linked'} /><div className="wp-notice"><ShieldCheck size={18} /><span>Your payment activity is reconciled by the Willpower wallet ledger.</span></div></section>
+        <section className="wp-credit-card"><div className="wp-credit-heading"><div><span className="wp-kicker wp-kicker-lime">WILPOWER WALLET</span><h2>{money(wallet?.availableBalance)}</h2></div><WalletCards size={24} /></div><div className="wp-credit-footer"><span>Available balance</span><span>{wallet?.heldBalance ? money(wallet.heldBalance) + ' held' : 'No active hold'}</span></div></section>
+        <section className="wp-detail-card"><h2>Payment methods</h2><DetailRow label="Primary method" value={(wallet?.momoProvider || 'MTN') + ' Mobile Money'} /><DetailRow label="Billing currency" value="Ghana cedi (GHS)" /><DetailRow label="Account number" value={wallet?.phoneNumber || 'Not linked'} /><div className="wp-notice"><ShieldCheck size={18} /><span>Your payment activity is reconciled by the Wilpower wallet ledger.</span></div></section>
       </div>
       <div className="wp-section-heading"><h2>Charging history</h2><span>{wallet?.transactions?.length || 0} ledger entries</span></div>
       <section className="wp-ledger">
@@ -527,7 +527,7 @@ function OperatorView({ stations, health, simulator, fleet }: any) {
   const connected = health?.citrineOsBridge === 'CONNECTED';
   return (
     <div className="wp-page">
-      <PageHeader kicker="WILLPOWER / OPERATIONS" title="Control without clutter." description="An operator view built around action, not decorative charts." tag="BACK-OFFICE" />
+      <PageHeader kicker="WILPOWER / OPERATIONS" title="Control without clutter." description="An operator view built around action, not decorative charts." tag="BACK-OFFICE" />
       <section className="wp-metric-grid"><Metric label="Charger connections" value={station?.isOnline ? '1' : '0'} detail={station?.isOnline ? 'Online now' : 'Pending hardware integration'} icon={PlugZap} /><Metric label="Active sessions" value={simulator?.activeSession ? '1' : '0'} detail={simulator?.activeSession ? 'Live telemetry' : 'No live session'} icon={Activity} /><Metric label="Receipts reconciled" value={health?.activeSessions ?? '0'} detail={connected ? 'CSMS bridge connected' : 'Payment gateway required'} icon={WalletCards} /></section>
       <div className="wp-section-heading"><h2>What needs attention</h2><span>{station ? station.name : 'Loading station registry'}</span></div>
       <section className="wp-operator-table">

@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Willpower",
-    "slug": "willpower-mobile-app",
+    "name": "Wilpower",
+    "slug": "wilpower-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "willpower",
+    "scheme": "wilpower",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "splash": {
@@ -41,7 +41,7 @@
       "bundleIdentifier": "com.kwesii.xchargemobileapp",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Willpower uses your location to help you find nearby EV charging stations across Ghana."
+        "NSLocationWhenInUseUsageDescription": "Wilpower uses your location to help you find nearby EV charging stations across Ghana."
       }
     },
     "extra": {

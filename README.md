@@ -1,8 +1,8 @@
-# Willpower EV Platform
+# Wilpower EV Platform
 
 > Power Every Journey.
 
-Willpower is a Ghana-focused EV charging and fleet platform built with React/Vite for the responsive web workspace and React Native/Expo for mobile drivers. It is powered by an Express/OCPP backend with Moolre Ghana SMS OTP, Ghana Mobile Money, persistent wallets, fleet data, and charging-session telemetry.
+Wilpower is a Ghana-focused EV charging and fleet platform built with React/Vite for the responsive web workspace and React Native/Expo for mobile drivers. It is powered by an Express/OCPP backend with Moolre Ghana SMS OTP, Ghana Mobile Money, persistent wallets, fleet data, and charging-session telemetry.
 
 ## Quick Navigation
 
@@ -32,7 +32,7 @@ The server runs on http://0.0.0.0:5173.
 ## Core Specifications
 
 - Currency: Ghana Cedi (GH₵ / GHS)
-- Web identity: Willpower, using Will Lime, Obsidian, Warm Paper, and Deep Green.
+- Web identity: Wilpower, using Will Lime, Obsidian, Warm Paper, and Deep Green.
 - SMS gateway: Moolre Ghana API.
 - Payments: MTN MoMo, Telecel Cash, Mastercard, wallet top-ups, and escrow settlement.
 - Persistence: atomic JSON store at data/users.json.

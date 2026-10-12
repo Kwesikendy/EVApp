@@ -4,7 +4,7 @@ import { WillPowerAuth } from './components/WillPowerAuth';
 
 function readStoredUser() {
   try {
-    const saved = localStorage.getItem('willpower_user_session') || localStorage.getItem('chargelink_user_session') || localStorage.getItem('xcharge_user_session');
+    const saved = localStorage.getItem('wilpower_user_session') || localStorage.getItem('willpower_user_session') || localStorage.getItem('chargelink_user_session') || localStorage.getItem('xcharge_user_session');
     return saved ? JSON.parse(saved) : null;
   } catch {
     return null;
@@ -19,6 +19,7 @@ export default function App() {
     setCurrentUser(user);
     setGuestMode(false);
     try {
+      localStorage.setItem('wilpower_user_session', JSON.stringify(user));
       localStorage.setItem('willpower_user_session', JSON.stringify(user));
       localStorage.setItem('chargelink_user_session', JSON.stringify(user));
       localStorage.setItem('xcharge_user_session', JSON.stringify(user));
@@ -27,6 +28,7 @@ export default function App() {
 
   const handleSignOut = () => {
     try {
+      localStorage.removeItem('wilpower_user_session');
       localStorage.removeItem('willpower_user_session');
       localStorage.removeItem('chargelink_user_session');
       localStorage.removeItem('xcharge_user_session');
@@ -46,6 +48,7 @@ export default function App() {
       onUpdateUser={(updated) => {
         setCurrentUser(updated);
         try {
+          localStorage.setItem('wilpower_user_session', JSON.stringify(updated));
           localStorage.setItem('willpower_user_session', JSON.stringify(updated));
         } catch {}
       }}
