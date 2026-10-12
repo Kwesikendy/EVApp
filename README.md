@@ -36,6 +36,12 @@ For local development only, sign in with:
 
 Before deployment, set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the server environment. The local fallback credentials are disabled when `NODE_ENV=production`.
 
+For Vercel, add those three variables under Project Settings -> Environment Variables for the Production environment, then redeploy. Your hosted admin URL is:
+
+    https://your-vercel-domain.vercel.app/admin
+
+The Vercel deployment exposes the admin API through `api/admin/[...path].ts`. Admin station and telemetry data on Vercel currently reflects the serverless runtime snapshot; persistent admin audit and station management are still roadmap work.
+
 ### Mobile driver app
 
     cd expo-mobile

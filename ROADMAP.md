@@ -204,5 +204,7 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [ ] Persist station registry and admin audit events beyond the server process lifetime.
 - [ ] Build finance reporting, tariff management, driver/fleet administration, staff permissions, and role assignment screens.
 - [ ] Add production hardening: rate limiting, CSRF protection, restricted admin origins, secret rotation, and external identity provider or MFA.
+- [x] Expose the admin authentication and operations surface through Vercel serverless routing at `api/admin/[...path].ts`.
+- [ ] Move the serverless admin station snapshot and diagnostics to a shared persistent store so changes survive function instances and deployments.
 
 

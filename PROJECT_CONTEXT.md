@@ -431,6 +431,7 @@ The current hero photography is still a temporary source asset and should be rep
 - Local development access is enabled with `admin@wilpower.local` and `WilpowerLocalAdmin!2026` when `NODE_ENV` is not `production`. Production deployments must set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the environment and must never rely on the local fallback.
 - Admin station and telemetry data currently uses the existing in-memory network registry and OCPP simulator state, so admin edits last for the server process lifetime. Persistent admin audit logs, station records, role management, and finance reporting remain a production follow-up.
 - Verification for this foundation: root lint/typecheck passed, root production build passed, Expo mobile TypeScript check passed, unauthenticated admin overview returned `401`, and a local admin login followed by authenticated overview access returned `200`.
+- Added Vercel serverless coverage in [`api/admin/[...path].ts`](file:///d:/xcharge-ev-platform/api/admin/%5B...path%5D.ts) for hosted admin configuration, login, logout, session validation, overview, station reads/updates, and OCPP logs. Vercel deployments must define the three admin environment variables before redeploying.
 
 ## 8. Tomorrow's Next Priority Tasks (Roadmap Phase 3 & 4)
 
