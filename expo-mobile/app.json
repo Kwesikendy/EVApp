@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Will Power",
+    "name": "Willpower",
     "slug": "willpower-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -41,7 +41,7 @@
       "bundleIdentifier": "com.kwesii.xchargemobileapp",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Will Power uses your location to help you find nearby EV charging stations across Ghana."
+        "NSLocationWhenInUseUsageDescription": "Willpower uses your location to help you find nearby EV charging stations across Ghana."
       }
     },
     "extra": {

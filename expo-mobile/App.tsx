@@ -123,7 +123,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-01',
     stationId: 'CL-KSI-001',
-    name: 'Will Power · Greenwood Event Center',
+    name: 'Willpower · Greenwood Event Center',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -138,7 +138,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-02',
     stationId: 'CL-ACC-001',
-    name: 'Will Power · Airport City',
+    name: 'Willpower · Airport City',
     address: 'Liberation Rd, Terminal 3 District, Accra',
     distanceKm: 1.2,
     etaMins: 4,
@@ -155,7 +155,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-03',
     stationId: 'CL-ACC-002',
-    name: 'Will Power · Financial Plaza',
+    name: 'Willpower · Financial Plaza',
     address: 'High Street Commercial Core, Accra Central',
     distanceKm: 3.8,
     etaMins: 9,
@@ -170,7 +170,7 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-04',
     stationId: 'CL-ACC-003',
-    name: 'Will Power · Ridge Tech Zone',
+    name: 'Willpower · Ridge Tech Zone',
     address: 'GIMPA Bypass, Ridge Ambassadorial Enclave',
     distanceKm: 2.4,
     etaMins: 6,
@@ -224,7 +224,7 @@ const DEFAULT_FLEET: FleetVehicle[] = [
 const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   {
     id: 'tx-01',
-    title: 'Will Power · Greenwood Event Center',
+    title: 'Willpower · Greenwood Event Center',
     subtitle: 'MaxPower VCP160 · 160 kW Fast',
     timestamp: 'Today, 11:20 AM',
     amount: 110.70,
@@ -241,7 +241,7 @@ const DEFAULT_TRANSACTIONS: WalletTransaction[] = [
   },
   {
     id: 'tx-03',
-    title: 'Will Power · Financial Plaza',
+    title: 'Willpower · Financial Plaza',
     subtitle: 'CCS2 #2 · 200 kW Fast',
     timestamp: 'Yesterday, 16:15 PM',
     amount: 81.90,
@@ -344,7 +344,7 @@ function AppContent() {
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(872);
   const [packVoltage, setPackVoltage] = useState<number>(412.8);
   const [packCurrent, setPackCurrent] = useState<number>(335.2);
-  const [activeStationName, setActiveStationName] = useState<string>('Will Power · Greenwood Event Center');
+  const [activeStationName, setActiveStationName] = useState<string>('Willpower · Greenwood Event Center');
   const [activeConnectorType, setActiveConnectorType] = useState<string>('MaxPower VCP160 · 160 kW Fast');
 
   // Real-time Station Hardware Simulator state
@@ -2334,7 +2334,7 @@ function AppContent() {
                 </View>
                 <Text style={s.receiptTitle}>PAYMENT SETTLED</Text>
                 <Text style={s.receiptAmountText}>GH₵ {momoAmount.toFixed(2)}</Text>
-                <Text style={s.receiptSub}>Credited immediately to your Will Power wallet</Text>
+                <Text style={s.receiptSub}>Credited immediately to your Willpower wallet</Text>
 
                 {/* Official Invoice Card */}
                 <View style={s.receiptInvoiceCard}>
@@ -2541,7 +2541,7 @@ function AppContent() {
                   ]} />
                 </TouchableOpacity>
 
-                {/* Will Power wallet balance */}
+                {/* Willpower wallet balance */}
                 <TouchableOpacity
                   style={[
                     s.settleMethodOption,
@@ -2554,7 +2554,7 @@ function AppContent() {
                       <CreditCard size={18} color="#ffffff" />
                     </View>
                     <View>
-                      <Text style={s.settleMethodText}>Will Power Wallet Balance</Text>
+                      <Text style={s.settleMethodText}>Willpower Wallet Balance</Text>
                       <Text style={s.settleMethodSub}>Available: GH₵ {walletBalance.toFixed(2)}</Text>
                     </View>
                   </View>
@@ -2676,7 +2676,7 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
           </View>
         </View>
 
-                <Text style={ss.versionText}>Will Power · v3.0</Text>
+                <Text style={ss.versionText}>Willpower · v3.0</Text>
       </View>
     </Animated.View>
   );

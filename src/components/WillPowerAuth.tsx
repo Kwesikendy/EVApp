@@ -152,7 +152,7 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
     <main className="wp-auth">
       <section className="wp-auth-aside">
         <div className="wp-auth-brand">
-          <img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Will Power" />
+          <img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Willpower" />
         </div>
         <div className="wp-auth-aside-copy">
           <span className="wp-kicker wp-kicker-lime">POWER EVERY JOURNEY</span>
@@ -167,7 +167,7 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
 
       <section className="wp-auth-panel">
         <div className="wp-auth-mobile-brand">
-          <img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Will Power" />
+          <img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Willpower" />
         </div>
 
         {mode !== 'otp' ? (

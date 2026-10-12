@@ -1,5 +1,5 @@
-// Will Power cache v2 forces the Night Drive visual refresh into installed PWAs.
-const CACHE_NAME = 'willpower-pwa-v2';
+// Willpower cache v3 forces the transparent logo and naming refresh into installed PWAs.
+const CACHE_NAME = 'willpower-pwa-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -14,7 +14,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Will Power SW] Pre-caching offline app shell');
+      console.log('[Willpower SW] Pre-caching offline app shell');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('[Will Power SW] Evicting old cache:', name);
+            console.log('[Willpower SW] Evicting old cache:', name);
             return caches.delete(name);
           }
         })

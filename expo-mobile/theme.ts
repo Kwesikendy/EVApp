@@ -1,5 +1,5 @@
-// Will Power mobile design tokens
-// Brand: Will Power | "Power Every Journey"
+// Willpower mobile design tokens
+// Brand: Willpower | "Power Every Journey"
 export const Theme = {
   colors: {
     background: '#0D1710',

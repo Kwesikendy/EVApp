@@ -269,7 +269,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation, onNaviga
             {agreed && <Check size={12} color={Theme.colors.onPrimary} strokeWidth={3.5} />}
           </View>
           <Text style={styles.termsText}>
-            I agree to Will Power{' '}
+            I agree to Willpower{' '}
             <Text
               style={styles.termsHighlight}
               onPress={() => navigate('legal', { tab: 'terms' })}

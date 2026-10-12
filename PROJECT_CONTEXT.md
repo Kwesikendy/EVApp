@@ -346,10 +346,10 @@ FIREBASE_PROJECT_ID="gen-lang-client-0824141968"
 
 ---
 
-## 10. Will Power Rebrand & Product Experience Overhaul
+## 10. Willpower Rebrand & Product Experience Overhaul
 
 Implementation date: 2026-10-12
-Product identity: Will Power
+Product identity: Willpower
 Master tagline: Power Every Journey.
 
 The supplied Willpower.zip creative handoff has been integrated as the new product-facing identity while retaining the existing Ghana charging backend, wallet ledger, OTP flow, MoMo switch, OCPP simulator, and persistent user store.
@@ -357,18 +357,18 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 ### Delivered web experience
 
 - Replaced the legacy web shell with src/components/WillPowerApp.tsx.
-- Added unified Will Power authentication and Ghana OTP onboarding in src/components/WillPowerAuth.tsx.
-- Added Will Power visual tokens and responsive layouts in src/index.css.
+- Added unified Willpower authentication and Ghana OTP onboarding in src/components/WillPowerAuth.tsx.
+- Added Willpower visual tokens and responsive layouts in src/index.css.
 - Added real API-backed views for home, station discovery, charging telemetry, wallet history, MoMo top-ups, fleet data, and operator diagnostics.
-- Added Will Power brand assets under public/willpower/.
-- Updated index.html and public/manifest.json for the Will Power title, metadata, launch screen, theme colors, and install identity.
+- Added Willpower brand assets under public/willpower/.
+- Updated index.html and public/manifest.json for the Willpower title, metadata, launch screen, theme colors, and install identity.
 
 ### Delivered native alignment
 
-- Added Will Power raster logo masters to expo-mobile/assets/.
-- Updated expo-mobile/XChargeLogoNative.tsx to render the Will Power mark and full logo.
+- Added Willpower raster logo masters to expo-mobile/assets/.
+- Updated expo-mobile/XChargeLogoNative.tsx to render the Willpower mark and full logo.
 - Updated expo-mobile/theme.ts to the Will Lime, Obsidian, Warm Paper, and Deep Green system.
-- Updated expo-mobile/app.json and visible onboarding/session copy for Will Power.
+- Updated expo-mobile/app.json and visible onboarding/session copy for Willpower.
 
 ### Verification
 
@@ -379,25 +379,27 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 
 ### Web/PWA visual direction refresh (2026-10-12)
 
-- The first Will Power web pass was intentionally replaced with a darker, more expressive Night Drive interface after review.
+- The first Willpower web pass was intentionally replaced with a darker, more expressive Night Drive interface after review.
 - `src/index.css` now defines the current visual system: Obsidian void background, Will Lime accents, dotted technical texture, translucent frosted panels, blurred/sticky bars, editorial type scale, high-contrast focus states, responsive glass bottom navigation, and reduced-motion fallbacks.
 - `src/components/WillPowerApp.tsx` now includes a richer home composition with network signal, live account stats, animated image grid overlay, clearer status values, and plain-text punctuation suitable for a polished product surface.
 - `index.html` pre-mount launch screen now matches the same dotted, orbital, dark glass direction.
-- `public/sw.js` cache identifier is now `willpower-pwa-v2` so installed PWA clients evict the earlier visual shell and receive the refreshed CSS and launch screen.
+- `public/sw.js` cache identifier is now `willpower-pwa-v3` so installed PWA clients evict the earlier visual shell and receive the refreshed CSS, launch screen, naming, and logo assets.
+- Customer-facing brand spelling is now standardized as `Willpower` throughout the web metadata, PWA manifest, auth and dashboard copy, mobile app copy, and documentation.
+- Full wordmark SVG backgrounds were removed. The transparent primary and reverse SVGs are used for web, and the Expo reverse wordmark PNG was regenerated with alpha transparency. The app icon intentionally keeps its background for launcher legibility.
 - Motion is implemented with CSS transitions and keyframes across page entry, card hover lift, hero image zoom, map pins, mobile navigation, modal entry, toast entry, signal pulses, and ambient background movement.
 - Visual reference direction was informed by the user's preferred global UI guidance and the editorial, high-contrast, animated composition observed on Haynes Consult. The `ai.moondoog` hostname was not accessible to the browsing tool, so no private or inaccessible implementation details were copied.
 - Root TypeScript validation and production build passed after this refresh.
 
 ### Known product boundary
 
-The Will Power concept photography and sample screens remain clearly labelled as visual concepts. The real station registry currently contains Greenwood Event Center in Kumasi with hardware marked unavailable/under construction. Physical OCPP WebSocket ingress, final station commissioning, production tariffs, and live telco collection credentials remain separate production-readiness tasks.
+The Willpower concept photography and sample screens remain clearly labelled as visual concepts. The real station registry currently contains Greenwood Event Center in Kumasi with hardware marked unavailable/under construction. Physical OCPP WebSocket ingress, final station commissioning, production tariffs, and live telco collection credentials remain separate production-readiness tasks.
 
 ### Latest session handoff (2026-10-12)
 
 - The local web/PWA server was not running when the workspace was reopened, which caused `http://localhost:5173` to be unreachable.
 - `npm run dev` was started successfully from the repository root with the required elevated process-spawn permission because Vite/esbuild returned `spawn EPERM` inside the restricted shell.
 - Verified live responses while the server was running:
-  - `GET http://127.0.0.1:5173/` -> `200`, page title `Will Power - Power Every Journey`.
+  - `GET http://127.0.0.1:5173/` -> `200`, page title `Willpower - Power Every Journey`.
   - `GET http://127.0.0.1:5173/api/health` -> `200`, backend status `ok`, Citrine OS bridge `CONNECTED`.
 - For future local PWA testing, start the server first with `npm run dev`, then open `http://localhost:5173` using `http` (not `https`). If another device is testing on the same network, use the host computer's LAN IP instead of `localhost`.
 - Session continuity rule: every future implementation, configuration, verification, or operational change must be recorded in this `PROJECT_CONTEXT.md` before the task is concluded. Update `ROADMAP.md` as well whenever the change affects product scope, architecture, or roadmap status.
