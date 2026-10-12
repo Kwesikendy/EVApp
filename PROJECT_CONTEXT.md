@@ -383,7 +383,7 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 - `src/index.css` now defines the current visual system: Obsidian void background, Will Lime accents, dotted technical texture, translucent frosted panels, blurred/sticky bars, editorial type scale, high-contrast focus states, responsive glass bottom navigation, and reduced-motion fallbacks.
 - `src/components/WillPowerApp.tsx` now includes a richer home composition with network signal, live account stats, animated image grid overlay, clearer status values, and plain-text punctuation suitable for a polished product surface.
 - `index.html` pre-mount launch screen now matches the same dotted, orbital, dark glass direction.
-- `public/sw.js` cache identifier is now `wilpower-pwa-v4` so installed PWA clients evict the earlier visual shell and receive the refreshed CSS, launch screen, naming, and logo assets.
+- `public/sw.js` cache identifier was advanced to `wilpower-pwa-v5` so installed PWA clients evict earlier shells and receive the refreshed CSS, launch screen, naming, logo assets, themes, and mobile refinements.
 - Customer-facing brand spelling is now standardized as `Wilpower` throughout the web metadata, PWA manifest, auth and dashboard copy, mobile app copy, and documentation. Legacy `willpower_user_session` storage is retained as a fallback for existing browser sessions.
 - Full wordmark SVG backgrounds were removed. The transparent primary and reverse SVGs are used for web, and the Expo reverse wordmark PNG was regenerated with alpha transparency. The app icon intentionally keeps its background for launcher legibility.
 - Motion is implemented with CSS transitions and keyframes across page entry, card hover lift, hero image zoom, map pins, mobile navigation, modal entry, toast entry, signal pulses, and ambient background movement.
@@ -392,7 +392,16 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 
 ### Known product boundary
 
-The Wilpower concept photography and sample screens remain clearly labelled as visual concepts. The real station registry currently contains Greenwood Event Center in Kumasi with hardware marked unavailable/under construction. Physical OCPP WebSocket ingress, final station commissioning, production tariffs, and live telco collection credentials remain separate production-readiness tasks.
+The current hero photography is still a temporary source asset and should be replaced with licensed or commissioned Ghanaian photography before public launch. It is no longer labelled as a visual concept anywhere in the customer-facing UI. The real station registry currently contains Greenwood Event Center in Kumasi with hardware marked unavailable/under construction. Physical OCPP WebSocket ingress, final station commissioning, production tariffs, and live telco collection credentials remain separate production-readiness tasks.
+
+### Wilpower themes and mobile refinement (2026-10-12)
+
+- Added a persistent theme selector to the authenticated web/PWA shell with Night Drive, Mint Light, and Paper Light options. The selected theme is stored under `wilpower_theme`; the previous `willpower_theme` key remains readable and is updated for compatibility.
+- Light themes switch to the transparent primary wordmark, while Night Drive uses the transparent reverse wordmark. The full wordmark SVGs now render the exact product casing `Wilpower`; the Expo reverse wordmark PNG was regenerated from the corrected SVG.
+- Removed the customer-facing `DESIGN CONCEPT` and `CAMPAIGN IMAGE / VISUAL CONCEPT` labels. Generic live/network status badges remain available for operational state.
+- Tightened the mobile experience with a compact theme control, safe bottom-navigation spacing, full-width primary actions, resilient stat wrapping, smaller mobile page headings, flexible detail rows, and viewport-safe modal sizing.
+- Bumped `public/sw.js` to `wilpower-pwa-v5` so installed PWA clients receive the theme and mobile shell changes.
+- Root TypeScript validation passed after the theme and responsive changes. Production build and mobile TypeScript validation remain required before the next push.
 
 ### Latest session handoff (2026-10-12)
 

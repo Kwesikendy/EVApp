@@ -7,6 +7,7 @@ import {
   Bell,
   CarFront,
   Check,
+  ChevronDown,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -16,22 +17,27 @@ import {
   Home,
   Info,
   Layers3,
+  Leaf,
   LocateFixed,
   MapPin,
   Menu,
+  Moon,
   Navigation,
   PlugZap,
+  Palette,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   SquareArrowOutUpRight,
   WalletCards,
+  Sun,
   X,
   Zap,
 } from 'lucide-react';
 import type { ActiveTelemetrySession, ChargingStation, FleetAccount, WalletTransaction } from '../types';
 
 type ViewKey = 'home' | 'discover' | 'charging' | 'wallet' | 'operator';
+type ThemeKey = 'night' | 'mint' | 'light';
 
 interface WillPowerAppProps {
   user: any;
@@ -62,6 +68,12 @@ const NAV_ITEMS: { id: ViewKey; label: string; icon: React.ElementType }[] = [
   { id: 'charging', label: 'Charging session', icon: Zap },
   { id: 'wallet', label: 'Wallet & history', icon: CreditCard },
   { id: 'operator', label: 'Operator portal', icon: Grid2X2 },
+];
+
+const THEME_OPTIONS: { id: ThemeKey; label: string; note: string; icon: React.ElementType }[] = [
+  { id: 'night', label: 'Night Drive', note: 'Obsidian and lime', icon: Moon },
+  { id: 'mint', label: 'Mint Light', note: 'Soft green daylight', icon: Leaf },
+  { id: 'light', label: 'Paper Light', note: 'Warm, bright workspace', icon: Sun },
 ];
 
 function money(amount: number | undefined) {
@@ -112,6 +124,28 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
   const [momoPin, setMomoPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
+  const [theme, setTheme] = useState<ThemeKey>(() => {
+    try {
+      const saved = window.localStorage.getItem('wilpower_theme') || window.localStorage.getItem('willpower_theme');
+      return saved === 'mint' || saved === 'light' ? saved : 'night';
+    } catch {
+      return 'night';
+    }
+  });
+  const [showThemes, setShowThemes] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.dataset.wpTheme = theme;
+    try {
+      window.localStorage.setItem('wilpower_theme', theme);
+      window.localStorage.setItem('willpower_theme', theme);
+    } catch {
+      // Theme preference can still apply for this session when storage is unavailable.
+    }
+    return () => {
+      delete document.documentElement.dataset.wpTheme;
+    };
+  }, [theme]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -330,10 +364,10 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
   };
 
   return (
-    <div className="wp-app">
+    <div className={'wp-app wp-theme-' + theme}>
       <aside className={showMobileNav ? 'wp-sidebar is-open' : 'wp-sidebar'}>
         <div className="wp-sidebar-top">
-          <div className="wp-sidebar-brand"><img src="/willpower/WillPower_Logo_Reverse_V3.svg" alt="Wilpower" /></div>
+          <div className="wp-sidebar-brand"><img src={theme === 'night' ? '/willpower/WillPower_Logo_Reverse_V3.svg' : '/willpower/WillPower_Logo_Primary_V3.svg'} alt="Wilpower" /></div>
           <button className="wp-mobile-close" onClick={() => setShowMobileNav(false)} aria-label="Close navigation"><X size={20} /></button>
         </div>
         <div className="wp-side-label">YOUR SPACE</div>
@@ -368,7 +402,20 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
           <div className="wp-breadcrumb"><span>Wilpower</span><i>/</i><strong>{NAV_ITEMS.find((item) => item.id === view)?.label}</strong></div>
           <div className="wp-topbar-actions">
             <span className="wp-location"><span className="wp-topbar-pulse" aria-hidden="true" /><MapPin size={15} aria-hidden="true" /> Kumasi, Ghana</span>
-            <span className="wp-concept-badge">{health?.status === 'ok' ? 'LIVE NETWORK' : 'DESIGN CONCEPT'}</span>
+            <span className="wp-status-badge">{health?.status === 'ok' ? 'LIVE NETWORK' : 'NETWORK CHECK'}</span>
+            <div className="wp-theme-control">
+              <button className="wp-theme-trigger" onClick={() => setShowThemes((current) => !current)} aria-expanded={showThemes} aria-haspopup="menu" aria-label="Change theme">
+                <Palette size={16} aria-hidden="true" /><span>{THEME_OPTIONS.find((option) => option.id === theme)?.label}</span><ChevronDown size={14} aria-hidden="true" />
+              </button>
+              {showThemes && <div className="wp-theme-menu" role="menu" aria-label="Wilpower themes">
+                {THEME_OPTIONS.map((option) => {
+                  const Icon = option.icon;
+                  return <button key={option.id} className={theme === option.id ? 'is-active' : ''} onClick={() => { setTheme(option.id); setShowThemes(false); }} role="menuitemradio" aria-checked={theme === option.id}>
+                    <Icon size={16} aria-hidden="true" /><span><strong>{option.label}</strong><small>{option.note}</small></span>{theme === option.id && <Check size={15} aria-hidden="true" />}
+                  </button>;
+                })}
+              </div>}
+            </div>
             <button className="wp-icon-button" aria-label="Notifications"><Bell size={18} /></button>
           </div>
         </header>
@@ -404,7 +451,7 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
 const PageHeader: React.FC<{ kicker: string; title: string; description: string; action?: React.ReactNode; tag?: string }> = ({ kicker, title, description, action, tag }) => (
   <div className="wp-page-header">
     <div><span className="wp-kicker">{kicker}</span><h1>{title}</h1><p>{description}</p></div>
-    <div className="wp-page-header-side">{tag && <span className="wp-concept-badge">{tag}</span>}{action}</div>
+    <div className="wp-page-header-side">{tag && <span className="wp-status-badge">{tag}</span>}{action}</div>
   </div>
 );
 
@@ -421,7 +468,7 @@ function HomeView({ user, vehicle, wallet, session, station, onFind, onCharging,
           <button className="wp-primary-button" onClick={onFind}>Find a charging point <ArrowRight size={16} /></button>
           <div className="wp-hero-stats"><div><strong>01</strong><span>active location</span></div><div><strong>02</strong><span>connector types</span></div><div><strong>24/7</strong><span>account access</span></div></div>
         </div>
-        <div className="wp-hero-image"><div className="wp-hero-image-grid" aria-hidden="true" /><img src="/willpower/Photo_Concept_Only.jpg" alt="Driver connecting an electric vehicle at a charging point" /><span>CAMPAIGN IMAGE / VISUAL CONCEPT</span><b>WP / 01</b></div>
+        <div className="wp-hero-image"><div className="wp-hero-image-grid" aria-hidden="true" /><img src="/willpower/Photo_Concept_Only.jpg" alt="Driver connecting an electric vehicle at a charging point" /><b>WP / 01</b></div>
       </section>
 
       <div className="wp-home-intro"><h2>The essentials, simplified.</h2><span>Live account data · built for the road</span></div>

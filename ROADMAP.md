@@ -4,7 +4,7 @@
 **Legal / merchant entity:** CHARGELINK GH LTD
 **Target:** Commercial launch of Ghana's premier electric vehicle fast-charging network.  
 **Currency:** Ghana Cedi (`GH₵`)  
-**Design Standard:** Wilpower Night Drive glass system (`#07110b` void, `#BDF22E` Will Lime, dotted field, frosted surfaces)
+**Design Standard:** Wilpower themeable glass system (`#07110b` Night Drive, Mint Light, Paper Light, dotted field, frosted surfaces)
 **Hardware Protocol:** OCPP 1.6J (MaxPower VCP160 @ Greenwood Event Center, Kumasi)  
 **SMS & MoMo Provider:** Moolre Ghana Gateway | Merchant: CHARGELINK GH LTD  
 
@@ -41,8 +41,11 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, and MoMo endpoints.
 - [x] Added the Wilpower logo masters, app icon, concept photography, metadata, and PWA identity.
 - [x] Standardized the customer-facing spelling to `Wilpower` and removed solid backgrounds from the full primary and reverse wordmarks. Launcher icons retain their background for reliable device masking.
+- [x] Corrected the visible wordmark casing to `Wilpower`, removed customer-facing concept labels, and retained the source photography only as a temporary launch asset.
 - [x] Updated the Expo brand assets, mobile theme tokens, app identity, and visible onboarding/session copy.
 - [x] Reworked the web/PWA visual system into the Wilpower Night Drive direction: dark editorial layout, frosted glass surfaces, lime signal accents, dot-grid texture, animated map geometry, hover lift, page transitions, modal motion, and frosted mobile navigation.
+- [x] Added persistent Night Drive, Mint Light, and Paper Light web/PWA themes with light-theme wordmark switching and mobile-responsive controls.
+- [x] Refined mobile card sizing, action widths, detail-row wrapping, theme access, safe-area spacing, and viewport-safe modals.
 - [x] Removed visible em-dash, en-dash, ellipsis, and mojibake punctuation from the Wilpower web experience and replaced ambiguous status glyphs with clear text values.
 - [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
