@@ -1,5 +1,5 @@
-// Wilpower cache v4 forces the corrected brand naming into installed PWAs.
-const CACHE_NAME = 'wilpower-pwa-v4';
+// Wilpower cache v5 ships the theme selector and responsive shell refinements.
+const CACHE_NAME = 'wilpower-pwa-v5';
 
 const STATIC_ASSETS = [
   '/',
