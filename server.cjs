@@ -624,6 +624,105 @@ function handleMomoWebhook(payload) {
   return { success: false, message: `Payment status ${status} does not require crediting.` };
 }
 
+// server/admin.ts
+var import_crypto2 = __toESM(require("crypto"), 1);
+var ADMIN_COOKIE = "wilpower_admin_session";
+var SESSION_TTL_SECONDS = 60 * 60 * 8;
+var DEV_EMAIL = "admin@wilpower.local";
+var DEV_PASSWORD = "WilpowerLocalAdmin!2026";
+function isProduction() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+}
+function sessionSecret() {
+  return process.env.WILPOWER_ADMIN_SESSION_SECRET || process.env.OTP_SECRET || "wilpower-local-admin-session-secret-change-me";
+}
+function configuredCredentials() {
+  return {
+    email: (process.env.WILPOWER_ADMIN_EMAIL || (isProduction() ? "" : DEV_EMAIL)).trim().toLowerCase(),
+    password: process.env.WILPOWER_ADMIN_PASSWORD || (isProduction() ? "" : DEV_PASSWORD),
+    displayName: process.env.WILPOWER_ADMIN_NAME || "Wilpower Administrator",
+    role: process.env.WILPOWER_ADMIN_ROLE || "super_admin"
+  };
+}
+function safeEqual(left, right) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return leftBuffer.length === rightBuffer.length && import_crypto2.default.timingSafeEqual(leftBuffer, rightBuffer);
+}
+function encode(value) {
+  return Buffer.from(value).toString("base64url");
+}
+function decode(value) {
+  return Buffer.from(value, "base64url").toString("utf8");
+}
+function sign(value) {
+  return import_crypto2.default.createHmac("sha256", sessionSecret()).update(value).digest("base64url");
+}
+function authenticateAdmin(email, password) {
+  const credentials = configuredCredentials();
+  if (!credentials.email || !credentials.password) return null;
+  if (!safeEqual(email.trim().toLowerCase(), credentials.email) || !safeEqual(password, credentials.password)) return null;
+  return {
+    id: "admin-primary",
+    email: credentials.email,
+    displayName: credentials.displayName,
+    role: credentials.role
+  };
+}
+function issueAdminSession(identity) {
+  const payload = encode(JSON.stringify({ ...identity, exp: Date.now() + SESSION_TTL_SECONDS * 1e3 }));
+  return payload + "." + sign(payload);
+}
+function readAdminSession(req) {
+  const cookieHeader = req.headers.cookie || "";
+  const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(ADMIN_COOKIE + "="));
+  const bearer = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7) : "";
+  const token = cookie ? cookie.slice(ADMIN_COOKIE.length + 1) : bearer;
+  if (!token) return null;
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature || !safeEqual(signature, sign(payload))) return null;
+  try {
+    const parsed = JSON.parse(decode(payload));
+    if (!parsed.exp || parsed.exp < Date.now() || !parsed.email || !parsed.role) return null;
+    return { id: parsed.id, email: parsed.email, displayName: parsed.displayName, role: parsed.role };
+  } catch {
+    return null;
+  }
+}
+function setAdminCookie(res, token) {
+  const secure = isProduction() ? "; Secure" : "";
+  res.setHeader("Set-Cookie", `${ADMIN_COOKIE}=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL_SECONDS}${secure}`);
+}
+function clearAdminCookie(res) {
+  res.setHeader("Set-Cookie", `${ADMIN_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
+}
+function requireAdmin(req, res, next) {
+  const admin = readAdminSession(req);
+  if (!admin) {
+    res.status(401).json({ error: "Admin authentication required." });
+    return;
+  }
+  req.admin = admin;
+  next();
+}
+function requireAdminRole(...roles) {
+  return (req, res, next) => {
+    const admin = req.admin || readAdminSession(req);
+    if (!admin) {
+      res.status(401).json({ error: "Admin authentication required." });
+      return;
+    }
+    if (!roles.includes(admin.role) && admin.role !== "super_admin") {
+      res.status(403).json({ error: "Your admin role cannot perform this action." });
+      return;
+    }
+    next();
+  };
+}
+function adminDevelopmentInfo() {
+  return { localCredentialsEnabled: !isProduction(), email: isProduction() ? void 0 : DEV_EMAIL };
+}
+
 // server.ts
 var app = (0, import_express.default)();
 var PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
@@ -885,6 +984,46 @@ app.get("/api/health", (_req, res) => {
     activeSessions: ACTIVE_SESSION ? 1 : 0
   });
 });
+app.get("/api/admin/auth/config", (_req, res) => {
+  res.json(adminDevelopmentInfo());
+});
+app.post("/api/admin/auth/login", (req, res) => {
+  const { email, password } = req.body || {};
+  const admin = authenticateAdmin(String(email || ""), String(password || ""));
+  if (!admin) {
+    res.status(401).json({ success: false, error: "Invalid administrator credentials." });
+    return;
+  }
+  setAdminCookie(res, issueAdminSession(admin));
+  res.json({ success: true, admin });
+});
+app.get("/api/admin/auth/me", requireAdmin, (req, res) => {
+  res.json({ authenticated: true, admin: readAdminSession(req) });
+});
+app.post("/api/admin/auth/logout", (_req, res) => {
+  clearAdminCookie(res);
+  res.json({ success: true });
+});
+app.get("/api/admin/overview", requireAdmin, (_req, res) => {
+  const connectors = STATIONS.flatMap((station) => station.connectors);
+  const availableConnectors = connectors.filter((connector) => connector.status === "Available").length;
+  const activeSessions = ACTIVE_SESSION ? 1 : 0;
+  const sessionCost = ACTIVE_SESSION?.accruedCost || 0;
+  res.json({
+    generatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+    stations: { total: STATIONS.length, online: STATIONS.filter((station) => station.isOnline).length, offline: STATIONS.filter((station) => !station.isOnline).length },
+    connectors: { total: connectors.length, available: availableConnectors, occupied: connectors.length - availableConnectors },
+    sessions: { active: activeSessions, currentCost: sessionCost, kwhDelivered: ACTIVE_SESSION?.kwhDelivered || 0 },
+    network: { health: "ok", citrineOsBridge: "CONNECTED", ocppVersion: "OCPP 1.6J / 2.0.1" },
+    alerts: OCPP_LOGS.filter((log) => log.action === "StatusNotification" && log.payload?.status === "Faulted").slice(0, 8)
+  });
+});
+app.get("/api/admin/stations", requireAdmin, (_req, res) => {
+  res.json(STATIONS);
+});
+app.get("/api/admin/ocpp/logs", requireAdmin, (_req, res) => {
+  res.json(OCPP_LOGS);
+});
 app.get("/api/stations", (req, res) => {
   const { lat, lng, type } = req.query;
   let results = [...STATIONS];
@@ -919,7 +1058,7 @@ app.get("/api/stations/:id", (req, res) => {
   }
   res.json(station);
 });
-app.post("/api/stations", (req, res) => {
+app.post("/api/stations", requireAdminRole("network_operator"), (req, res) => {
   const { name, stationId, operator, address, latitude, longitude, connectors, amenities } = req.body;
   if (!name || !latitude || !longitude) {
     res.status(400).json({ error: "Name, latitude, and longitude are required." });
@@ -974,7 +1113,7 @@ app.post("/api/stations", (req, res) => {
   STATIONS.unshift(newStation);
   res.status(201).json({ success: true, station: newStation });
 });
-app.put("/api/stations/:id", (req, res) => {
+app.put("/api/stations/:id", requireAdminRole("network_operator"), (req, res) => {
   const index = STATIONS.findIndex((s) => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: "Station not found" });
@@ -995,7 +1134,7 @@ app.put("/api/stations/:id", (req, res) => {
   };
   res.json({ success: true, station: STATIONS[index] });
 });
-app.delete("/api/stations/:id", (req, res) => {
+app.delete("/api/stations/:id", requireAdminRole("network_operator"), (req, res) => {
   const index = STATIONS.findIndex((s) => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: "Station not found" });
@@ -1238,10 +1377,10 @@ app.post(["/api/ocpp/remote-stop", "/api/charge/stop"], (req, res) => {
     wallet: currentWallet
   });
 });
-app.get("/api/ocpp/logs", (_req, res) => {
+app.get("/api/ocpp/logs", requireAdmin, (_req, res) => {
   res.json(OCPP_LOGS);
 });
-app.post("/api/ocpp/inject-event", (req, res) => {
+app.post("/api/ocpp/inject-event", requireAdminRole("network_operator"), (req, res) => {
   const { action, payload, direction = "INCOMING" } = req.body;
   const msg = {
     id: `sim-${Date.now()}`,
