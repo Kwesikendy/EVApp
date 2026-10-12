@@ -191,4 +191,18 @@ Phase 1: Real Telephony & Auth  ──►  Phase 2: Live Payment Switch  ──�
    - Normalized all default driver emails to `@chargelink.com.gh` across backend, serverless endpoints, and persistent store.
    - Upgraded Service Worker cache version to `chargelink-pwa-v8` in [`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js).
 
+### Admin Portal Foundation (2026-10-12)
+> **Status: Foundation delivered; production operations modules remain**
+
+The admin surface is intentionally isolated from the normal driver experience. Admins enter through `/admin`, authenticate with a dedicated signed HTTP-only cookie session, and receive a separate dark operations interface.
+
+- [x] Separate `/admin` entry point that never mounts the driver shell.
+- [x] Dedicated admin login, session restore, logout, role identity, responsive operations sidebar, and mobile drawer.
+- [x] Protected admin overview, station list, network health, station status controls, live session visibility, and OCPP diagnostics.
+- [x] Role-aware protection for station writes and OCPP event injection.
+- [x] Local development credentials documented in `PROJECT_CONTEXT.md`; production environment variables documented in `.env.example`.
+- [ ] Persist station registry and admin audit events beyond the server process lifetime.
+- [ ] Build finance reporting, tariff management, driver/fleet administration, staff permissions, and role assignment screens.
+- [ ] Add production hardening: rate limiting, CSRF protection, restricted admin origins, secret rotation, and external identity provider or MFA.
+
 

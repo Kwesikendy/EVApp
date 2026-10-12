@@ -15,6 +15,7 @@ import {
   settleAndReleaseEscrow,
 } from './server/auth';
 import { initiateMomoPayment, confirmMomoPayment, handleMomoWebhook } from './server/momo';
+import { adminDevelopmentInfo, authenticateAdmin, clearAdminCookie, issueAdminSession, readAdminSession, requireAdmin, requireAdminRole, setAdminCookie } from './server/admin';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
@@ -327,6 +328,54 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// --- ISOLATED WILPOWER ADMIN PORTAL ---
+app.get('/api/admin/auth/config', (_req, res) => {
+  res.json(adminDevelopmentInfo());
+});
+
+app.post('/api/admin/auth/login', (req, res) => {
+  const { email, password } = req.body || {};
+  const admin = authenticateAdmin(String(email || ''), String(password || ''));
+  if (!admin) {
+    res.status(401).json({ success: false, error: 'Invalid administrator credentials.' });
+    return;
+  }
+  setAdminCookie(res, issueAdminSession(admin));
+  res.json({ success: true, admin });
+});
+
+app.get('/api/admin/auth/me', requireAdmin, (req, res) => {
+  res.json({ authenticated: true, admin: readAdminSession(req) });
+});
+
+app.post('/api/admin/auth/logout', (_req, res) => {
+  clearAdminCookie(res);
+  res.json({ success: true });
+});
+
+app.get('/api/admin/overview', requireAdmin, (_req, res) => {
+  const connectors = STATIONS.flatMap((station) => station.connectors);
+  const availableConnectors = connectors.filter((connector) => connector.status === 'Available').length;
+  const activeSessions = ACTIVE_SESSION ? 1 : 0;
+  const sessionCost = ACTIVE_SESSION?.accruedCost || 0;
+  res.json({
+    generatedAt: new Date().toISOString(),
+    stations: { total: STATIONS.length, online: STATIONS.filter((station) => station.isOnline).length, offline: STATIONS.filter((station) => !station.isOnline).length },
+    connectors: { total: connectors.length, available: availableConnectors, occupied: connectors.length - availableConnectors },
+    sessions: { active: activeSessions, currentCost: sessionCost, kwhDelivered: ACTIVE_SESSION?.kwhDelivered || 0 },
+    network: { health: 'ok', citrineOsBridge: 'CONNECTED', ocppVersion: 'OCPP 1.6J / 2.0.1' },
+    alerts: OCPP_LOGS.filter((log) => log.action === 'StatusNotification' && log.payload?.status === 'Faulted').slice(0, 8),
+  });
+});
+
+app.get('/api/admin/stations', requireAdmin, (_req, res) => {
+  res.json(STATIONS);
+});
+
+app.get('/api/admin/ocpp/logs', requireAdmin, (_req, res) => {
+  res.json(OCPP_LOGS);
+});
+
 // Stations list (Supports geospatial proximity simulation)
 app.get('/api/stations', (req, res) => {
   const { lat, lng, type } = req.query;
@@ -376,7 +425,7 @@ app.get('/api/stations/:id', (req, res) => {
 });
 
 // Admin: Create new charging station
-app.post('/api/stations', (req, res) => {
+app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
   const { name, stationId, operator, address, latitude, longitude, connectors, amenities } = req.body;
   if (!name || !latitude || !longitude) {
     res.status(400).json({ error: 'Name, latitude, and longitude are required.' });
@@ -439,7 +488,7 @@ app.post('/api/stations', (req, res) => {
 });
 
 // Admin: Update station
-app.put('/api/stations/:id', (req, res) => {
+app.put('/api/stations/:id', requireAdminRole('network_operator'), (req, res) => {
   const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: 'Station not found' });
@@ -465,7 +514,7 @@ app.put('/api/stations/:id', (req, res) => {
 });
 
 // Admin: Delete station
-app.delete('/api/stations/:id', (req, res) => {
+app.delete('/api/stations/:id', requireAdminRole('network_operator'), (req, res) => {
   const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: 'Station not found' });
@@ -759,12 +808,12 @@ app.post(['/api/ocpp/remote-stop', '/api/charge/stop'], (req, res) => {
 });
 
 // OCPP Audit Logs
-app.get('/api/ocpp/logs', (_req, res) => {
+app.get('/api/ocpp/logs', requireAdmin, (_req, res) => {
   res.json(OCPP_LOGS);
 });
 
 // Inject simulated hardware event (Task 4 test runner)
-app.post('/api/ocpp/inject-event', (req, res) => {
+app.post('/api/ocpp/inject-event', requireAdminRole('network_operator'), (req, res) => {
   const { action, payload, direction = 'INCOMING' } = req.body;
   const msg: OcppMessage = {
     id: `sim-${Date.now()}`,

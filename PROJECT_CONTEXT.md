@@ -421,6 +421,17 @@ The current hero photography is still a temporary source asset and should be rep
 - For future local PWA testing, start the server first with `npm run dev`, then open `http://localhost:5173` using `http` (not `https`). If another device is testing on the same network, use the host computer's LAN IP instead of `localhost`.
 - Session continuity rule: every future implementation, configuration, verification, or operational change must be recorded in this `PROJECT_CONTEXT.md` before the task is concluded. Update `ROADMAP.md` as well whenever the change affects product scope, architecture, or roadmap status.
 
+### Wilpower admin portal foundation (2026-10-12)
+
+- Added a separate admin-only web entry point at `/admin`. It does not render the driver application, does not reuse driver localStorage sessions, and uses its own operations shell in [`src/components/WilpowerAdmin.tsx`](file:///d:/xcharge-ev-platform/src/components/WilpowerAdmin.tsx).
+- Added signed, HTTP-only admin cookie sessions in [`server/admin.ts`](file:///d:/xcharge-ev-platform/server/admin.ts). The session expires after 8 hours and is separate from driver authentication. Admin roles are `super_admin`, `network_operator`, `finance_manager`, `fleet_manager`, `support_agent`, and `read_only`.
+- Added admin endpoints: `GET /api/admin/auth/config`, `POST /api/admin/auth/login`, `GET /api/admin/auth/me`, `POST /api/admin/auth/logout`, `GET /api/admin/overview`, `GET /api/admin/stations`, and `GET /api/admin/ocpp/logs`.
+- Protected station create/update/delete and OCPP event injection behind admin role checks. OCPP log inspection now requires an authenticated administrator. Public station discovery remains separate from admin operations.
+- The first admin modules are Command Center, Station Operations, Live Sessions visibility, Diagnostics, network health, station status controls, and OCPP log inspection. Finance, driver/fleet management, staff/audit controls, and a persistent station registry are intentionally marked as next modules rather than represented as complete.
+- Local development access is enabled with `admin@wilpower.local` and `WilpowerLocalAdmin!2026` when `NODE_ENV` is not `production`. Production deployments must set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the environment and must never rely on the local fallback.
+- Admin station and telemetry data currently uses the existing in-memory network registry and OCPP simulator state, so admin edits last for the server process lifetime. Persistent admin audit logs, station records, role management, and finance reporting remain a production follow-up.
+- Verification for this foundation: root lint/typecheck passed, root production build passed, Expo mobile TypeScript check passed, unauthenticated admin overview returned `401`, and a local admin login followed by authenticated overview access returned `200`.
+
 ## 8. Tomorrow's Next Priority Tasks (Roadmap Phase 3 & 4)
 
 When resuming work tomorrow, choose from the three planned tracks:

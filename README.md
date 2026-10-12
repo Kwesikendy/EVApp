@@ -23,6 +23,19 @@ The server runs on http://0.0.0.0:5173.
 
     npm run build
 
+### Admin operations portal
+
+The driver workspace and administrator workspace are separate interfaces. Start the backend with `npm run dev`, then open:
+
+    http://localhost:5173/admin
+
+For local development only, sign in with:
+
+    Email: admin@wilpower.local
+    Password: WilpowerLocalAdmin!2026
+
+Before deployment, set `WILPOWER_ADMIN_EMAIL`, `WILPOWER_ADMIN_PASSWORD`, and `WILPOWER_ADMIN_SESSION_SECRET` in the server environment. The local fallback credentials are disabled when `NODE_ENV=production`.
+
 ### Mobile driver app
 
     cd expo-mobile

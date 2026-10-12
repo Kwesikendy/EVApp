@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WillPowerApp } from './components/WillPowerApp';
 import { WillPowerAuth } from './components/WillPowerAuth';
+import { WilpowerAdmin } from './components/WilpowerAdmin';
 
 function readStoredUser() {
   try {
@@ -12,6 +13,13 @@ function readStoredUser() {
 }
 
 export default function App() {
+  if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
+    return <WilpowerAdmin />;
+  }
+  return <DriverApp />;
+}
+
+function DriverApp() {
   const [currentUser, setCurrentUser] = useState<any>(() => readStoredUser());
   const [guestMode, setGuestMode] = useState(false);
 
