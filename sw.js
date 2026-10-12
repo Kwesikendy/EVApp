@@ -1,24 +1,20 @@
-// Cache version v8 forces eviction of any older caches and ensures instant launch without lag.
-const CACHE_NAME = 'chargelink-pwa-v8';
+// Will Power cache v2 forces the Night Drive visual refresh into installed PWAs.
+const CACHE_NAME = 'willpower-pwa-v2';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/chargelink-logo.jpeg',
-  '/favicon.png',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-maskable-512.png',
-  '/icons/apple-touch-icon.png',
-  '/icons/apple-splash.png'
+  '/willpower/WillPower_App_Icon_V3.png',
+  '/willpower/WillPower_Logo_Reverse_V3.svg',
+  '/willpower/Photo_Concept_Only.jpg'
 ];
 
 // 1. Install Event - Pre-cache core shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ChargeLink SW] Pre-caching offline app shell');
+      console.log('[Will Power SW] Pre-caching offline app shell');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
@@ -31,7 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('[ChargeLink SW] Evicting old cache:', name);
+            console.log('[Will Power SW] Evicting old cache:', name);
             return caches.delete(name);
           }
         })
