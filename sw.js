@@ -1,5 +1,5 @@
-// Willpower cache v3 forces the transparent logo and naming refresh into installed PWAs.
-const CACHE_NAME = 'willpower-pwa-v3';
+// Wilpower cache v4 forces the corrected brand naming into installed PWAs.
+const CACHE_NAME = 'wilpower-pwa-v4';
 
 const STATIC_ASSETS = [
   '/',
@@ -14,7 +14,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Willpower SW] Pre-caching offline app shell');
+      console.log('[Wilpower SW] Pre-caching offline app shell');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('[Willpower SW] Evicting old cache:', name);
+            console.log('[Wilpower SW] Evicting old cache:', name);
             return caches.delete(name);
           }
         })
