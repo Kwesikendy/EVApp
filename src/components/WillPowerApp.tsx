@@ -268,9 +268,11 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, phone: user?.phoneNumber || '+233248901204', email: user?.email, displayName: user?.displayName }),
       });
-      const data = await response.json().catch(() => ({}));
+      const responseText = await response.text();
+      let data: any = {};
+      try { data = responseText ? JSON.parse(responseText) : {}; } catch {}
       if (!response.ok || !data.success) {
-        showToast(data.error || 'Payment request could not be created.');
+        showToast(data.error || `Payment request failed (${response.status}).`);
         return;
       }
       if (!data.authorization_url) {

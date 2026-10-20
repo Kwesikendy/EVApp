@@ -18,6 +18,7 @@ export default async function handler(req: any, res: any) {
     const checkout = await initializePaystackTransaction({ amount, phoneNumber: phone, email: body.email, displayName: body.displayName, callbackUrl });
     return res.status(200).json({ success: true, ...checkout });
   } catch (err: any) {
+    console.error('[Paystack initialize]', err?.message || err);
     return res.status(500).json({ success: false, error: err.message || 'Could not initialize Paystack payment.' });
   }
 }

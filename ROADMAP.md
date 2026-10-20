@@ -38,7 +38,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 
 - [x] Replaced the web ChargeLink/XCHARGE shell with the Wilpower workspace.
 - [x] Added Wilpower auth, responsive navigation, home overview, station explorer, charging session view, wallet ledger, payment top-up flow, and operator diagnostics.
-- [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, MoMo, and Paystack endpoints.
+- [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, MoMo, and Paystack endpoints, with a cache-bumped PWA deployment path.
 - [x] Added the Wilpower logo masters, app icon, concept photography, metadata, and PWA identity.
 - [x] Standardized the customer-facing spelling to `Wilpower` and removed solid backgrounds from the full primary and reverse wordmarks. Launcher icons retain their background for reliable device masking.
 - [x] Corrected the visible wordmark casing to `Wilpower`, removed customer-facing concept labels, and retained the source photography only as a temporary launch asset.
