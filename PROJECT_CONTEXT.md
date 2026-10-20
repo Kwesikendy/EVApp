@@ -314,7 +314,7 @@ npm run dev
 ```
 Starts `tsx server.ts` on `http://0.0.0.0:5173`. Serves the web frontend, Vite HMR, and all API endpoints:
 - Telephony & Auth: `POST /api/auth/send-otp`, `POST /api/auth/verify-otp`, `GET /api/user/profile`
-- Wallet & Payments: `GET /api/wallet?phoneNumber=...`, `POST /api/wallet/topup`, `POST /api/wallet/momo-initiate`, `POST /api/wallet/momo-confirm`, `POST /api/momo/webhook`
+- Wallet & Payments: `GET /api/wallet?phoneNumber=...`, `POST /api/wallet/paystack-initialize`, `GET /api/wallet/paystack-verify?reference=...`, `POST /api/paystack/webhook`, legacy `POST /api/wallet/topup`, `POST /api/wallet/momo-initiate`, `POST /api/wallet/momo-confirm`, and `POST /api/momo/webhook`
 - OCPP CSMS: `POST /api/ocpp/remote-start`, `POST /api/ocpp/remote-stop`, `GET /api/ocpp/logs`, `GET /api/session/active`
 - Stations: `GET /api/stations`, `POST /api/stations`
 
@@ -353,6 +353,15 @@ Product identity: Wilpower
 Master tagline: Power Every Journey.
 
 The supplied Willpower.zip creative handoff has been integrated as the new product-facing identity while retaining the existing Ghana charging backend, wallet ledger, OTP flow, MoMo switch, OCPP simulator, and persistent user store.
+
+### Paystack wallet top-ups (2026-10-20)
+
+- Added server-side Paystack transaction initialization in `server/paystack.ts` using GHS amounts converted to pesewas.
+- Added Paystack verification and signed webhook handling for `charge.success` events.
+- Added idempotent wallet settlement keyed by the Paystack transaction reference, with currency and amount checks before crediting the persistent user wallet.
+- Updated the web wallet top-up modal to use Paystack hosted checkout and return through `/payments/paystack/callback`.
+- Added Vercel handlers under `api/wallet/paystack-initialize.ts`, `api/wallet/paystack-verify.ts`, and `api/paystack/webhook.ts`.
+- Configure `PAYSTACK_SECRET_KEY` and `PAYSTACK_CALLBACK_URL` in Vercel before testing. The public key is not required by the current redirect checkout flow.
 
 ### Delivered web experience
 

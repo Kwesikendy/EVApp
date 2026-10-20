@@ -59,14 +59,6 @@ interface WalletState {
   transactions: WalletTransaction[];
 }
 
-interface MomoRequest {
-  transactionId: string;
-  amount: number;
-  provider: string;
-  ussdPrompt: string;
-  networkReference: string;
-}
-
 const NAV_ITEMS: { id: ViewKey; label: string; icon: React.ElementType }[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'discover', label: 'Find a charger', icon: MapPin },
@@ -125,9 +117,6 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
   const [topupAmount, setTopupAmount] = useState('50');
-  const [topupProvider, setTopupProvider] = useState('MTN');
-  const [momoRequest, setMomoRequest] = useState<MomoRequest | null>(null);
-  const [momoPin, setMomoPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
   const [navigationStation, setNavigationStation] = useState<ChargingStation | null>(null);
@@ -274,52 +263,23 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
     }
     setBusy(true);
     try {
-      const response = await fetch('/api/wallet/momo-initiate', {
+      const response = await fetch('/api/wallet/paystack-initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, provider: topupProvider, phone: user?.phoneNumber || '+233248901204' }),
+        body: JSON.stringify({ amount, phone: user?.phoneNumber || '+233248901204', email: user?.email, displayName: user?.displayName }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {
         showToast(data.error || 'Payment request could not be created.');
         return;
       }
-      setMomoRequest(data);
-    } catch {
-      showToast('Unable to reach the payment switch.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const confirmTopup = async () => {
-    if (!momoRequest) return;
-    setBusy(true);
-    try {
-      const response = await fetch('/api/wallet/momo-confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transactionId: momoRequest.transactionId,
-          amount: momoRequest.amount,
-          provider: momoRequest.provider,
-          phone: user?.phoneNumber || '+233248901204',
-          pin: momoPin,
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) {
-        showToast(data.error || 'Payment confirmation failed.');
+      if (!data.authorization_url) {
+        showToast('Paystack did not return a checkout link.');
         return;
       }
-      setWallet(data.wallet);
-      setMomoRequest(null);
-      setMomoPin('');
-      setShowTopup(false);
-      showToast('Wallet credited. Your receipt has been saved.');
-      if (onUpdateUser && data.wallet) onUpdateUser({ ...user, walletBalance: data.wallet.availableBalance });
+      window.location.assign(data.authorization_url);
     } catch {
-      showToast('Unable to confirm the payment.');
+      showToast('Unable to reach the payment switch.');
     } finally {
       setBusy(false);
     }
@@ -433,18 +393,12 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
       </section>
 
       {showTopup && (
-        <TopupModal
+        <PaystackTopupModal
           amount={topupAmount}
-          provider={topupProvider}
-          request={momoRequest}
-          pin={momoPin}
           busy={busy}
           onAmount={setTopupAmount}
-          onProvider={setTopupProvider}
-          onPin={setMomoPin}
           onStart={initiateTopup}
-          onConfirm={confirmTopup}
-          onClose={() => { setShowTopup(false); setMomoRequest(null); setMomoPin(''); }}
+          onClose={() => setShowTopup(false)}
         />
       )}
       <DriverProfileModal
@@ -774,6 +728,20 @@ function TopupModal({ amount, provider, request, pin, busy, onAmount, onProvider
       <section className="wp-modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
         <div className="wp-modal-heading"><div><span className="wp-kicker">WALLET</span><h2 id="topup-title">{request ? 'Confirm your payment.' : 'Add funds securely.'}</h2></div><button className="wp-icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button></div>
         {!request ? <><label className="wp-field"><span>Amount in Ghana cedi</span><span className="wp-input-wrap"><span className="wp-currency">GH₵</span><input value={amount} onChange={(event) => onAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" /></span></label><div className="wp-topup-presets">{['25', '50', '100', '250'].map((value) => <button key={value} onClick={() => onAmount(value)}>{value}</button>)}</div><div className="wp-field"><span>Payment provider</span><div className="wp-payment-grid"><button className={provider === 'MTN' ? 'wp-payment is-selected' : 'wp-payment'} onClick={() => onProvider('MTN')}><WalletCards size={16} /> MTN MoMo</button><button className={provider === 'TELECEL' ? 'wp-payment is-selected' : 'wp-payment'} onClick={() => onProvider('TELECEL')}><WalletCards size={16} /> Telecel Cash</button></div></div><button className="wp-primary-button wp-primary-wide" onClick={onStart} disabled={busy}>{busy ? <span className="wp-spinner" /> : <ArrowRight size={17} />} Request payment prompt</button></> : <><div className="wp-ussd-card"><span className="wp-kicker">AUTHORISATION REQUEST</span><strong>{request.ussdPrompt}</strong><small>{request.networkReference} · 60 second window</small></div><label className="wp-field"><span>Confirmation PIN <em>demo or gateway PIN</em></span><input value={pin} onChange={(event) => onPin(event.target.value)} placeholder="Enter PIN" type="password" inputMode="numeric" /></label><button className="wp-primary-button wp-primary-wide" onClick={onConfirm} disabled={busy}>{busy ? <span className="wp-spinner" /> : <Check size={17} />} Confirm and credit wallet</button><button className="wp-guest-button" onClick={() => onClose()}>Cancel payment request</button></>}
+      </section>
+    </div>
+  );
+}
+
+function PaystackTopupModal({ amount, busy, onAmount, onStart, onClose }: any) {
+  return (
+    <div className="wp-modal-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="wp-modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
+        <div className="wp-modal-heading"><div><span className="wp-kicker">WALLET</span><h2 id="topup-title">Add funds securely.</h2></div><button className="wp-icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button></div>
+        <label className="wp-field"><span>Amount in Ghana cedi</span><span className="wp-input-wrap"><span className="wp-currency">GHS</span><input value={amount} onChange={(event) => onAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" /></span></label>
+        <div className="wp-topup-presets">{['25', '50', '100', '250'].map((value) => <button key={value} onClick={() => onAmount(value)}>GHS {value}</button>)}</div>
+        <div className="wp-ussd-card"><span className="wp-kicker">SECURE PAYSTACK CHECKOUT</span><strong>Pay by card or available Ghana mobile money methods.</strong><small>You will continue to Paystack and return here after payment.</small></div>
+        <button className="wp-primary-button wp-primary-wide" onClick={onStart} disabled={busy}>{busy ? <span className="wp-spinner" /> : <ArrowRight size={17} />} Continue to Paystack</button>
       </section>
     </div>
   );

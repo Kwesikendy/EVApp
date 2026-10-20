@@ -15,12 +15,18 @@ import {
   settleAndReleaseEscrow,
 } from './server/auth';
 import { initiateMomoPayment, confirmMomoPayment, handleMomoWebhook } from './server/momo';
+import { initializePaystackTransaction, isPaystackSignatureValid, settlePaystackTransaction, verifyPaystackTransaction } from './server/paystack';
 import { adminDevelopmentInfo, authenticateAdmin, changeAdminPassword, clearAdminCookie, issueAdminSession, readAdminSession, requireAdmin, requireAdminRole, setAdminCookie } from './server/admin';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({
+  limit: '50mb',
+  verify: (req, _res, buffer) => {
+    (req as any).rawBody = Buffer.from(buffer);
+  },
+}));
 
 // Permissive CORS middleware for mobile APKs and external devices
 app.use((req, res, next) => {
@@ -623,6 +629,58 @@ app.post('/api/wallet/momo-confirm', (req, res) => {
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Paystack hosted checkout initialization. The secret key never reaches the browser.
+app.post('/api/wallet/paystack-initialize', async (req, res) => {
+  try {
+    const { amount, phone, email, displayName } = req.body || {};
+    const targetPhone = phone || '+233248901204';
+    const numAmount = parseFloat(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
+      res.status(400).json({ success: false, error: 'Invalid payment amount.' });
+      return;
+    }
+    const configuredBaseUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+    const requestOrigin = `${req.protocol}://${req.get('host')}`.replace(/\/$/, '');
+    const callbackUrl = process.env.PAYSTACK_CALLBACK_URL || `${configuredBaseUrl || requestOrigin}/payments/paystack/callback`;
+    const checkout = await initializePaystackTransaction({ amount: numAmount, phoneNumber: targetPhone, email, displayName, callbackUrl });
+    res.json({ success: true, ...checkout });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Could not initialize Paystack payment.' });
+  }
+});
+
+// Callback verification is kept server-side and settles the wallet idempotently.
+app.get('/api/wallet/paystack-verify', async (req, res) => {
+  try {
+    const reference = String(req.query.reference || '').trim();
+    if (!reference) {
+      res.status(400).json({ success: false, error: 'Missing Paystack transaction reference.' });
+      return;
+    }
+    const transaction = await verifyPaystackTransaction(reference);
+    res.json(settlePaystackTransaction(transaction));
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Could not verify Paystack payment.' });
+  }
+});
+
+// Paystack webhook. Signature validation uses the exact JSON bytes captured above.
+app.post('/api/paystack/webhook', (req, res) => {
+  const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body || {}));
+  const signature = String(req.headers['x-paystack-signature'] || '');
+  if (!isPaystackSignatureValid(rawBody, signature)) {
+    res.status(401).json({ success: false, error: 'Invalid Paystack signature.' });
+    return;
+  }
+  try {
+    const event = req.body || {};
+    if (event.event === 'charge.success' && event.data) settlePaystackTransaction(event.data);
+    res.status(200).json({ received: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Paystack webhook processing failed.' });
   }
 });
 

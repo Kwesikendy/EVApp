@@ -20,7 +20,7 @@
 | **Driver Profile & Garage Suite**| **100%** | **Production Ready** | Photo upload, 4 avatar presets, personal info, multi-vehicle garage management, and charging preferences. |
 | **Mobile Session Persistence** | **100%** | **Production Ready** | `SessionStorage` auto-login via `@react-native-async-storage/async-storage` + clean Sign Out. |
 | **Database & Vehicle VIN Storage**| **100%** | **Production Ready** | Multi-user persistent store (`data/users.json`) active across server restarts with transaction audit logs. |
-| **Ghana MoMo Payment Switch** | **100%** | **Live & Verified** | USSD push prompts (`*170#`, `*110#`), PIN authorization, persistent multi-user wallet, and pre-auth escrow refunds. |
+| **Ghana Payment Collection** | **90%** | **Paystack Hosted Checkout Added** | Paystack GHS checkout with server verification, signed webhook validation, idempotent wallet settlement, plus the existing MoMo demo/switch flow. Production webhook and account settlement checks remain. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Web/PWA in-app route preview with browser geolocation, Leaflet map rendering, OSRM driving route, dynamic distance/ETA, route steps, and recentering. |
@@ -38,7 +38,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 
 - [x] Replaced the web ChargeLink/XCHARGE shell with the Wilpower workspace.
 - [x] Added Wilpower auth, responsive navigation, home overview, station explorer, charging session view, wallet ledger, payment top-up flow, and operator diagnostics.
-- [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, and MoMo endpoints.
+- [x] Wired the new web experience to station, wallet, active-session, fleet, health, simulator, remote-start, remote-stop, MoMo, and Paystack endpoints.
 - [x] Added the Wilpower logo masters, app icon, concept photography, metadata, and PWA identity.
 - [x] Standardized the customer-facing spelling to `Wilpower` and removed solid backgrounds from the full primary and reverse wordmarks. Launcher icons retain their background for reliable device masking.
 - [x] Corrected the visible wordmark casing to `Wilpower`, removed customer-facing concept labels, and retained the source photography only as a temporary launch asset.

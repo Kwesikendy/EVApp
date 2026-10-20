@@ -2,7 +2,7 @@
 
 > Power Every Journey.
 
-Wilpower is a Ghana-focused EV charging and fleet platform built with React/Vite for the responsive web workspace and React Native/Expo for mobile drivers. It is powered by an Express/OCPP backend with Moolre Ghana SMS OTP, Ghana Mobile Money, persistent wallets, fleet data, and charging-session telemetry.
+Wilpower is a Ghana-focused EV charging and fleet platform built with React/Vite for the responsive web workspace and React Native/Expo for mobile drivers. It is powered by an Express/OCPP backend with Moolre Ghana SMS OTP, Paystack GHS checkout, persistent wallets, fleet data, and charging-session telemetry.
 
 ## Quick Navigation
 
@@ -44,6 +44,14 @@ The Vercel deployment exposes the admin API through `api/admin/[...path].ts`, us
 
 The normal driver workspace now includes a Profile page from the sidebar and account card. Drivers can save their name, email, Ghana Card or Driver ID, profile photo, EV garage, payment preference, charge limit, and SMS receipt preference. Profile updates are written through `/api/user/profile` and persisted in the JSON user store used by the backend.
 
+### Paystack payments
+
+The web wallet uses Paystack hosted checkout. Add `PAYSTACK_SECRET_KEY` and `PAYSTACK_CALLBACK_URL` to the server/Vercel environment, then configure the Paystack dashboard webhook URL as:
+
+    https://your-vercel-domain.vercel.app/api/paystack/webhook
+
+Use a `sk_test_...` key while testing and a `sk_live_...` key only for production. The secret key must remain server-side. The app verifies the transaction status, GHS currency, amount, and reference before crediting the wallet. It also prevents the same reference from being credited twice.
+
 ### Mobile driver app
 
     cd expo-mobile
@@ -55,6 +63,6 @@ The normal driver workspace now includes a Profile page from the sidebar and acc
 - Currency: Ghana Cedi (GH₵ / GHS)
 - Web identity: Wilpower, using Will Lime, Obsidian, Warm Paper, and Deep Green.
 - SMS gateway: Moolre Ghana API.
-- Payments: MTN MoMo, Telecel Cash, Mastercard, wallet top-ups, and escrow settlement.
+- Payments: Paystack hosted checkout for GHS card/mobile-money payments, legacy MTN MoMo and Telecel Cash flows, wallet top-ups, and escrow settlement.
 - Persistence: atomic JSON store at data/users.json.
 - Hardware protocol: OCPP 1.6J charger compatibility with OCPP 2.0.1 CSMS architecture.
