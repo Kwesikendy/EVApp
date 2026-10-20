@@ -1,5 +1,5 @@
-// Wilpower cache v6 ships the in-app route map without a Google Maps API key.
-const CACHE_NAME = 'wilpower-pwa-v7';
+// Wilpower cache v8 includes the Paystack wallet checkout flow.
+const CACHE_NAME = 'wilpower-pwa-v8';
 
 const STATIC_ASSETS = [
   '/',
