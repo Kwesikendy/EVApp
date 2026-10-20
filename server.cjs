@@ -624,8 +624,102 @@ function handleMomoWebhook(payload) {
   return { success: false, message: `Payment status ${status} does not require crediting.` };
 }
 
-// server/admin.ts
+// server/paystack.ts
 var import_crypto2 = __toESM(require("crypto"), 1);
+var PAYSTACK_API_URL = "https://api.paystack.co";
+function secretKey() {
+  return (process.env.PAYSTACK_SECRET_KEY || "").replace(/^['"]|['"]$/g, "").trim();
+}
+function parseMetadata(value) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+async function paystackRequest(path4, init) {
+  const key = secretKey();
+  if (!key) throw new Error("PAYSTACK_SECRET_KEY is not configured on the server.");
+  const response = await fetch(`${PAYSTACK_API_URL}${path4}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+      ...init.headers || {}
+    }
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload?.status) {
+    throw new Error(payload?.message || `Paystack request failed with status ${response.status}.`);
+  }
+  return payload.data;
+}
+async function initializePaystackTransaction(params) {
+  const normalizedPhone = normalizeGhanaPhoneNumber(params.phoneNumber);
+  const amountInPesewas = Math.round(params.amount * 100);
+  if (!Number.isFinite(amountInPesewas) || amountInPesewas <= 0) throw new Error("Invalid payment amount.");
+  const profile = getUserProfile(normalizedPhone);
+  const email = params.email || profile?.email || `${normalizedPhone.replace(/\D/g, "")}@chargelink.com.gh`;
+  const reference = `CHG-${Date.now()}-${import_crypto2.default.randomBytes(4).toString("hex")}`;
+  return paystackRequest("/transaction/initialize", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      amount: String(amountInPesewas),
+      currency: "GHS",
+      reference,
+      callback_url: params.callbackUrl,
+      metadata: {
+        purpose: "wallet_topup",
+        phoneNumber: normalizedPhone,
+        amountGhs: Number(params.amount.toFixed(2)),
+        displayName: params.displayName || profile?.displayName || void 0
+      }
+    })
+  });
+}
+async function verifyPaystackTransaction(reference) {
+  if (!reference.trim()) throw new Error("A Paystack transaction reference is required.");
+  return paystackRequest(`/transaction/verify/${encodeURIComponent(reference.trim())}`, { method: "GET" });
+}
+function isPaystackSignatureValid(rawBody, signature) {
+  const key = secretKey();
+  if (!key || !signature) return false;
+  const expected = import_crypto2.default.createHmac("sha512", key).update(rawBody).digest("hex");
+  const left = Buffer.from(expected);
+  const right = Buffer.from(signature);
+  return left.length === right.length && import_crypto2.default.timingSafeEqual(left, right);
+}
+function settlePaystackTransaction(transaction) {
+  const metadata = parseMetadata(transaction.metadata);
+  const rawPhone = metadata.phoneNumber || transaction.customer?.phone || "";
+  const phoneNumber = normalizeGhanaPhoneNumber(String(rawPhone));
+  const amountGhs = Number(transaction.amount) / 100;
+  const expectedAmount = Number(metadata.amountGhs);
+  if (transaction.status !== "success") throw new Error(`Payment is not successful. Current status: ${transaction.status || "unknown"}.`);
+  if (transaction.currency !== "GHS") throw new Error("Payment currency mismatch. Expected GHS.");
+  if (!/^\+233\d{9}$/.test(phoneNumber)) throw new Error("The Paystack transaction does not contain a valid Ghana phone number.");
+  if (Number.isFinite(expectedAmount) && expectedAmount > 0 && Math.round(expectedAmount * 100) !== Number(transaction.amount)) {
+    throw new Error("Payment amount mismatch. Wallet was not credited.");
+  }
+  const existingUser = getUserProfile(phoneNumber);
+  const existingTransaction = existingUser?.transactions?.find((item) => item.reference === transaction.reference);
+  if (existingTransaction) {
+    return { success: true, alreadyCredited: true, reference: transaction.reference, wallet: getUserWallet(phoneNumber), user: existingUser };
+  }
+  const provider = transaction.channel === "card" ? "CARD" : "MOMO";
+  const user = creditUserWallet(phoneNumber, amountGhs, `Paystack wallet top-up (${transaction.channel || "payment"})`, transaction.reference, provider);
+  return { success: true, alreadyCredited: false, reference: transaction.reference, wallet: getUserWallet(phoneNumber), user };
+}
+
+// server/admin.ts
+var import_crypto3 = __toESM(require("crypto"), 1);
 var import_fs2 = __toESM(require("fs"), 1);
 var import_path2 = __toESM(require("path"), 1);
 var ADMIN_COOKIE = "wilpower_admin_session";
@@ -657,10 +751,10 @@ function readPasswordOverride() {
     return null;
   }
 }
-function hashPassword(password, salt = import_crypto2.default.randomBytes(16).toString("hex")) {
+function hashPassword(password, salt = import_crypto3.default.randomBytes(16).toString("hex")) {
   return {
     salt,
-    hash: import_crypto2.default.scryptSync(password, salt, 64).toString("hex")
+    hash: import_crypto3.default.scryptSync(password, salt, 64).toString("hex")
   };
 }
 function passwordMatches(password) {
@@ -668,7 +762,7 @@ function passwordMatches(password) {
   if (override) {
     const candidate = Buffer.from(hashPassword(password, override.salt).hash, "hex");
     const expected = Buffer.from(override.hash, "hex");
-    return candidate.length === expected.length && import_crypto2.default.timingSafeEqual(candidate, expected);
+    return candidate.length === expected.length && import_crypto3.default.timingSafeEqual(candidate, expected);
   }
   return safeEqual(password, configuredCredentials().password);
 }
@@ -689,7 +783,7 @@ function savePasswordOverride(password) {
 function safeEqual(left, right) {
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
-  return leftBuffer.length === rightBuffer.length && import_crypto2.default.timingSafeEqual(leftBuffer, rightBuffer);
+  return leftBuffer.length === rightBuffer.length && import_crypto3.default.timingSafeEqual(leftBuffer, rightBuffer);
 }
 function encode(value) {
   return Buffer.from(value).toString("base64url");
@@ -698,7 +792,7 @@ function decode(value) {
   return Buffer.from(value, "base64url").toString("utf8");
 }
 function sign(value) {
-  return import_crypto2.default.createHmac("sha256", sessionSecret()).update(value).digest("base64url");
+  return import_crypto3.default.createHmac("sha256", sessionSecret()).update(value).digest("base64url");
 }
 function authenticateAdmin(email, password) {
   const credentials = configuredCredentials();
@@ -779,7 +873,12 @@ function adminDevelopmentInfo() {
 // server.ts
 var app = (0, import_express.default)();
 var PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
-app.use(import_express.default.json({ limit: "50mb" }));
+app.use(import_express.default.json({
+  limit: "50mb",
+  verify: (req, _res, buffer) => {
+    req.rawBody = Buffer.from(buffer);
+  }
+}));
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -1282,6 +1381,52 @@ app.post("/api/wallet/momo-confirm", (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+app.post("/api/wallet/paystack-initialize", async (req, res) => {
+  try {
+    const { amount, phone, email, displayName } = req.body || {};
+    const targetPhone = phone || "+233248901204";
+    const numAmount = parseFloat(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
+      res.status(400).json({ success: false, error: "Invalid payment amount." });
+      return;
+    }
+    const configuredBaseUrl = (process.env.APP_URL || "").replace(/\/$/, "");
+    const requestOrigin = `${req.protocol}://${req.get("host")}`.replace(/\/$/, "");
+    const callbackUrl = process.env.PAYSTACK_CALLBACK_URL || `${configuredBaseUrl || requestOrigin}/payments/paystack/callback`;
+    const checkout = await initializePaystackTransaction({ amount: numAmount, phoneNumber: targetPhone, email, displayName, callbackUrl });
+    res.json({ success: true, ...checkout });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || "Could not initialize Paystack payment." });
+  }
+});
+app.get("/api/wallet/paystack-verify", async (req, res) => {
+  try {
+    const reference = String(req.query.reference || "").trim();
+    if (!reference) {
+      res.status(400).json({ success: false, error: "Missing Paystack transaction reference." });
+      return;
+    }
+    const transaction = await verifyPaystackTransaction(reference);
+    res.json(settlePaystackTransaction(transaction));
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message || "Could not verify Paystack payment." });
+  }
+});
+app.post("/api/paystack/webhook", (req, res) => {
+  const rawBody = req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
+  const signature = String(req.headers["x-paystack-signature"] || "");
+  if (!isPaystackSignatureValid(rawBody, signature)) {
+    res.status(401).json({ success: false, error: "Invalid Paystack signature." });
+    return;
+  }
+  try {
+    const event = req.body || {};
+    if (event.event === "charge.success" && event.data) settlePaystackTransaction(event.data);
+    res.status(200).json({ received: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || "Paystack webhook processing failed." });
   }
 });
 app.post("/api/momo/webhook", (req, res) => {
