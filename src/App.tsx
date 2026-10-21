@@ -26,37 +26,94 @@ export default function App() {
 }
 
 function PaystackCallback() {
-  const [message, setMessage] = useState('Confirming your payment...');
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [message, setMessage] = useState('Confirming your payment with Paystack...');
+  const [errorDetails, setErrorDetails] = useState('');
+  const [creditedAmount, setCreditedAmount] = useState<number | null>(null);
+  const [newBalance, setNewBalance] = useState<number | null>(null);
 
   React.useEffect(() => {
-    const reference = new URLSearchParams(window.location.search).get('reference');
+    // Remove static HTML splash/launch screen immediately
+    const launchScreen = document.getElementById('pwa-launch-screen');
+    if (launchScreen) launchScreen.remove();
+
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+
     if (!reference) {
-      setError('No Paystack transaction reference was returned.');
+      setStatus('error');
+      setErrorDetails('No Paystack transaction reference was found in the callback URL.');
       return;
     }
 
     void fetch('/api/wallet/paystack-verify?reference=' + encodeURIComponent(reference))
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.success) throw new Error(data.error || 'Payment verification failed.');
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Payment verification failed.');
+        }
+
         if (data.user) {
           for (const key of ['wilpower_user_session', 'willpower_user_session', 'chargelink_user_session', 'xcharge_user_session']) {
             localStorage.setItem(key, JSON.stringify(data.user));
           }
+          if (typeof data.user.walletBalance === 'number') {
+            setNewBalance(data.user.walletBalance);
+          }
         }
-        setMessage('Payment confirmed. Returning to your wallet...');
-        window.setTimeout(() => window.location.replace('/'), 900);
+        if (data.wallet?.transactions?.[0]?.amount) {
+          setCreditedAmount(data.wallet.transactions[0].amount);
+        }
+
+        setStatus('success');
+        setMessage('Payment confirmed! Your wallet has been credited.');
+        window.setTimeout(() => window.location.replace('/'), 2200);
       })
-      .catch((err) => setError(err.message || 'Payment verification failed.'));
+      .catch((err) => {
+        setStatus('error');
+        setErrorDetails(err.message || 'Payment verification failed.');
+      });
   }, []);
 
   return (
-    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#10141a', color: '#fff' }}>
-      <section style={{ maxWidth: 480, textAlign: 'center' }}>
-        <h1>{error ? 'Payment could not be confirmed' : message}</h1>
-        {error && <><p>{error}</p><button onClick={() => window.location.replace('/')} style={{ padding: '12px 18px' }}>Return to wallet</button></>}
+    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#07110B', color: '#F8FBF4', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <section style={{ maxWidth: 440, width: '100%', textAlign: 'center', background: '#0D1710', border: '1px solid rgba(189,242,46,0.18)', borderRadius: 24, padding: 36, boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}>
+        <div style={{ width: 68, height: 68, margin: '0 auto 20px', borderRadius: '50%', background: status === 'error' ? 'rgba(255,77,77,0.12)' : 'rgba(189,242,46,0.12)', border: status === 'error' ? '2px solid #ff4d4d' : '2px solid #BDF22E', display: 'grid', placeItems: 'center', fontSize: 28 }}>
+          {status === 'verifying' && <span style={{ width: 28, height: 28, border: '3px solid rgba(189,242,46,0.25)', borderTopColor: '#BDF22E', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
+          {status === 'success' && '✓'}
+          {status === 'error' && '!'}
+        </div>
+
+        <h1 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.5px' }}>
+          {status === 'verifying' && 'Verifying Payment'}
+          {status === 'success' && 'Payment Successful!'}
+          {status === 'error' && 'Verification Issue'}
+        </h1>
+
+        <p style={{ margin: '0 0 20px', color: '#B7C8B7', fontSize: 14, lineHeight: 1.5 }}>
+          {status === 'error' ? errorDetails : message}
+        </p>
+
+        {status === 'success' && creditedAmount !== null && (
+          <div style={{ background: 'rgba(189,242,46,0.06)', border: '1px solid rgba(189,242,46,0.2)', borderRadius: 14, padding: '14px 18px', marginBottom: 20 }}>
+            <span style={{ display: 'block', fontSize: 11, color: '#8EA28E', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Top-Up Amount</span>
+            <strong style={{ fontSize: 24, color: '#BDF22E' }}>+ GH₵ {creditedAmount.toFixed(2)}</strong>
+            {newBalance !== null && (
+              <span style={{ display: 'block', fontSize: 12, color: '#F8FBF4', marginTop: 6 }}>
+                New Balance: <strong>GH₵ {newBalance.toFixed(2)}</strong>
+              </span>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={() => window.location.replace('/')}
+          style={{ width: '100%', padding: '14px 20px', background: status === 'error' ? '#2A1818' : '#BDF22E', color: status === 'error' ? '#ff8080' : '#07110B', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease' }}
+        >
+          {status === 'verifying' ? 'Cancel & Return' : 'Return to Wallet'}
+        </button>
       </section>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );
 }
