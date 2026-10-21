@@ -213,7 +213,15 @@ The admin surface is intentionally isolated from the normal driver experience. A
 ### Driver profile workspace update (2026-10-12)
 
 - [x] Added Profile navigation and account-card entry to the normal driver workspace.
-- [x] Connected photo upload, name, email, Ghana Card or Driver ID, garage, payment preference, charge limit, and SMS receipt settings to the persistent profile API.
+- [x] Connected photo upload, name, email, Ghana Card or Driver ID, garage, payment preference, charge limit, and SMS receipt preference to the persistent profile API.
 - [ ] Move profile media and serverless profile persistence to durable object storage before high-volume production launch.
+
+### Vercel Serverless Function Zero-Dependency Hardening (2026-10-21)
+- [x] Eliminate Node ESM `ERR_MODULE_NOT_FOUND` across all `/api/` serverless functions by removing relative module dependencies.
+- [x] Make `/api/wallet/momo-initiate` support GET (200 status) and POST (USSD prompt dispatch) to prevent `FUNCTION_INVOCATION_FAILED`.
+- [x] Make `/api/wallet/momo-confirm` and `/api/wallet/topup` self-contained and persistent on `/tmp/xcharge-data/users.json`.
+- [x] Inline Paystack checkout runtime in `/api/wallet/paystack-initialize`, `/api/wallet/paystack-verify`, and `/api/paystack/webhook`.
+- [x] Inline admin session engine in `/api/admin/[...path].ts` for standalone deployment.
+
 
 

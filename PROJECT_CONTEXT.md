@@ -445,11 +445,15 @@ The current hero photography is still a temporary source asset and should be rep
 - Added Vercel serverless coverage in [`api/admin/[...path].ts`](file:///d:/xcharge-ev-platform/api/admin/%5B...path%5D.ts) for hosted admin configuration, login, first-login password change, logout, session validation, overview, station reads/updates, and OCPP logs. The hosted handler now imports only the API-local [`api/_adminAuth.ts`](file:///d:/xcharge-ev-platform/api/_adminAuth.ts) helper so Vercel does not need to bundle the Express server tree. Password changes are hashed and saved to the runtime admin store; a durable external admin store remains a production hardening follow-up for multi-instance deployments.
 - Admin route detection now recognizes both `/admin` and project-base-path URLs such as `/EVApp/admin`; the PWA cache version was bumped so deployed clients receive this route fix instead of mounting the driver shell from a stale bundle.
 
-### Driver profile workspace update (2026-10-12)
-
-- Wired [`DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx) into the normal Wilpower workspace as a Profile navigation page and account-card action.
-- Drivers can edit display name, email, Ghana Card or Driver ID, profile photo, EV garage, payment preference, target charge limit, and SMS receipt preference. Uploaded images are resized before being saved to avoid oversized browser and JSON-store payloads.
 - Extended [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) and `/api/user/profile` to persist the editable profile fields while protecting wallet balances and escrow fields from profile overposting.
+
+### Vercel Serverless Function Zero-Dependency Hardening (2026-10-21)
+- **Eliminated `FUNCTION_INVOCATION_FAILED` (HTTP 500)** across all Vercel serverless functions by making every file in [`api/`](file:///d:/xcharge-ev-platform/api/) completely self-contained with zero relative cross-module imports outside standard Node built-ins (`crypto`, `fs`, `path`, `http`).
+- **Resilient MoMo Initiation (`GET & POST /api/wallet/momo-initiate`)**: Handles both GET requests (returning 200 OK operational status) and POST payment initiation (returning authentic Ghana USSD prompts for MTN *170# and Telecel *110#), fully supporting legacy mobile client calls without server crashes.
+- **Resilient MoMo Confirmation & Top-Up (`/api/wallet/momo-confirm`, `/api/wallet/topup`)**: Self-contained payment settlement handlers persisting credited balances into `/tmp/xcharge-data/users.json` with fallback to seeded driver data.
+- **Paystack Serverless Endpoints (`/api/wallet/paystack-initialize`, `/api/wallet/paystack-verify`, `/api/paystack/webhook`)**: Inlined Paystack runtime without unresolvable ESM relative imports, enabling smooth checkout initialization, verification, and webhook settlement on Vercel.
+- **Admin Serverless Route (`/api/admin/[...path]`)**: Inlined session signing and credential management so `/api/admin/*` functions deploy and execute without missing module dependencies.
+- **Wallet Status (`/api/wallet`)**: Added phone query lookup against persistent disk/tmp user storage.
 
 ## 8. Tomorrow's Next Priority Tasks (Roadmap Phase 3 & 4)
 
