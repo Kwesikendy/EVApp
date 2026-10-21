@@ -447,13 +447,12 @@ The current hero photography is still a temporary source asset and should be rep
 
 - Extended [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts) and `/api/user/profile` to persist the editable profile fields while protecting wallet balances and escrow fields from profile overposting.
 
-### Vercel Serverless Function Zero-Dependency Hardening (2026-10-21)
+### Vercel Serverless Function Zero-Dependency Hardening & Hobby Limit Compliance (2026-10-21)
 - **Eliminated `FUNCTION_INVOCATION_FAILED` (HTTP 500)** across all Vercel serverless functions by making every file in [`api/`](file:///d:/xcharge-ev-platform/api/) completely self-contained with zero relative cross-module imports outside standard Node built-ins (`crypto`, `fs`, `path`, `http`).
-- **Resilient MoMo Initiation (`GET & POST /api/wallet/momo-initiate`)**: Handles both GET requests (returning 200 OK operational status) and POST payment initiation (returning authentic Ghana USSD prompts for MTN *170# and Telecel *110#), fully supporting legacy mobile client calls without server crashes.
-- **Resilient MoMo Confirmation & Top-Up (`/api/wallet/momo-confirm`, `/api/wallet/topup`)**: Self-contained payment settlement handlers persisting credited balances into `/tmp/xcharge-data/users.json` with fallback to seeded driver data.
-- **Paystack Serverless Endpoints (`/api/wallet/paystack-initialize`, `/api/wallet/paystack-verify`, `/api/paystack/webhook`)**: Inlined Paystack runtime without unresolvable ESM relative imports, enabling smooth checkout initialization, verification, and webhook settlement on Vercel.
-- **Admin Serverless Route (`/api/admin/[...path]`)**: Inlined session signing and credential management so `/api/admin/*` functions deploy and execute without missing module dependencies.
-- **Wallet Status (`/api/wallet`)**: Added phone query lookup against persistent disk/tmp user storage.
+- **Resolved Vercel Hobby Plan 12-Function Limit**: Vercel unbundled deployments strictly enforce a ceiling of 12 serverless functions per deployment. Consolidated 6 wallet files (`momo-initiate.ts`, `momo-confirm.ts`, `topup.ts`, `paystack-initialize.ts`, `paystack-verify.ts`) into a single dynamic router [`api/wallet/[action].ts`](file:///d:/xcharge-ev-platform/api/wallet/%5Baction%5D.ts), reducing total repository function count to exactly 9 functions (well below the 12 limit).
+- **All URL Routes Preserved (100% Backward Compatible)**: `/api/wallet/momo-initiate`, `/api/wallet/momo-confirm`, `/api/wallet/topup`, `/api/wallet/paystack-initialize`, and `/api/wallet/paystack-verify` route seamlessly through the consolidated handler with full support for GET health checks and POST payment dispatches.
+- **Removed Invalid Next.js Config**: Stripped `export const config = { api: { bodyParser: false } }` from [`api/paystack/webhook.ts`](file:///d:/xcharge-ev-platform/api/paystack/webhook.ts).
+- **Excluded Heavy Deployment Payloads ([`.vercelignore`](file:///d:/xcharge-ev-platform/.vercelignore))**: Added `.vercelignore` to block `Willpower.zip` and mobile workspaces from entering lambda deployment payloads.
 
 ## 8. Tomorrow's Next Priority Tasks (Roadmap Phase 3 & 4)
 

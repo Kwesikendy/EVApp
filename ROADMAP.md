@@ -216,12 +216,13 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [x] Connected photo upload, name, email, Ghana Card or Driver ID, garage, payment preference, charge limit, and SMS receipt preference to the persistent profile API.
 - [ ] Move profile media and serverless profile persistence to durable object storage before high-volume production launch.
 
-### Vercel Serverless Function Zero-Dependency Hardening (2026-10-21)
+### Vercel Serverless Function Zero-Dependency Hardening & Hobby Limit Compliance (2026-10-21)
 - [x] Eliminate Node ESM `ERR_MODULE_NOT_FOUND` across all `/api/` serverless functions by removing relative module dependencies.
+- [x] Consolidate wallet endpoints into dynamic route `api/wallet/[action].ts` reducing serverless functions from 13 down to 9 (strictly complying with Vercel Hobby plan 12-function ceiling).
+- [x] Maintain 100% backward compatibility for `/api/wallet/momo-initiate`, `/api/wallet/momo-confirm`, `/api/wallet/topup`, `/api/wallet/paystack-initialize`, and `/api/wallet/paystack-verify`.
 - [x] Make `/api/wallet/momo-initiate` support GET (200 status) and POST (USSD prompt dispatch) to prevent `FUNCTION_INVOCATION_FAILED`.
-- [x] Make `/api/wallet/momo-confirm` and `/api/wallet/topup` self-contained and persistent on `/tmp/xcharge-data/users.json`.
-- [x] Inline Paystack checkout runtime in `/api/wallet/paystack-initialize`, `/api/wallet/paystack-verify`, and `/api/paystack/webhook`.
-- [x] Inline admin session engine in `/api/admin/[...path].ts` for standalone deployment.
+- [x] Strip Next.js-only `export const config = { api: { bodyParser: false } }` from `api/paystack/webhook.ts`.
+- [x] Add `.vercelignore` to exclude `Willpower.zip` and mobile workspaces from serverless output payloads.
 
 
 
