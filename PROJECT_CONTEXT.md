@@ -363,6 +363,7 @@ The supplied Willpower.zip creative handoff has been integrated as the new produ
 - Added Vercel handlers under `api/wallet/paystack-initialize.ts`, `api/wallet/paystack-verify.ts`, and `api/paystack/webhook.ts`.
 - Configure `PAYSTACK_SECRET_KEY` and `PAYSTACK_CALLBACK_URL` in Vercel before testing. The public key is not required by the current redirect checkout flow.
 - Bumped the PWA service-worker cache to `wilpower-pwa-v8` so installed clients receive the Paystack checkout bundle after deployment.
+- Made Paystack Vercel handlers use an API-local runtime helper instead of importing extensionless files from `server/`, which Vercel had left unresolved at runtime. Disabled the legacy Vercel demo top-up routes that depended on the same server imports.
 
 ### Delivered web experience
 

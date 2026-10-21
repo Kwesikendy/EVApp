@@ -1,4 +1,4 @@
-import { settlePaystackTransaction, verifyPaystackTransaction } from '../../server/paystack';
+import { settleVerifiedTransaction, verifyTransaction } from '../_paystackRuntime';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,8 +9,8 @@ export default async function handler(req: any, res: any) {
   try {
     const reference = String(req.query?.reference || '').trim();
     if (!reference) return res.status(400).json({ success: false, error: 'Missing Paystack transaction reference.' });
-    const transaction = await verifyPaystackTransaction(reference);
-    return res.status(200).json(settlePaystackTransaction(transaction));
+    const transaction = await verifyTransaction(reference);
+    return res.status(200).json(settleVerifiedTransaction(transaction));
   } catch (err: any) {
     return res.status(400).json({ success: false, error: err.message || 'Could not verify Paystack payment.' });
   }

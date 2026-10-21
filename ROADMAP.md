@@ -20,7 +20,7 @@
 | **Driver Profile & Garage Suite**| **100%** | **Production Ready** | Photo upload, 4 avatar presets, personal info, multi-vehicle garage management, and charging preferences. |
 | **Mobile Session Persistence** | **100%** | **Production Ready** | `SessionStorage` auto-login via `@react-native-async-storage/async-storage` + clean Sign Out. |
 | **Database & Vehicle VIN Storage**| **100%** | **Production Ready** | Multi-user persistent store (`data/users.json`) active across server restarts with transaction audit logs. |
-| **Ghana Payment Collection** | **90%** | **Paystack Hosted Checkout Added** | Paystack GHS checkout with server verification, signed webhook validation, idempotent wallet settlement, plus the existing MoMo demo/switch flow. Production webhook and account settlement checks remain. |
+| **Ghana Payment Collection** | **90%** | **Paystack Hosted Checkout Added** | Paystack GHS checkout with server verification, signed webhook validation, idempotent wallet settlement, and Vercel-local dependencies. Production webhook and account settlement checks remain. |
 | **OCPP 2.0.1 Telemetry Engine** | **85%** | **Advanced Core** | Remote start/stop, simulated live meter values, connector state transitions, CitrineOS schemas. |
 | **Physical Charger WebSocket** | **40%** | **Pending Hardware** | Ingress endpoints prepared; awaiting live `ws://` / `wss://` physical charger socket mount. |
 | **Live GPS & Turn-by-Turn Nav** | **100%** | **Production Ready** | Web/PWA in-app route preview with browser geolocation, Leaflet map rendering, OSRM driving route, dynamic distance/ETA, route steps, and recentering. |

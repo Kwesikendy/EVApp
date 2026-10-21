@@ -1,6 +1,3 @@
-import { confirmMomoPayment } from '../../server/momo';
-import { getUserWallet } from '../../server/auth';
-
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,29 +6,5 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { transactionId, amount, provider = 'MTN', phone, pin } = body;
-    const targetPhone = phone || '+233248901204';
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return res.status(400).json({ error: 'Invalid payment amount' });
-    }
-
-    const result = confirmMomoPayment({
-      transactionId,
-      amount: numAmount,
-      provider,
-      phoneNumber: targetPhone,
-      pin,
-    });
-    const updatedWallet = getUserWallet(targetPhone);
-
-    return res.status(200).json({
-      ...result,
-      wallet: updatedWallet,
-    });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
+  return res.status(410).json({ success: false, error: 'The legacy MoMo demo flow has been retired. Refresh the app and use Paystack checkout.' });
 }
