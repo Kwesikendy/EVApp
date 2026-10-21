@@ -169,7 +169,29 @@ export const WillPowerApp: React.FC<WillPowerAppProps> = ({ user, onSignOut, onU
         setStations(stationData);
         setSelectedStationId((current) => current || stationData[0]?.id || '');
       }
-      if (walletData) setWallet(walletData);
+      if (walletData) {
+        // On Vercel, serverless /tmp storage is ephemeral — if the server returns a lower
+        // balance than what's stored in localStorage (e.g. after a Paystack top-up), prefer
+        // the localStorage user's walletBalance as the source of truth for the balance.
+        const localUser = (() => {
+          for (const key of ['wilpower_user_session', 'willpower_user_session', 'chargelink_user_session', 'xcharge_user_session']) {
+            try {
+              const saved = localStorage.getItem(key);
+              if (saved) return JSON.parse(saved);
+            } catch {}
+          }
+          return null;
+        })();
+        const localBalance = typeof localUser?.walletBalance === 'number' ? localUser.walletBalance : 0;
+        const serverBalance = typeof walletData.availableBalance === 'number' ? walletData.availableBalance : 0;
+        // Use whichever balance is higher — protects against Vercel cold-start wiping /tmp
+        const bestBalance = Math.max(localBalance, serverBalance);
+        setWallet({ ...walletData, availableBalance: bestBalance });
+        // If local user has more recent transactions, merge them on top
+        if (localUser?.transactions?.length && bestBalance > serverBalance) {
+          setWallet((prev) => prev ? { ...prev, transactions: localUser.transactions } : prev);
+        }
+      }
       setSession(sessionData?.session || sessionData?.activeSession || null);
       setFleet(fleetData);
       setHealth(healthData);
