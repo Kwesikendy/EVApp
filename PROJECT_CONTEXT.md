@@ -250,7 +250,22 @@ All UI elements strictly follow the **ChargeLink OS** design tokens:
   - Normalized fallback emails to `@chargelink.com.gh` across [`server/auth.ts`](file:///d:/xcharge-ev-platform/server/auth.ts), [`api/user/profile.ts`](file:///d:/xcharge-ev-platform/api/user/profile.ts), [`api/auth/verify-otp.ts`](file:///d:/xcharge-ev-platform/api/auth/verify-otp.ts), [`src/components/DriverProfileModal.tsx`](file:///d:/xcharge-ev-platform/src/components/DriverProfileModal.tsx), and [`data/users.json`](file:///d:/xcharge-ev-platform/data/users.json).
   - Modernized mobile storage keys to `@chargelink_driver_session` and `@chargelink_driver_phone` in [`expo-mobile/storage.ts`](file:///d:/xcharge-ev-platform/expo-mobile/storage.ts).
 
----
+### J. Phase 10: Paystack Callback UX Overhaul & Vercel Wallet Balance Sync Fix (100% Complete & Verified)
+- **`PaystackCallback` Page Redesign ([`src/App.tsx`](file:///d:/xcharge-ev-platform/src/App.tsx))**:
+  - Completely redesigned to match the HyperCharge OS palette (`#10141a` base, `#181c22` surface, `#00f0ff` cyan, `#00e676` green, `#ff4d4d` error).
+  - Receipt-style success card showing "Amount Credited" (GH₵) and "New Wallet Balance" with proper row-column layout.
+  - SVG icons (checkmark, info alert) replace legacy emoji `✓` and `!` for all three states: `verifying`, `success`, `error`.
+  - Robust `creditedAmount` extraction: finds the matching transaction by reference first (`txList.find(t => t.reference === data.reference)`), falls back to `txList[0]` — fixes bug where `transactions[0]` could return a stale historical entry.
+  - Handles `alreadyCredited: true` (idempotency) with a dedicated "Already Credited" heading and appropriate message.
+  - Auto-redirect timer bumped to 3 seconds (from 2.2s) to give the driver time to read the receipt.
+  - Updated `localStorage` persistence now stores `updatedUser` with guaranteed `walletBalance` field.
+  - "ChargeLink GH · Secured by Paystack" brand watermark footer.
+- **Vercel Ephemeral `/tmp` Wallet Balance Sync Fix ([`src/components/WillPowerApp.tsx`](file:///d:/xcharge-ev-platform/src/components/WillPowerApp.tsx))**:
+  - **Root Cause**: Vercel serverless functions are stateless — each invocation may be a cold-start with an empty `/tmp`. When `momo-confirm` or `paystack-verify` write to `/tmp/xcharge-data/users.json`, a subsequent call to `/api/wallet` from a different lambda instance reads an empty `/tmp` and falls back to the seed file, returning a stale lower balance.
+  - **Fix in `loadCore()`**: After receiving `walletData` from `/api/wallet`, reads `walletBalance` from `localStorage` user session across all four session keys. Takes `Math.max(localBalance, serverBalance)` as the displayed available balance. If local user has more recent transactions (indicating a top-up occurred since the last server write), merges local transactions into the displayed wallet state.
+  - This ensures that after a successful Paystack top-up, the driver immediately sees their updated balance when returning to the app — even if Vercel's `/tmp` has been wiped between function invocations.
+
+
 
 ## 5. File & Directory Map
 
