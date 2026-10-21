@@ -1,0 +1,9 @@
+# Files and directories ignored by Vercel deployment
+Willpower.zip
+expo-mobile/
+backend-template/
+scripts/
+.agents/
+.github/
+data/otps.json
+*.log

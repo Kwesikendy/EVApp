@@ -5,8 +5,6 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
-export const config = { api: { bodyParser: false } };
-
 const dataDir = process.env.VERCEL ? path.join('/tmp', 'xcharge-data') : path.join(process.cwd(), 'data');
 const usersFile = path.join(dataDir, 'users.json');
 const seedFile = path.join(process.cwd(), 'data', 'users.json');
