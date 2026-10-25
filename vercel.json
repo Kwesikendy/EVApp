@@ -4,8 +4,17 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/admin/:path*",
+      "destination": "/api/admin/[...path]?path=:path*"
+    },
+    {
+      "source": "/api/wallet/:action",
+      "destination": "/api/wallet/[action]?action=:action"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
 }
+

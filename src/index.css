@@ -385,6 +385,10 @@ html[data-wp-theme='light'] .wp-navigation-message strong { color: var(--wp-ink)
 .wa-auth-form input { width: 100%; min-height: 51px; padding: 0 14px; border: 1px solid rgba(207,239,200,.16); border-radius: 13px; outline: 0; background: rgba(255,255,255,.045); color: #f8fbf4; font: inherit; font-size: 12px; }
 .wa-auth-form input:focus { border-color: rgba(189,242,46,.62); box-shadow: 0 0 0 4px rgba(189,242,46,.08); }
 .wa-auth-form input::placeholder { color: #58705c; }
+.wa-password-wrap { position: relative; display: flex; align-items: center; }
+.wa-password-wrap input { padding-right: 46px; }
+.wa-password-toggle { position: absolute; right: 8px; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: #8fa791; cursor: pointer; transition: color 150ms ease, background 150ms ease; }
+.wa-password-toggle:hover { color: #bdf22e; background: rgba(189,242,46,.09); }
 .wa-primary-button, .wa-primary-small { border: 0; background: #bdf22e; color: #0d1710; font-weight: 900; transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease; }
 .wa-primary-button { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-radius: 13px; font-size: 11px; }
 .wa-primary-button:hover, .wa-primary-small:hover { background: #d8ff5d; box-shadow: 0 12px 28px rgba(189,242,46,.16); transform: translateY(-2px); }

@@ -188,12 +188,15 @@ const ocppLogs: any[] = [];
 
 function pathParts(req: VercelRequest) {
   const value = req.query?.path ?? req.query?.['...path'];
-  const fromQuery = (Array.isArray(value) ? value : [value]).filter(Boolean).flatMap((v) => String(v).split('/')).filter(Boolean);
+  const fromQuery = (Array.isArray(value) ? value : [value])
+    .filter(Boolean)
+    .flatMap((v) => String(v).split('/'))
+    .filter((segment) => Boolean(segment) && segment !== '[...path]');
   if (fromQuery.length > 0) return fromQuery;
   if (req.url) {
     const cleanUrl = String(req.url).split('?')[0];
     const match = cleanUrl.match(/\/api\/admin\/(.+)$/);
-    if (match?.[1]) return match[1].split('/').filter(Boolean);
+    if (match?.[1] && match[1] !== '[...path]') return match[1].split('/').filter(Boolean);
   }
   return [];
 }

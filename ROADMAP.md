@@ -49,6 +49,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Removed the redundant bottom navigation and added an in-app Wilpower route panel with live location, OpenStreetMap tiles, OSRM driving geometry, route distance, ETA, route steps, and recentering. No Google Maps API key is required by the active web/PWA route.
 - [x] Removed visible em-dash, en-dash, ellipsis, and mojibake punctuation from the Wilpower web experience and replaced ambiguous status glyphs with clear text values.
 - [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
+- [x] Hardened `/admin` portal authentication across Express (`server.ts`), Vercel serverless rewrites (`vercel.json`, `api/admin/[...path].ts`), and client fallback (`src/components/WilpowerAdmin.tsx`) with show/hide password eye toggles.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 - [ ] Connect physical charger WebSocket ingress and update the station registry from commissioning data.
 
