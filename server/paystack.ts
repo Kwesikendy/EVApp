@@ -61,6 +61,8 @@ async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
   return payload.data;
 }
 
+const SANDBOX_PAYSTACK_TX = new Map<string, PaystackTransaction>();
+
 export async function initializePaystackTransaction(params: {
   amount: number;
   phoneNumber: string;
@@ -75,6 +77,30 @@ export async function initializePaystackTransaction(params: {
   const profile = getUserProfile(normalizedPhone);
   const email = params.email || profile?.email || `${normalizedPhone.replace(/\D/g, '')}@chargelink.com.gh`;
   const reference = `CHG-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+
+  if (!secretKey()) {
+    const simRef = `SIM-${reference}`;
+    SANDBOX_PAYSTACK_TX.set(simRef, {
+      reference: simRef,
+      status: 'success',
+      amount: amountInPesewas,
+      currency: 'GHS',
+      channel: 'mobile_money',
+      metadata: {
+        purpose: 'wallet_topup',
+        phoneNumber: normalizedPhone,
+        amountGhs: Number(params.amount.toFixed(2)),
+        displayName: params.displayName || profile?.displayName || undefined,
+      },
+      customer: { email, phone: normalizedPhone },
+    });
+    const separator = params.callbackUrl.includes('?') ? '&' : '?';
+    return {
+      authorization_url: `${params.callbackUrl}${separator}reference=${encodeURIComponent(simRef)}`,
+      access_code: `sim_access_${Date.now()}`,
+      reference: simRef,
+    };
+  }
 
   return paystackRequest<{
     authorization_url: string;
@@ -99,8 +125,12 @@ export async function initializePaystackTransaction(params: {
 }
 
 export async function verifyPaystackTransaction(reference: string) {
-  if (!reference.trim()) throw new Error('A Paystack transaction reference is required.');
-  return paystackRequest<PaystackTransaction>(`/transaction/verify/${encodeURIComponent(reference.trim())}`, { method: 'GET' });
+  const trimmed = reference.trim();
+  if (!trimmed) throw new Error('A Paystack transaction reference is required.');
+  if (SANDBOX_PAYSTACK_TX.has(trimmed)) {
+    return SANDBOX_PAYSTACK_TX.get(trimmed)!;
+  }
+  return paystackRequest<PaystackTransaction>(`/transaction/verify/${encodeURIComponent(trimmed)}`, { method: 'GET' });
 }
 
 export function isPaystackSignatureValid(rawBody: Buffer | string, signature: string | undefined) {

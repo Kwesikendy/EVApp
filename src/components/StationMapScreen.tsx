@@ -200,7 +200,7 @@ export const StationMapScreen: React.FC<StationMapScreenProps> = ({ onNavigateTo
     const map = mapRef.current;
     if (!map) return;
 
-    Object.values(markersRef.current).forEach((m) => m.remove());
+    Object.values(markersRef.current).forEach((m: L.Marker) => m.remove());
     markersRef.current = {};
 
     computedStations.forEach((st) => {

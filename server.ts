@@ -19,7 +19,7 @@ import { initializePaystackTransaction, isPaystackSignatureValid, settlePaystack
 import { adminDevelopmentInfo, authenticateAdmin, changeAdminPassword, clearAdminCookie, issueAdminSession, readAdminSession, requireAdmin, requireAdminRole, setAdminCookie } from './server/admin';
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5173;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({
   limit: '50mb',
@@ -97,7 +97,7 @@ const STATIONS: ChargingStation[] = [
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     latitude: 6.6697479,
     longitude: -1.5995679,
-    isOnline: false,
+    isOnline: true,
     rating: 5.0,
     amenities: ['Event Center', 'Parking Bay', 'Security', '24/7 Operation', 'Opoku Bandoh Plaza'],
     connectors: [
@@ -107,7 +107,7 @@ const STATIONS: ChargingStation[] = [
         type: 'GB/T',
         maxPowerKw: 160,
         currentPowerKw: 0,
-        status: 'Unavailable',
+        status: 'Available',
         tariffPerKwh: 4.50,
         tariffCurrency: 'GHS'
       },
@@ -117,7 +117,7 @@ const STATIONS: ChargingStation[] = [
         type: 'CCS2',
         maxPowerKw: 160,
         currentPowerKw: 0,
-        status: 'Unavailable',
+        status: 'Available',
         tariffPerKwh: 4.50,
         tariffCurrency: 'GHS'
       }
@@ -346,8 +346,9 @@ app.post('/api/admin/auth/login', (req, res) => {
     res.status(401).json({ success: false, error: 'Invalid administrator credentials.' });
     return;
   }
-  setAdminCookie(res, issueAdminSession(admin));
-  res.json({ success: true, admin });
+  const token = issueAdminSession(admin);
+  setAdminCookie(res, token);
+  res.json({ success: true, admin, token });
 });
 
 app.post('/api/admin/auth/change-password', requireAdmin, (req, res) => {
@@ -367,8 +368,9 @@ app.post('/api/admin/auth/change-password', requireAdmin, (req, res) => {
     res.status(400).json({ error: 'Current password is incorrect or the new password could not be saved.' });
     return;
   }
-  setAdminCookie(res, issueAdminSession(updatedAdmin));
-  res.json({ success: true, admin: updatedAdmin });
+  const token = issueAdminSession(updatedAdmin);
+  setAdminCookie(res, token);
+  res.json({ success: true, admin: updatedAdmin, token });
 });
 
 app.get('/api/admin/auth/me', requireAdmin, (req, res) => {
@@ -452,7 +454,7 @@ app.get('/api/stations/:id', (req, res) => {
 });
 
 // Admin: Create new charging station
-app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
+app.post(['/api/stations', '/api/admin/stations'], requireAdminRole('network_operator'), (req, res) => {
   const { name, stationId, operator, address, latitude, longitude, connectors, amenities } = req.body;
   if (!name || !latitude || !longitude) {
     res.status(400).json({ error: 'Name, latitude, and longitude are required.' });
@@ -515,7 +517,7 @@ app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
 });
 
 // Admin: Update station
-app.put('/api/stations/:id', requireAdminRole('network_operator'), (req, res) => {
+app.put(['/api/stations/:id', '/api/admin/stations/:id'], requireAdminRole('network_operator'), (req, res) => {
   const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: 'Station not found' });
@@ -524,6 +526,19 @@ app.put('/api/stations/:id', requireAdminRole('network_operator'), (req, res) =>
 
   const existing = STATIONS[index];
   const { name, operator, address, latitude, longitude, isOnline, amenities, connectors } = req.body;
+  const nextIsOnline = isOnline !== undefined ? Boolean(isOnline) : existing.isOnline;
+
+  const syncedConnectors = connectors ?? existing.connectors.map((c) => {
+    if (isOnline !== undefined) {
+      if (nextIsOnline && c.status === 'Unavailable') {
+        return { ...c, status: 'Available' as const };
+      }
+      if (!nextIsOnline && c.status === 'Available') {
+        return { ...c, status: 'Unavailable' as const };
+      }
+    }
+    return c;
+  });
 
   STATIONS[index] = {
     ...existing,
@@ -532,16 +547,16 @@ app.put('/api/stations/:id', requireAdminRole('network_operator'), (req, res) =>
     address: address ?? existing.address,
     latitude: latitude ? parseFloat(latitude) : existing.latitude,
     longitude: longitude ? parseFloat(longitude) : existing.longitude,
-    isOnline: isOnline !== undefined ? Boolean(isOnline) : existing.isOnline,
+    isOnline: nextIsOnline,
     amenities: amenities ?? existing.amenities,
-    connectors: connectors ?? existing.connectors
+    connectors: syncedConnectors
   };
 
   res.json({ success: true, station: STATIONS[index] });
 });
 
 // Admin: Delete station
-app.delete('/api/stations/:id', requireAdminRole('network_operator'), (req, res) => {
+app.delete(['/api/stations/:id', '/api/admin/stations/:id'], requireAdminRole('network_operator'), (req, res) => {
   const index = STATIONS.findIndex(s => s.id === req.params.id || s.stationId === req.params.id);
   if (index === -1) {
     res.status(404).json({ error: 'Station not found' });

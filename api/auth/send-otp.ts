@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0';
+const PRODUCTION_MOOLRE_VAS_KEY = '';
 const PRODUCTION_MOOLRE_SENDER_ID = 'ChargeLink';
 
 function normalizeGhanaPhoneNumber(rawPhone: string): string {

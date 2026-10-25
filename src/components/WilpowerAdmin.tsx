@@ -61,10 +61,41 @@ function adminMoney(value: number) {
   return 'GH₵ ' + Number(value || 0).toFixed(2);
 }
 
+const ADMIN_TOKEN_STORAGE_KEY = 'wilpower_admin_bearer_token';
+
+function readStoredAdminToken(): string {
+  try {
+    return window.sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function saveStoredAdminToken(token?: string) {
+  try {
+    if (token) {
+      window.sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+    }
+  } catch {}
+}
+
 async function adminRequest<T>(url: string, options?: RequestInit): Promise<T> {
   let response: Response;
+  const token = readStoredAdminToken();
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   try {
-    response = await fetch(url, { ...options, cache: 'no-store', credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) } });
+    response = await fetch(url, {
+      ...options,
+      cache: 'no-store',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+        ...(options?.headers || {}),
+      },
+    });
   } catch {
     throw new Error(`Unable to reach the admin API at ${url}. Confirm that this is the Vercel deployment URL and redeploy the latest commit.`);
   }
@@ -88,7 +119,7 @@ export const WilpowerAdmin: React.FC = () => {
   if (checkingSession) return <div className="wa-loading"><div className="wa-loading-mark">W</div><span>Securing admin workspace...</span></div>;
   if (!admin) return <AdminLogin config={config} onAuthenticated={setAdmin} />;
   if (admin.mustChangePassword) return <AdminPasswordChange admin={admin} onAuthenticated={setAdmin} />;
-  return <AdminWorkspace admin={admin} onSignOut={() => { void adminRequest('/api/admin/auth/logout', { method: 'POST' }).finally(() => setAdmin(null)); }} />;
+  return <AdminWorkspace admin={admin} onSignOut={() => { void adminRequest('/api/admin/auth/logout', { method: 'POST' }).finally(() => { saveStoredAdminToken(''); setAdmin(null); }); }} />;
 };
 
 function AdminPasswordChange({ admin, onAuthenticated }: { admin: AdminIdentity; onAuthenticated: (admin: AdminIdentity) => void }) {
@@ -111,10 +142,11 @@ function AdminPasswordChange({ admin, onAuthenticated }: { admin: AdminIdentity;
     setBusy(true);
     setError('');
     try {
-      const result = await adminRequest<{ admin: AdminIdentity }>('/api/admin/auth/change-password', {
+      const result = await adminRequest<{ admin: AdminIdentity; token?: string }>('/api/admin/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({ currentPassword, newPassword }),
       });
+      if (result.token) saveStoredAdminToken(result.token);
       onAuthenticated(result.admin);
     } catch (requestError: any) {
       setError(requestError.message || 'Unable to change the administrator password.');
@@ -159,7 +191,8 @@ function AdminLogin({ config, onAuthenticated }: { config: AdminConfig | null; o
     setBusy(true);
     setError('');
     try {
-      const result = await adminRequest<{ admin: AdminIdentity }>('/api/admin/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      const result = await adminRequest<{ admin: AdminIdentity; token?: string }>('/api/admin/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      if (result.token) saveStoredAdminToken(result.token);
       onAuthenticated(result.admin);
     } catch (requestError: any) {
       setError(requestError.message || 'Unable to sign in to the admin portal.');
@@ -228,11 +261,51 @@ function AdminWorkspace({ admin, onSignOut }: { admin: AdminIdentity; onSignOut:
   const toggleStation = async (station: ChargingStation) => {
     setBusy(true);
     try {
-      await adminRequest(`/api/stations/${station.id}`, { method: 'PUT', body: JSON.stringify({ isOnline: !station.isOnline }) });
+      await adminRequest(`/api/admin/stations/${station.id}`, { method: 'PUT', body: JSON.stringify({ isOnline: !station.isOnline }) });
       await refresh(true);
       setNotice(station.name + ' is now ' + (!station.isOnline ? 'online.' : 'offline.'));
     } catch (error: any) {
       setNotice(error.message || 'Station update failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const createStation = async (payload: { name: string; address: string; stationId?: string }) => {
+    setBusy(true);
+    try {
+      await adminRequest('/api/admin/stations', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: payload.name,
+          address: payload.address,
+          stationId: payload.stationId,
+          latitude: 6.6697479,
+          longitude: -1.5995679,
+        }),
+      });
+      await refresh(true);
+      setNotice(`Registered ${payload.name} on the network.`);
+    } catch (error: any) {
+      setNotice(error.message || 'Could not register station.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleSimulatedSession = async (active: boolean) => {
+    setBusy(true);
+    try {
+      if (active) {
+        await adminRequest('/api/simulator/stop', { method: 'POST', body: JSON.stringify({}) });
+        setNotice('Active charging session stopped.');
+      } else {
+        await adminRequest('/api/simulator/start', { method: 'POST', body: JSON.stringify({ speedMultiplier: 5 }) });
+        setNotice('Simulated OCPP charging session started.');
+      }
+      await refresh(true);
+    } catch (error: any) {
+      setNotice(error.message || 'Session action failed.');
     } finally {
       setBusy(false);
     }
@@ -251,8 +324,8 @@ function AdminWorkspace({ admin, onSignOut }: { admin: AdminIdentity; onSignOut:
         <div className="wa-content"><div className="wa-page-heading"><div><span className="wa-eyebrow">{activeNav.detail}</span><h1>{activeNav.label}</h1><p>Make informed network decisions from one operational view.</p></div><div className="wa-page-status"><span className="wa-live-dot" />{overview?.generatedAt ? 'Updated ' + new Date(overview.generatedAt).toLocaleTimeString('en-GH', { hour: '2-digit', minute: '2-digit' }) : 'Connecting'}</div></div>
           {notice && <div className="wa-notice" role="status"><CheckCircle2 size={15} />{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notice"><X size={14} /></button></div>}
           {view === 'overview' && <AdminOverview overview={overview} stations={stations} onStationView={() => setView('stations')} />}
-          {view === 'stations' && <AdminStations stations={stations} busy={busy} onToggle={toggleStation} />}
-          {view === 'sessions' && <AdminSessions overview={overview} />}
+          {view === 'stations' && <AdminStations stations={stations} busy={busy} onToggle={toggleStation} onCreate={createStation} />}
+          {view === 'sessions' && <AdminSessions overview={overview} busy={busy} onToggleSession={toggleSimulatedSession} />}
           {view === 'diagnostics' && <AdminDiagnostics overview={overview} logs={logs} />}
         </div>
       </main>
@@ -270,12 +343,28 @@ function AdminOverview({ overview, stations, onStationView }: { overview: AdminO
   return <div className="wa-page-body"><section className="wa-metric-grid">{metrics.map((metric) => { const Icon = metric.icon; return <div className={'wa-metric wa-metric-' + metric.tone} key={metric.label}><div><span>{metric.label}</span><Icon size={18} /></div><strong>{metric.value}</strong><small>{metric.detail}</small></div>; })}</section><div className="wa-dashboard-grid"><section className="wa-panel wa-network-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">NETWORK MAP</span><h3>Station pulse</h3></div><button className="wa-inline-button" onClick={onStationView}>Manage stations <ArrowRight size={14} /></button></div><div className="wa-network-map"><div className="wa-map-orbit wa-orbit-one" /><div className="wa-map-orbit wa-orbit-two" /><div className="wa-map-grid-lines" />{stations.map((station, index) => <div className={'wa-network-pin ' + (station.isOnline ? 'is-online' : 'is-offline')} key={station.id} style={{ left: (24 + index * 30) + '%', top: (35 + (index % 2) * 22) + '%' }}><span /><strong>{station.name}</strong></div>)}<div className="wa-map-center"><Gauge size={18} /><span>KUMASI<br /><b>CONTROL GRID</b></span></div></div></section><section className="wa-panel wa-alert-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">REQUIRES ATTENTION</span><h3>Operational alerts</h3></div><AlertTriangle size={18} /></div>{overview?.alerts.length ? overview.alerts.map((alert) => <div className="wa-alert-row" key={alert.id}><AlertTriangle size={15} /><div><strong>{alert.action}</strong><span>{String(alert.payload?.errorCode || 'Connector fault reported')}</span></div><Clock3 size={14} /></div>) : <div className="wa-empty-state"><CheckCircle2 size={22} /><strong>No active alerts</strong><span>Network events will appear here.</span></div>}</section></div><section className="wa-panel wa-next-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">OPERATIONS FOUNDATION</span><h3>Admin modules</h3></div><Settings2 size={18} /></div><div className="wa-module-grid"><ModuleCard icon={CircleDollarSign} title="Finance" detail="Wallets, payments and settlements" status="Next module" /><ModuleCard icon={Users} title="Drivers and fleets" detail="Accounts, vehicles and limits" status="Next module" /><ModuleCard icon={ShieldCheck} title="Staff and audit" detail="Roles, permissions and history" status="Next module" /></div></section></div>;
 }
 
-function AdminStations({ stations, busy, onToggle }: { stations: ChargingStation[]; busy: boolean; onToggle: (station: ChargingStation) => void }) {
-  return <div className="wa-page-body"><section className="wa-panel wa-table-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">ASSET REGISTER</span><h3>Stations and connectors</h3></div><button className="wa-primary-small" disabled={busy}><Building2 size={14} /> Register station</button></div><div className="wa-station-table"><div className="wa-table-row wa-table-head"><span>Station</span><span>State</span><span>Connectors</span><span>Action</span></div>{stations.map((station) => <div className="wa-table-row" key={station.id}><div className="wa-station-name"><div className="wa-station-icon"><Building2 size={16} /></div><span><strong>{station.name}</strong><small>{station.stationId} · {station.address}</small></span></div><span className={station.isOnline ? 'wa-state is-online' : 'wa-state is-offline'}><i />{station.isOnline ? 'Online' : 'Offline'}</span><span className="wa-connector-count"><strong>{station.connectors.filter((connector) => connector.status === 'Available').length}</strong> / {station.connectors.length} available</span><button className="wa-row-action" onClick={() => onToggle(station)} disabled={busy}>{station.isOnline ? 'Take offline' : 'Bring online'} <ArrowRight size={13} /></button></div>)}{!stations.length && <div className="wa-empty-state"><Building2 size={22} /><strong>No stations registered</strong><span>Station records will appear here.</span></div>}</div></section></div>;
+function AdminStations({ stations, busy, onToggle, onCreate }: { stations: ChargingStation[]; busy: boolean; onToggle: (station: ChargingStation) => void; onCreate: (payload: { name: string; address: string; stationId?: string }) => Promise<void> }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [stationId, setStationId] = useState('');
+
+  const submitNew = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!name.trim()) return;
+    await onCreate({ name: name.trim(), address: address.trim() || 'Kumasi, Ashanti', stationId: stationId.trim() || undefined });
+    setName('');
+    setAddress('');
+    setStationId('');
+    setShowAdd(false);
+  };
+
+  return <div className="wa-page-body"><section className="wa-panel wa-table-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">ASSET REGISTER</span><h3>Stations and connectors</h3></div><button className="wa-primary-small" onClick={() => setShowAdd((v) => !v)} disabled={busy}><Building2 size={14} /> {showAdd ? 'Cancel' : 'Register station'}</button></div>{showAdd && <form className="wa-auth-form" onSubmit={submitNew} style={{ marginBottom: 20 }}><label><span>Station name</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. KNUST Commercial Hub" required /></label><label><span>Address</span><input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. Accra Road, Kumasi" required /></label><label><span>Station ID (optional)</span><input value={stationId} onChange={(e) => setStationId(e.target.value)} placeholder="e.g. CL-KSI-002" /></label><button className="wa-primary-button" type="submit" disabled={busy}>Create station <ArrowRight size={15} /></button></form>}<div className="wa-station-table"><div className="wa-table-row wa-table-head"><span>Station</span><span>State</span><span>Connectors</span><span>Action</span></div>{stations.map((station) => <div className="wa-table-row" key={station.id}><div className="wa-station-name"><div className="wa-station-icon"><Building2 size={16} /></div><span><strong>{station.name}</strong><small>{station.stationId} · {station.address}</small></span></div><span className={station.isOnline ? 'wa-state is-online' : 'wa-state is-offline'}><i />{station.isOnline ? 'Online' : 'Offline'}</span><span className="wa-connector-count"><strong>{station.connectors.filter((connector) => connector.status === 'Available').length}</strong> / {station.connectors.length} available</span><button className="wa-row-action" onClick={() => onToggle(station)} disabled={busy}>{station.isOnline ? 'Take offline' : 'Bring online'} <ArrowRight size={13} /></button></div>)}{!stations.length && <div className="wa-empty-state"><Building2 size={22} /><strong>No stations registered</strong><span>Station records will appear here.</span></div>}</div></section></div>;
 }
 
-function AdminSessions({ overview }: { overview: AdminOverviewData | null }) {
-  return <div className="wa-page-body"><section className="wa-session-hero"><div><span className="wa-eyebrow">LIVE ENERGY CONTROL</span><h3>{overview?.sessions.active ? 'A charging session is active.' : 'No active charging sessions.'}</h3><p>{overview?.sessions.active ? 'Telemetry and financial accruals are being monitored from the control room.' : 'When a driver starts charging, live telemetry will appear here.'}</p></div><div className="wa-session-figure"><Activity size={18} /><strong>{overview?.sessions.kwhDelivered.toFixed(2) || '0.00'}</strong><span>kWh in flight</span></div></section><section className="wa-panel wa-placeholder-panel"><Cpu size={22} /><h3>Session operations are ready for telemetry</h3><p>The next layer adds driver identity, vehicle, connector, live power, session controls, authorisation holds, and settlement history.</p><span className="wa-coming-chip">TELEMETRY MODULE NEXT</span></section></div>;
+function AdminSessions({ overview, busy, onToggleSession }: { overview: AdminOverviewData | null; busy: boolean; onToggleSession: (active: boolean) => void }) {
+  const isActive = Boolean(overview?.sessions.active);
+  return <div className="wa-page-body"><section className="wa-session-hero"><div><span className="wa-eyebrow">LIVE ENERGY CONTROL</span><h3>{isActive ? 'A charging session is active.' : 'No active charging sessions.'}</h3><p>{isActive ? 'Telemetry and financial accruals are being monitored from the control room.' : 'When a driver starts charging, live telemetry will appear here.'}</p><div style={{ marginTop: 14 }}><button className="wa-primary-small" onClick={() => onToggleSession(isActive)} disabled={busy}>{isActive ? 'Stop active session' : 'Start test session'} <ArrowRight size={14} /></button></div></div><div className="wa-session-figure"><Activity size={18} /><strong>{overview?.sessions.kwhDelivered.toFixed(2) || '0.00'}</strong><span>kWh in flight</span></div></section><section className="wa-panel wa-placeholder-panel"><Cpu size={22} /><h3>Session operations are ready for telemetry</h3><p>Current session accrual: <strong>{adminMoney(overview?.sessions.currentCost || 0)}</strong>. Start a test session above or from a driver account to watch live kWh and GH₵ accruals stream in.</p><span className="wa-coming-chip">{isActive ? 'LIVE TELEMETRY STREAMING' : 'TELEMETRY READY'}</span></section></div>;
 }
 
 function AdminDiagnostics({ overview, logs }: { overview: AdminOverviewData | null; logs: OcppMessage[] }) {

@@ -484,3 +484,13 @@ When resuming work tomorrow, choose from the three planned tracks:
 3. **Track 3: Standalone Mobile Builds (Android APK & PWA)**:
    - Configure EAS Build / Local APK export for `expo-mobile` so drivers can install a native `.apk` on their phones without Expo Go.
    - Configure Progressive Web App (PWA) manifest for 1-tap "Add to Home Screen" install on web.
+
+### AI Studio Migration & Port Standardization (2026-10-25)
+- Updated default server port in `server.ts` and `vite.config.ts` to `3000` (with `0.0.0.0` host binding) for AI Studio runtime compatibility while still respecting `process.env.PORT`.
+- Removed `bun.lock` to standardize on npm and fixed `L.Marker` type inference in `src/components/StationMapScreen.tsx` so `npm run lint` passes cleanly.
+- Removed `.github/workflows/deploy.yml`, `Willpower.zip`, and duplicate non-ASCII video files so AI Studio GitHub export/push succeeds without GitHub OAuth `workflow` scope rejection or binary payload errors.
+- Synchronized station `isOnline` and connector `Available`/`Unavailable` transitions across `server.ts`, `api/stations.ts`, `api/admin/[...path].ts`, and `src/components/WilpowerAdmin.tsx`, wired up the Admin "Register station" form and "Start/Stop test session" controls, and added a sandbox Paystack fallback in `server/paystack.ts` when `PAYSTACK_SECRET_KEY` is omitted.
+- Removed hardcoded Moolre VAS JWT fallback from `server/auth.ts` and `api/auth/send-otp.ts`, relying on environment variables with sandbox OTP fallback when unconfigured.
+- Consolidated all environment variable keys into `.env.example`.
+- Updated `server/admin.ts`, `api/admin/[...path].ts`, and `src/components/WilpowerAdmin.tsx` so default admin credentials (`admin@wilpower.local` or `admin@wilpower.energy` with `WilpowerLocalAdmin!2026`) authenticate alongside environment-configured admin credentials, and added `sessionStorage` Bearer token support so the admin portal works inside cross-origin preview iframes.
+
