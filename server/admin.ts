@@ -34,12 +34,17 @@ function sessionSecret() {
   return process.env.WILPOWER_ADMIN_SESSION_SECRET || process.env.OTP_SECRET || 'wilpower-local-admin-session-secret-change-me';
 }
 
+function cleanEnv(value: string | undefined, fallback: string) {
+  const cleaned = (value || '').replace(/^["']|["']$/g, '').trim();
+  return cleaned || fallback;
+}
+
 function configuredCredentials() {
   return {
-    email: (process.env.WILPOWER_ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL).trim().toLowerCase(),
-    password: process.env.WILPOWER_ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD,
-    displayName: process.env.WILPOWER_ADMIN_NAME || 'Wilpower Administrator',
-    role: (process.env.WILPOWER_ADMIN_ROLE || 'super_admin') as AdminRole,
+    email: cleanEnv(process.env.WILPOWER_ADMIN_EMAIL, DEFAULT_ADMIN_EMAIL).toLowerCase(),
+    password: cleanEnv(process.env.WILPOWER_ADMIN_PASSWORD, DEFAULT_ADMIN_PASSWORD),
+    displayName: cleanEnv(process.env.WILPOWER_ADMIN_NAME, 'Wilpower Administrator'),
+    role: cleanEnv(process.env.WILPOWER_ADMIN_ROLE, 'super_admin') as AdminRole,
   };
 }
 

@@ -227,7 +227,7 @@ The admin surface is intentionally isolated from the normal driver experience. A
 ### AI Studio Migration & Runtime Alignment (2026-10-25)
 - [x] Configure `server.ts` and `vite.config.ts` to bind to `0.0.0.0:3000` by default for AI Studio Web runtime compatibility.
 - [x] Strip hardcoded Moolre VAS credentials from source files and update `.env.example` with complete environment variable keys.
-- [x] Enable default admin credentials (`admin@wilpower.local` / `admin@wilpower.energy` with `WilpowerLocalAdmin!2026`) alongside environment variables and add Bearer token persistence for preview iframe compatibility.
+- [x] Enable default admin credentials (`admin@wilpower.local` / `admin@wilpower.energy` with `WilpowerLocalAdmin!2026`) alongside environment variables, strip surrounding quotes from `WILPOWER_ADMIN_*` env vars, and add Bearer token persistence for preview iframe compatibility.
 - [x] Remove `.github/workflows/deploy.yml` and binary archive artifacts (`Willpower.zip`, `bun.lock`, non-ASCII video duplicate) to resolve GitHub OAuth push permission blocks.
 - [x] Synchronize station and connector availability states, enable station registration and test session controls in the Admin Portal, and add sandbox Paystack fallback when `PAYSTACK_SECRET_KEY` is omitted.
 
