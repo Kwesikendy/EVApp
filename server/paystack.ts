@@ -69,6 +69,7 @@ export async function initializePaystackTransaction(params: {
   email?: string;
   displayName?: string;
   callbackUrl: string;
+  channels?: string[];
 }) {
   const normalizedPhone = normalizeGhanaPhoneNumber(params.phoneNumber);
   const amountInPesewas = Math.round(params.amount * 100);
@@ -95,14 +96,16 @@ export async function initializePaystackTransaction(params: {
       customer: { email, phone: normalizedPhone },
     });
     const separator = params.callbackUrl.includes('?') ? '&' : '?';
+    const authUrl = `${params.callbackUrl}${separator}reference=${encodeURIComponent(simRef)}`;
     return {
-      authorization_url: `${params.callbackUrl}${separator}reference=${encodeURIComponent(simRef)}`,
+      authorization_url: authUrl,
+      authorizationUrl: authUrl,
       access_code: `sim_access_${Date.now()}`,
       reference: simRef,
     };
   }
 
-  return paystackRequest<{
+  const result = await paystackRequest<{
     authorization_url: string;
     access_code: string;
     reference: string;
@@ -114,6 +117,7 @@ export async function initializePaystackTransaction(params: {
       currency: 'GHS',
       reference,
       callback_url: params.callbackUrl,
+      channels: params.channels || ['mobile_money', 'card'],
       metadata: {
         purpose: 'wallet_topup',
         phoneNumber: normalizedPhone,
@@ -122,6 +126,12 @@ export async function initializePaystackTransaction(params: {
       },
     }),
   });
+
+  return {
+    ...result,
+    authorization_url: result.authorization_url,
+    authorizationUrl: result.authorization_url,
+  };
 }
 
 export async function verifyPaystackTransaction(reference: string) {

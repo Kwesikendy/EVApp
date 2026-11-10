@@ -992,39 +992,42 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
     const phone = normalizePhone(topupPhone || driver?.phoneNumber || wallet.phoneNumber);
 
     try {
-      if (topupChannel === 'CARD') {
-        const paystackRes = await fetch('/api/wallet/paystack-initialize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount,
-            phone,
-            email: driver?.email,
-            displayName: driver?.displayName,
-          }),
-        });
-        const paystackData = await paystackRes.json();
-        if (paystackRes.ok && paystackData.authorizationUrl) {
-          notify('Redirecting to Paystack secure Ghana Cedi checkout...');
-          window.location.assign(paystackData.authorizationUrl);
-          return;
-        }
-        notify(paystackData.error || 'Could not initialize Paystack checkout.');
+      const paystackRes = await fetch('/api/wallet/paystack-initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          phone,
+          email: driver?.email,
+          displayName: driver?.displayName,
+          channels: topupChannel === 'CARD' ? ['card'] : ['mobile_money', 'card'],
+        }),
+      });
+      const paystackData = await paystackRes.json();
+      const authUrl = paystackData?.authorization_url || paystackData?.authorizationUrl;
+
+      if (paystackRes.ok && authUrl) {
+        notify('Connecting to Paystack live MoMo / Card prompt...');
+        window.location.assign(authUrl);
         return;
       }
 
-      const res = await fetch('/api/wallet/momo-initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, provider: topupChannel, phone }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        notify(data.error || 'Unable to initiate Mobile Money prompt.');
-        return;
+      // If Paystack is unconfigured locally, fall back to simulated MoMo prompt
+      if (topupChannel !== 'CARD') {
+        const res = await fetch('/api/wallet/momo-initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, provider: topupChannel, phone }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setTopupReference(data.transactionId);
+          setTopupPrompt(data.ussdPrompt);
+          return;
+        }
       }
-      setTopupReference(data.transactionId);
-      setTopupPrompt(data.ussdPrompt);
+
+      notify(paystackData?.error || 'Could not initialize payment checkout.');
     } catch {
       setTopupReference(`WP-SIM-${Date.now()}`);
       setTopupPrompt(`Approve ${formatGhs(amount)} to CHARGELINK GH LTD with your 4-digit MoMo PIN.`);

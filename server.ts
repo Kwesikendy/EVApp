@@ -995,7 +995,7 @@ app.post('/api/wallet/momo-confirm', (req, res) => {
 // Paystack hosted checkout initialization. The secret key never reaches the browser.
 app.post('/api/wallet/paystack-initialize', async (req, res) => {
   try {
-    const { amount, phone, email, displayName } = req.body || {};
+    const { amount, phone, email, displayName, channels } = req.body || {};
     const targetPhone = phone || '+233248901204';
     const numAmount = parseFloat(amount);
     if (!Number.isFinite(numAmount) || numAmount <= 0) {
@@ -1013,8 +1013,9 @@ app.post('/api/wallet/paystack-initialize', async (req, res) => {
       email,
       displayName,
       callbackUrl,
+      channels,
     });
-    res.json({ success: true, ...checkout });
+    res.json({ success: true, ...checkout, authorization_url: checkout.authorization_url, authorizationUrl: checkout.authorization_url });
   } catch (err: any) {
     res
       .status(500)

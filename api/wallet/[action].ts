@@ -380,6 +380,7 @@ export default async function handler(req: any, res: any) {
           currency: 'GHS',
           reference,
           callback_url: callbackUrl,
+          channels: body.channels || ['mobile_money', 'card'],
           metadata: {
             purpose: 'wallet_topup',
             phoneNumber: phone,
@@ -400,6 +401,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({
         success: true,
         authorization_url: result.data.authorization_url,
+        authorizationUrl: result.data.authorization_url,
         access_code: result.data.access_code,
         reference: result.data.reference,
       });
