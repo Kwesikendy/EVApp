@@ -16,6 +16,7 @@ import {
   Switch,
   ActivityIndicator,
   Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -64,7 +65,7 @@ import {
 } from 'lucide-react-native';
 
 import StationMap, { MapStation } from './StationMap';
-import { api, ApiFleetAccount, BACKEND_URL, setBackendUrl, CLOUD_BACKEND_URL } from './api';
+import { api, ApiFleetAccount, BACKEND_URL, setBackendUrl, CLOUD_BACKEND_URL, MAXPOWER_VCP160_COMMISSIONING_STEPS } from './api';
 import { MtnMomoLogoNative, TelecelLogoNative, MastercardLogoNative } from './PaymentLogosNative';
 import { XChargeLogoNative, XChargeMarkNative } from './XChargeLogoNative';
 import { LoginScreen } from './screens/LoginScreen';
@@ -77,6 +78,7 @@ import { SessionStorage } from './storage';
 export interface Connector {
   id: number;
   connectorId: number;
+  label?: string;
   type: string;
   maxPowerKw: number;
   status: string;
@@ -86,6 +88,8 @@ export interface Connector {
 export interface Station {
   id: string;
   stationId: string;
+  pileNumber?: string;
+  isOnline?: boolean;
   name: string;
   address: string;
   distanceKm: number;
@@ -123,6 +127,8 @@ const DEFAULT_STATIONS: Station[] = [
   {
     id: 'st-01',
     stationId: 'CL-KSI-001',
+    pileNumber: '19046744073709551615',
+    isOnline: true,
     name: 'Wilpower · Greenwood Event Center',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
@@ -130,8 +136,8 @@ const DEFAULT_STATIONS: Station[] = [
     latitude: 6.6697479,
     longitude: -1.5995679,
     connectors: [
-      { id: 1, connectorId: 1, type: 'GB/T', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
-      { id: 2, connectorId: 2, type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 1, connectorId: 1, label: 'Outlet A', type: 'GB/T', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 2, connectorId: 2, label: 'Outlet B', type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
     ],
     amenities: ['Event Center', 'Parking Bay', '24/7 Security', 'Opoku Bandoh Plaza'],
   },
@@ -345,7 +351,11 @@ function AppContent() {
   const [packVoltage, setPackVoltage] = useState<number>(412.8);
   const [packCurrent, setPackCurrent] = useState<number>(335.2);
   const [activeStationName, setActiveStationName] = useState<string>('Wilpower · Greenwood Event Center');
-  const [activeConnectorType, setActiveConnectorType] = useState<string>('MaxPower VCP160 · 160 kW Fast');
+  const [activeConnectorType, setActiveConnectorType] = useState<string>('Outlet A · GB/T 160 kW');
+  const [selectedConnectorId, setSelectedConnectorId] = useState<number>(1);
+  const [ocppTransactionId, setOcppTransactionId] = useState<number>(10042);
+  const [ocppPileNumber, setOcppPileNumber] = useState<string>('19046744073709551615');
+  const [showCommissioningGuide, setShowCommissioningGuide] = useState<boolean>(false);
 
   // Real-time Station Hardware Simulator state
   const [simSpeed, setSimSpeed] = useState<number>(1);
@@ -355,8 +365,8 @@ function AppContent() {
   const [recentOcppPackets, setRecentOcppPackets] = useState<
     { id: string; time: string; action: string; summary: string }[]
   >([
-    { id: '1', time: '10:45:12', action: 'Heartbeat', summary: 'CSMS connection verified (OCPP 2.0.1)' },
-    { id: '2', time: '10:45:15', action: 'StatusNotification', summary: 'Connector 1: Available (CCS2 160 kW)' },
+    { id: '1', time: '10:45:12', action: 'BootNotification', summary: 'Accepted · MaxPower VCP160 (Pile 19046744073709551615)' },
+    { id: '2', time: '10:45:15', action: 'StatusNotification', summary: 'Outlet A (GB/T 160 kW) & Outlet B (CCS2 160 kW): Available' },
   ]);
 
   // Wallet & MoMo state
@@ -367,7 +377,7 @@ function AppContent() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>(DEFAULT_TRANSACTIONS);
 
   // Real-time Tariff & Session Billing State (Ghana Cedis GHS)
-  const [activeTariffRate, setActiveTariffRate] = useState<number>(4.20);
+  const [activeTariffRate, setActiveTariffRate] = useState<number>(4.50);
   const [accruedCost, setAccruedCost] = useState<number>(77.36);
 
   // Real-time Interactive Mobile Money Checkout & USSD Push State
@@ -429,18 +439,25 @@ function AppContent() {
         setCitrineInfo(`CitrineOS ${health.citrineOsBridge} · ${health.ocppVersion}`);
       }
 
-      const [stationsData, walletData, fleetData, sessionData] = await Promise.all([
+      const [stationsData, walletData, fleetData, sessionData, ocppStatus] = await Promise.all([
         api.getStations(),
         api.getWallet(currentUser?.phoneNumber),
         api.getFleet(),
         api.getActiveSession(),
+        api.getOcppStatus().catch(() => null),
       ]);
+
+      if (ocppStatus && ocppStatus.pileNumber) {
+        setOcppPileNumber(ocppStatus.pileNumber);
+      }
 
       if (stationsData && stationsData.length > 0) {
         setStations(
           stationsData.map((st) => ({
             id: st.id,
             stationId: st.stationId,
+            pileNumber: st.pileNumber,
+            isOnline: st.isOnline,
             name: st.name,
             address: st.address,
             distanceKm: st.distanceKm || 1.8,
@@ -450,6 +467,7 @@ function AppContent() {
             connectors: st.connectors.map((c) => ({
               id: c.id,
               connectorId: c.connectorId,
+              label: c.label || (c.connectorId === 1 ? 'Outlet A' : `Outlet ${String.fromCharCode(64 + c.connectorId)}`),
               type: c.type,
               maxPowerKw: c.maxPowerKw,
               status: c.status,
@@ -506,6 +524,13 @@ function AppContent() {
         setElapsedSeconds(sessionData.elapsedSeconds);
         setPackVoltage(sessionData.voltageV);
         setPackCurrent(sessionData.currentA);
+        if (sessionData.transactionId) {
+          setOcppTransactionId(sessionData.transactionId);
+        }
+        if (sessionData.connectorLabel || sessionData.connectorId) {
+          setSelectedConnectorId(sessionData.connectorId || 1);
+          setActiveConnectorType(`${sessionData.connectorLabel || (sessionData.connectorId === 2 ? 'Outlet B' : 'Outlet A')} · ${sessionData.connectorId === 2 ? 'CCS2' : 'GB/T'} 160 kW`);
+        }
         if (sessionData.accruedCost !== undefined) {
           setAccruedCost(sessionData.accruedCost);
         }
@@ -1122,7 +1147,7 @@ function AppContent() {
               />
             ) : (
               <ScrollView style={s.tabScroll} contentContainerStyle={{ padding: 14, paddingTop: 60, paddingBottom: 32 }}>
-                <Text style={s.listSectionHeader}>ACCRA CHARGING HUBS ({filteredStations.length})</Text>
+                <Text style={s.listSectionHeader}>GHANA EV SUPERHUBS ({filteredStations.length})</Text>
                 {filteredStations.map((station) => {
                   const maxKw = Math.max(...station.connectors.map((c) => c.maxPowerKw));
                   const availableConns = station.connectors.filter((c) => c.status === 'Available');
@@ -1178,7 +1203,7 @@ function AppContent() {
                                 { color: c.status === 'Available' ? '#22c55e' : '#94a3b8' },
                               ]}
                             >
-                              {c.type} {c.maxPowerKw}kW · GH₵{c.tariffPerKwh.toFixed(2)}
+                              {c.label ? `${c.label} · ` : ''}{c.type} {c.maxPowerKw}kW · GH₵{c.tariffPerKwh.toFixed(2)}
                             </Text>
                           </View>
                         ))}
@@ -1227,27 +1252,32 @@ function AppContent() {
                       </TouchableOpacity>
                     </View>
 
-                    {/* Connectors pills */}
+                    {/* Connectors pills (Selectable Outlet A / Outlet B) */}
                     <View style={s.connectorPillRow}>
-                      {selectedStation.connectors.map((c) => (
-                        <View
-                          key={c.id}
-                          style={[
-                            s.connectorMiniChip,
-                            c.status === 'Available' ? s.connectorChipGreen : s.connectorChipBlue,
-                          ]}
-                        >
-                          <Plug size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
-                          <Text
+                      {selectedStation.connectors.map((c) => {
+                        const isChosen = selectedConnectorId === c.connectorId;
+                        return (
+                          <TouchableOpacity
+                            key={c.id}
+                            onPress={() => setSelectedConnectorId(c.connectorId)}
                             style={[
-                              s.connectorMiniText,
-                              { color: c.status === 'Available' ? '#22c55e' : '#93c5fd' },
+                              s.connectorMiniChip,
+                              c.status === 'Available' ? s.connectorChipGreen : s.connectorChipBlue,
+                              isChosen && { borderColor: '#38bdf8', borderWidth: 1.5 },
                             ]}
                           >
-                            {c.type} {c.maxPowerKw}kW · {c.status}
-                          </Text>
-                        </View>
-                      ))}
+                            <Plug size={10} color={c.status === 'Available' ? '#22c55e' : '#60a5fa'} />
+                            <Text
+                              style={[
+                                s.connectorMiniText,
+                                { color: c.status === 'Available' ? '#22c55e' : '#93c5fd' },
+                              ]}
+                            >
+                              {c.label || `Outlet ${c.connectorId}`} ({c.type}) {c.maxPowerKw}kW · {c.status}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
 
                     {/* Amenities Row */}
@@ -1273,15 +1303,42 @@ function AppContent() {
                         }}
                       >
                         <Navigation size={14} color="#38bdf8" />
-                        <Text style={s.navigateBtnText}>Navigate ({selectedStation.distanceKm} km)</Text>
+                        <Text style={s.navigateBtnText}>Route ({selectedStation.distanceKm} km)</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[s.navigateBtn, { flex: 0.75 }]}
+                        onPress={async () => {
+                          const targetConn =
+                            selectedStation.connectors.find((c) => c.connectorId === selectedConnectorId) ||
+                            selectedStation.connectors[0];
+                          const res = await api.reserveConnector({
+                            stationId: selectedStation.stationId,
+                            connectorId: targetConn.connectorId,
+                            idTag: currentUser?.phoneNumber || 'XC-GH-DRIVER',
+                            durationMinutes: 30,
+                          });
+                          Alert.alert(
+                            'OCPP 1.6 ReserveNow',
+                            res?.status === 'Accepted'
+                              ? `${targetConn.label || `Outlet #${targetConn.connectorId}`} (${targetConn.type}) reserved for 30 minutes.\nReservation ID: #${res.reservationId || 501}`
+                              : `Reservation status: ${res?.status || 'Accepted'}`
+                          );
+                          syncBackendData();
+                        }}
+                      >
+                        <Clock size={13} color="#f59e0b" />
+                        <Text style={[s.navigateBtnText, { color: '#f59e0b' }]}>Reserve 30m</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
                         style={s.chargeActionBtn}
                         onPress={() => {
-                          const availableConn =
-                            selectedStation.connectors.find((c) => c.status === 'Available') || selectedStation.connectors[0];
-                          handleStartCharging(selectedStation, availableConn);
+                          const chosenConn =
+                            selectedStation.connectors.find((c) => c.connectorId === selectedConnectorId) ||
+                            selectedStation.connectors.find((c) => c.status === 'Available') ||
+                            selectedStation.connectors[0];
+                          handleStartCharging(selectedStation, chosenConn);
                         }}
                       >
                         <Plug size={14} color="#020817" />
@@ -1295,7 +1352,7 @@ function AppContent() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         <MapPin size={16} color="#38bdf8" />
                         <Text style={{ color: '#f1f5f9', fontWeight: 'bold', fontSize: 13 }}>
-                          {stations.length} Accra Fast Charging Hubs Online
+                          {stations.length} Wilpower Fast Charging Hubs Online
                         </Text>
                       </View>
                       <TouchableOpacity onPress={syncBackendData} style={{ padding: 4 }}>
@@ -1303,7 +1360,7 @@ function AppContent() {
                       </TouchableOpacity>
                     </View>
                     <Text style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
-                      Tap any glowing charger pin to inspect live 350 kW telemetry, tariffs, or unlatch cable.
+                      Tap any glowing charger pin to inspect live 160 kW OCPP 1.6J telemetry, reserve a connector, or unlatch cable.
                     </Text>
                   </View>
                 )}
@@ -1491,13 +1548,141 @@ function AppContent() {
                   <ShieldCheck size={12} color="#22c55e" style={{ marginRight: 4 }} />
                   <Text style={s.connectedPillText}>{citrineInfo}</Text>
                 </View>
-                <Text style={{ fontSize: 11, color: '#64748b' }}>Hardware Meter Verified</Text>
+                <Text style={{ fontSize: 11, color: '#64748b' }}>Pile ID: {ocppPileNumber}</Text>
               </View>
               <View style={s.preAuthNoticeRow}>
                 <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-                  Station: {activeStationName} · Pre-Auth Hold: GH₵ {heldBalance.toFixed(2)}
+                  Station: {activeStationName} · {activeConnectorType} · TX #{ocppTransactionId}
                 </Text>
               </View>
+            </View>
+
+            {/* MAXPOWER VCP160 PHYSICAL HMI MIRROR & OCPP 1.6 EDITION 2 COMMISSIONING CONSOLE */}
+            <View style={[s.realtimeBillingCard, { marginTop: 14, borderColor: '#1e293b' }]}>
+              <View style={s.billingCardHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Server size={14} color="#22c55e" />
+                  <Text style={s.billingCardTitle}>MAXPOWER VCP160 HMI · OCPP 1.6J</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowCommissioningGuide(!showCommissioningGuide)}
+                  style={[s.billingLiveTag, { backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8' }]}
+                >
+                  <Text style={[s.billingLiveTagText, { color: '#38bdf8' }]}>
+                    {showCommissioningGuide ? 'HIDE HMI GUIDE' : '5-STEP SETUP'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Live MaxPower VCP160 HMI Screen Mirror */}
+              <View style={{ backgroundColor: '#020817', borderRadius: 10, padding: 12, marginTop: 10, borderWidth: 1, borderColor: '#1e293b' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ color: '#22c55e', fontSize: 11, fontWeight: '800' }}>
+                    {selectedConnectorId === 2 ? 'OUTLET B (CCS2 160 kW)' : 'OUTLET A (GB/T 160 kW)'} · {isCharging ? 'CHARGING' : 'STANDBY'}
+                  </Text>
+                  <Text style={{ color: '#94a3b8', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                    NO. {ocppPileNumber}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
+                    <Text style={{ color: '#64748b', fontSize: 9 }}>CHARGING VOLTAGE / CURRENT</Text>
+                    <Text style={{ color: '#f8fafc', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                      {packVoltage.toFixed(1)} V · {packCurrent.toFixed(1)} A
+                    </Text>
+                  </View>
+                  <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
+                    <Text style={{ color: '#64748b', fontSize: 9 }}>CHARGE CAPACITY / PRICE</Text>
+                    <Text style={{ color: '#22c55e', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                      {kwhConsumed.toFixed(2)} kWh · GH₵ {activeTariffRate.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
+                    <Text style={{ color: '#64748b', fontSize: 9 }}>CHARGING / REMAINING TIME</Text>
+                    <Text style={{ color: '#f8fafc', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                      {formatTime(elapsedSeconds)} / ~{Math.max(1, Math.round((targetSoc - batterySoc) * 0.6))}m
+                    </Text>
+                  </View>
+                  <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
+                    <Text style={{ color: '#64748b', fontSize: 9 }}>CONSUMPTION / CARD BALANCE</Text>
+                    <Text style={{ color: '#38bdf8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                      GH₵ {(kwhConsumed * activeTariffRate).toFixed(2)} / GH₵ {walletBalance.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Quick OCPP 1.6J Frame & CSMS Actions */}
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                  {[
+                    { label: 'BootNotification', action: 'BootNotification', isFrame: true },
+                    { label: 'Heartbeat', action: 'Heartbeat', isFrame: true },
+                    { label: 'MeterValues', action: 'MeterValues', isFrame: true },
+                    { label: 'Unlock Latch', action: 'UnlockConnector', isFrame: false },
+                  ].map((btn) => (
+                    <TouchableOpacity
+                      key={btn.label}
+                      style={{
+                        backgroundColor: '#1e293b',
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        borderRadius: 6,
+                        borderWidth: 1,
+                        borderColor: '#334155',
+                      }}
+                      onPress={async () => {
+                        if (btn.isFrame) {
+                          const res = await api.sendOcppFrame(btn.action, {}, 'CL-KSI-001');
+                          const nowStr = new Date().toLocaleTimeString();
+                          setRecentOcppPackets((prev) => [
+                            {
+                              id: `ocpp-${Date.now()}`,
+                              time: nowStr,
+                              action: btn.action,
+                              summary: `CALLRESULT [3] ${JSON.stringify(res?.frame?.[2] || { status: 'Accepted' }).slice(0, 48)}`,
+                            },
+                            ...prev.slice(0, 4),
+                          ]);
+                          Alert.alert(`OCPP 1.6J ${btn.action}`, `Dispatched [2, id, "${btn.action}"] from MaxPower VCP160 (CL-KSI-001).`);
+                        } else {
+                          const res = await api.unlockConnector('CL-KSI-001', selectedConnectorId);
+                          Alert.alert('OCPP 1.6J UnlockConnector', `Connector #${selectedConnectorId} solenoid status: ${res?.status || 'Unlocked'}`);
+                        }
+                        syncBackendData();
+                      }}
+                    >
+                      <Text style={{ color: '#e2e8f0', fontSize: 10, fontWeight: '700' }}>{btn.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Expandable 5-Step MaxPower VCP160 Commissioning Reference Guide */}
+              {showCommissioningGuide && (
+                <View style={{ marginTop: 12, backgroundColor: '#020817', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#334155' }}>
+                  <Text style={{ color: '#38bdf8', fontSize: 11, fontWeight: '800', marginBottom: 4 }}>
+                    MAXPOWER VCP160 5-STEP OCPP 1.6J COMMISSIONING GUIDE
+                  </Text>
+                  <Text style={{ color: '#94a3b8', fontSize: 10, marginBottom: 8 }}>
+                    WebSocket Endpoint: ws://&lt;server-host&gt;:5173/ocpp/1.6/CL-KSI-001 (Subprotocol: ocpp1.6)
+                  </Text>
+                  <Image
+                    source={require('./assets/ocpp-commissioning-guide.jpeg')}
+                    style={{ width: '100%', height: 190, borderRadius: 8, marginBottom: 10, backgroundColor: '#0f172a' }}
+                    resizeMode="contain"
+                  />
+                  {MAXPOWER_VCP160_COMMISSIONING_STEPS.map((item) => (
+                    <View key={item.step} style={{ marginBottom: 8, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#1e293b' }}>
+                      <Text style={{ color: '#22c55e', fontSize: 11, fontWeight: '700' }}>
+                        Step {item.step}: {item.title} ({item.screen})
+                      </Text>
+                      <Text style={{ color: '#cbd5e1', fontSize: 10, marginTop: 2 }}>
+                        {item.instruction}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
 
             {/* Primary Action Button */}
@@ -1511,7 +1696,9 @@ function AppContent() {
                   handleStopCharging();
                 } else {
                   const defaultSt = stations[0];
-                  handleStartCharging(defaultSt, defaultSt.connectors[0]);
+                  const chosenConn =
+                    defaultSt.connectors.find((c) => c.connectorId === selectedConnectorId) || defaultSt.connectors[0];
+                  handleStartCharging(defaultSt, chosenConn);
                 }
               }}
             >
@@ -1523,7 +1710,7 @@ function AppContent() {
               ) : (
                 <>
                   <Plug size={18} color="#020817" style={{ marginRight: 8 }} />
-                  <Text style={[s.primaryActionText, { color: '#020817' }]}>INITIATE CHARGE AT AIRPORT CITY</Text>
+                  <Text style={[s.primaryActionText, { color: '#020817' }]}>INITIATE CHARGE AT GREENWOOD EVENT CENTER</Text>
                 </>
               )}
             </TouchableOpacity>

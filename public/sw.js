@@ -1,5 +1,5 @@
-// Wilpower cache v8 includes the Paystack wallet checkout flow.
-const CACHE_NAME = 'wilpower-pwa-v8';
+// Wilpower cache v10 includes OCPP 1.6 Edition 2 Hardware Ingress & Commissioning.
+const CACHE_NAME = 'wilpower-pwa-v10';
 
 const STATIC_ASSETS = [
   '/',
@@ -7,7 +7,8 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/willpower/WillPower_App_Icon_V3.png',
   '/willpower/WillPower_Logo_Reverse_V3.svg',
-  '/willpower/Photo_Concept_Only.jpg'
+  '/willpower/Photo_Concept_Only.jpg',
+  '/ocpp-commissioning-guide.jpeg'
 ];
 
 // 1. Install Event - Pre-cache core shell
@@ -38,6 +39,11 @@ self.addEventListener('activate', (event) => {
 
 // 3. Fetch Event - Stale-while-revalidate for static assets, network-first for APIs
 self.addEventListener('fetch', (event) => {
+  // Ignore non-HTTP/HTTPS requests (such as chrome-extension://, moz-extension://, etc.)
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
+    return;
+  }
+
   const url = new URL(event.request.url);
 
   // Bypass cache for backend API requests, video streaming, and WebSocket connections

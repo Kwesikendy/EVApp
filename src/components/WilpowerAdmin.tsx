@@ -2,657 +2,921 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
-  BarChart3,
+  ArrowUpRight,
   BatteryCharging,
   Building2,
   CheckCircle2,
   ChevronRight,
-  CircleDollarSign,
-  Clock3,
+  Copy,
   Cpu,
-  Eye,
-  EyeOff,
-  Gauge,
+  KeyRound,
+  LayoutDashboard,
+  Lock,
   LogOut,
+  MapPin,
   Menu,
-  Network,
-  PlugZap,
+  Plus,
+  Radio,
   RefreshCw,
-  ServerCog,
-  Settings2,
+  Server,
   ShieldCheck,
-  Users,
+  Terminal,
+  Unlock,
+  Wrench,
   X,
+  Zap,
 } from 'lucide-react';
-import type { ChargingStation, OcppMessage } from '../types';
 
-type AdminView = 'overview' | 'stations' | 'sessions' | 'diagnostics';
+type AdminView = 'dashboard' | 'stations' | 'sessions' | 'diagnostics' | 'security';
 
 interface AdminIdentity {
   id: string;
   email: string;
   displayName: string;
-  role: string;
-  mustChangePassword?: boolean;
+  role: 'super_admin' | 'network_operator' | 'finance_auditor';
 }
 
-interface AdminOverviewData {
+interface Connector {
+  connectorId: number;
+  label?: string;
+  type: 'CCS2' | 'GB/T' | 'Type2' | 'CHAdeMO';
+  maxPowerKw: number;
+  status: string;
+  errorCode?: string;
+  tariffPerKwh: number;
+}
+
+interface Station {
+  id: string;
+  stationId: string;
+  pileNumber?: string;
+  name: string;
+  operator?: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  isOnline: boolean;
+  ocppVersion?: string;
+  vendor?: string;
+  model?: string;
+  firmwareVersion?: string;
+  connectors: Connector[];
+}
+
+interface OcppLog {
+  id: string;
+  timestamp: string;
+  chargeBoxId?: string;
+  direction: 'INCOMING' | 'OUTGOING';
+  action: string;
+  messageTypeId?: number;
+  uniqueId?: string;
+  payload: Record<string, any>;
+}
+
+interface OverviewPayload {
   generatedAt: string;
   stations: { total: number; online: number; offline: number };
   connectors: { total: number; available: number; occupied: number };
-  sessions: { active: number; currentCost: number; kwhDelivered: number };
-  network: { health: string; citrineOsBridge: string; ocppVersion: string };
-  alerts: OcppMessage[];
+  sessions: { active: number; currentCost: number; kwhDelivered: number; activeSession?: any };
+  network: { health: string; citrineOsBridge: string; ocppVersion: string; connectedSockets?: number };
+  alerts: OcppLog[];
 }
 
-interface AdminConfig {
-  localCredentialsEnabled: boolean;
-  defaultCredentialsEnabled?: boolean;
-  email?: string;
+function formatGhs(amount: number): string {
+  return `GH₵ ${Number(amount || 0).toFixed(2)}`;
 }
 
-const ADMIN_NAV: { id: AdminView; label: string; detail: string; icon: React.ElementType }[] = [
-  { id: 'overview', label: 'Command center', detail: 'Network pulse', icon: BarChart3 },
-  { id: 'stations', label: 'Station operations', detail: 'Chargers and connectors', icon: Building2 },
-  { id: 'sessions', label: 'Live sessions', detail: 'Energy and authorisations', icon: BatteryCharging },
-  { id: 'diagnostics', label: 'Diagnostics', detail: 'OCPP and system health', icon: ServerCog },
-];
-
-function adminMoney(value: number) {
-  return 'GH₵ ' + Number(value || 0).toFixed(2);
-}
-
-const ADMIN_TOKEN_STORAGE_KEY = 'wilpower_admin_bearer_token';
-const ADMIN_FALLBACK_SESSION_KEY = 'wilpower_admin_fallback_session';
-const ADMIN_FALLBACK_STATIONS_KEY = 'wilpower_admin_fallback_stations';
-const ADMIN_FALLBACK_SIM_SESSION_KEY = 'wilpower_admin_fallback_sim_session';
-const ADMIN_FALLBACK_PASSWORD_KEY = 'wilpower_admin_fallback_password';
-
-const DEFAULT_FALLBACK_STATIONS: ChargingStation[] = [
-  {
-    id: 'station-greenwood-kumasi',
-    stationId: 'CL-KSI-001',
-    name: 'Greenwood Event Center',
-    address: 'Asokwa Newroad, Eastern Bypass, Kumasi',
-    city: 'Kumasi',
-    region: 'Ashanti',
-    latitude: 6.6697479,
-    longitude: -1.5995679,
-    isOnline: true,
-    constructionStatus: 'operational',
-    connectors: [
-      { id: 101, connectorId: 1, connectorLabel: 'A', type: 'GB/T', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-      { id: 102, connectorId: 2, connectorLabel: 'B', type: 'CCS2', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-    ],
-  },
-];
-
-function readStoredAdminToken(): string {
-  try {
-    return window.sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-function saveStoredAdminToken(token?: string) {
-  try {
-    if (token) {
-      window.sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
-    } else {
-      window.sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
-    }
-  } catch {}
-}
-
-function readFallbackStations(): ChargingStation[] {
-  try {
-    const raw = window.localStorage.getItem(ADMIN_FALLBACK_STATIONS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {}
-  return DEFAULT_FALLBACK_STATIONS;
-}
-
-function saveFallbackStations(stations: ChargingStation[]) {
-  try {
-    window.localStorage.setItem(ADMIN_FALLBACK_STATIONS_KEY, JSON.stringify(stations));
-  } catch {}
-}
-
-async function fallbackAdminRequest<T>(url: string, options?: RequestInit): Promise<T> {
-  const method = (options?.method || 'GET').toUpperCase();
-  const body = options?.body ? JSON.parse(String(options.body)) : {};
-
-  if (url === '/api/admin/auth/config') {
-    return {
-      localCredentialsEnabled: true,
-      defaultCredentialsEnabled: false,
-      email: 'admin@wilpower.local',
-    } as unknown as T;
-  }
-
-  if (url === '/api/admin/auth/me') {
-    const raw = window.sessionStorage.getItem(ADMIN_FALLBACK_SESSION_KEY);
-    if (!raw) throw new Error('Admin authentication required.');
-    return { admin: JSON.parse(raw) } as unknown as T;
-  }
-
-  if (url === '/api/admin/auth/login' && method === 'POST') {
-    const email = String(body.email || '').trim().toLowerCase();
-    const password = String(body.password || '').trim();
-    const customPassword = window.localStorage.getItem(ADMIN_FALLBACK_PASSWORD_KEY) || '';
-    const validEmails = new Set(['admin@wilpower.local', 'admin@wilpower.energy']);
-    const validPasswords = new Set(['WilpowerLocalAdmin!2026', ...(customPassword ? [customPassword] : [])]);
-
-    if (!validEmails.has(email) || !validPasswords.has(password)) {
-      throw new Error('Invalid admin credentials.');
-    }
-
-    const admin: AdminIdentity = {
-      id: 'admin-primary',
-      email,
-      displayName: 'Wilpower Operations',
-      role: 'super_admin',
-      mustChangePassword: false,
-    };
-    window.sessionStorage.setItem(ADMIN_FALLBACK_SESSION_KEY, JSON.stringify(admin));
-    saveStoredAdminToken('local-fallback-admin-token');
-    return { admin, token: 'local-fallback-admin-token' } as unknown as T;
-  }
-
-  if (url === '/api/admin/auth/change-password' && method === 'POST') {
-    const newPassword = String(body.newPassword || '').trim();
-    if (newPassword.length < 12) {
-      throw new Error('Choose a password with at least 12 characters.');
-    }
-    window.localStorage.setItem(ADMIN_FALLBACK_PASSWORD_KEY, newPassword);
-    const raw = window.sessionStorage.getItem(ADMIN_FALLBACK_SESSION_KEY);
-    const admin: AdminIdentity = raw
-      ? { ...JSON.parse(raw), mustChangePassword: false }
-      : { id: 'admin-primary', email: 'admin@wilpower.local', displayName: 'Wilpower Operations', role: 'super_admin', mustChangePassword: false };
-    window.sessionStorage.setItem(ADMIN_FALLBACK_SESSION_KEY, JSON.stringify(admin));
-    return { admin, token: 'local-fallback-admin-token' } as unknown as T;
-  }
-
-  if (url === '/api/admin/auth/logout' && method === 'POST') {
-    window.sessionStorage.removeItem(ADMIN_FALLBACK_SESSION_KEY);
-    saveStoredAdminToken('');
-    return { success: true } as unknown as T;
-  }
-
-  const stations = readFallbackStations();
-
-  if (url === '/api/admin/stations' && method === 'GET') {
-    return stations as unknown as T;
-  }
-
-  if (url === '/api/admin/stations' && method === 'POST') {
-    const created: ChargingStation = {
-      id: `station-${Date.now()}`,
-      stationId: String(body.stationId || `CL-GH-${String(stations.length + 1).padStart(3, '0')}`),
-      name: String(body.name || 'New Wilpower Station'),
-      address: String(body.address || 'Kumasi, Ashanti'),
-      city: 'Kumasi',
-      region: 'Ashanti',
-      latitude: Number(body.latitude ?? 6.6697479),
-      longitude: Number(body.longitude ?? -1.5995679),
-      isOnline: true,
-      constructionStatus: 'operational',
-      connectors: [
-        { id: Date.now() + 1, connectorId: 1, connectorLabel: 'A', type: 'GB/T', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-        { id: Date.now() + 2, connectorId: 2, connectorLabel: 'B', type: 'CCS2', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-      ],
-    };
-    const next = [...stations, created];
-    saveFallbackStations(next);
-    return created as unknown as T;
-  }
-
-  if (url.startsWith('/api/admin/stations/') && method === 'PUT') {
-    const id = url.replace('/api/admin/stations/', '');
-    const next = stations.map((station) => {
-      if (station.id !== id && station.stationId !== id) return station;
-      const nextOnline = typeof body.isOnline === 'boolean' ? body.isOnline : station.isOnline;
-      return {
-        ...station,
-        isOnline: nextOnline,
-        constructionStatus: nextOnline ? 'operational' : station.constructionStatus,
-        connectors: station.connectors.map((c) => ({
-          ...c,
-          status: nextOnline ? (c.status === 'Unavailable' ? 'Available' : c.status) : 'Unavailable',
-          currentPowerKw: nextOnline ? c.currentPowerKw : 0,
-        })),
-      };
-    });
-    saveFallbackStations(next);
-    const updated = next.find((s) => s.id === id || s.stationId === id) || next[0];
-    return updated as unknown as T;
-  }
-
-  if (url === '/api/simulator/start' && method === 'POST') {
-    window.sessionStorage.setItem(
-      ADMIN_FALLBACK_SIM_SESSION_KEY,
-      JSON.stringify({ active: true, startedAt: Date.now(), kwhDelivered: 4.8, currentCost: 21.6 })
-    );
-    return { status: 'started' } as unknown as T;
-  }
-
-  if (url === '/api/simulator/stop' && method === 'POST') {
-    window.sessionStorage.removeItem(ADMIN_FALLBACK_SIM_SESSION_KEY);
-    return { status: 'stopped' } as unknown as T;
-  }
-
-  if (url === '/api/admin/ocpp/logs') {
-    return [
-      {
-        id: 'ocpp-boot-1',
-        timestamp: new Date().toISOString(),
-        direction: 'INCOMING',
-        action: 'BootNotification',
-        payload: { chargingStation: { model: 'MaxPower VCP160', vendorName: 'ChargeLink GH' }, reason: 'PowerUp' },
-      },
-      {
-        id: 'ocpp-status-2',
-        timestamp: new Date().toISOString(),
-        direction: 'INCOMING',
-        action: 'StatusNotification',
-        payload: { connectorId: 1, connectorStatus: 'Available', evseId: 1 },
-      },
-    ] as unknown as T;
-  }
-
-  if (url === '/api/admin/overview') {
-    const simRaw = window.sessionStorage.getItem(ADMIN_FALLBACK_SIM_SESSION_KEY);
-    const sim = simRaw ? JSON.parse(simRaw) : null;
-    const elapsedMinutes = sim?.startedAt ? Math.max(0.25, (Date.now() - Number(sim.startedAt)) / 60000) : 0;
-    const kwhDelivered = sim ? Number((4.8 + elapsedMinutes * 2.4).toFixed(2)) : 0;
-    const currentCost = sim ? Number((kwhDelivered * 4.5).toFixed(2)) : 0;
-    const onlineStations = stations.filter((s) => s.isOnline).length;
-    const connectors = stations.flatMap((s) => s.connectors || []);
-    const availableConnectors = connectors.filter((c) => c.status === 'Available').length;
-    const occupiedConnectors = sim ? 1 : connectors.filter((c) => c.status === 'Occupied').length;
-
-    return {
-      generatedAt: new Date().toISOString(),
-      stations: {
-        total: stations.length,
-        online: onlineStations,
-        offline: Math.max(0, stations.length - onlineStations),
-      },
-      connectors: {
-        total: connectors.length,
-        available: Math.max(0, availableConnectors - (sim ? 1 : 0)),
-        occupied: occupiedConnectors,
-      },
-      sessions: {
-        active: sim ? 1 : 0,
-        currentCost,
-        kwhDelivered,
-      },
-      network: {
-        health: onlineStations > 0 ? 'OPERATIONAL' : 'ATTENTION REQUIRED',
-        citrineOsBridge: 'CONNECTED',
-        ocppVersion: 'OCPP 1.6J / 2.0.1',
-      },
-      alerts: [],
-    } as unknown as T;
-  }
-
-  throw new Error('Unsupported admin operation.');
-}
-
-async function adminRequest<T>(url: string, options?: RequestInit): Promise<T> {
-  const token = readStoredAdminToken();
-  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-  try {
-    const response = await fetch(url, {
-      ...options,
-      cache: 'no-store',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...(options?.headers || {}),
-      },
-    });
-    const text = await response.text();
-    let data: any = null;
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = null;
-    }
-
-    if (response.ok && data !== null) {
-      return data as T;
-    }
-
-    if (data && typeof data.error === 'string' && response.status >= 400 && response.status < 500 && response.status !== 404 && response.status !== 405) {
-      throw new Error(data.error);
-    }
-
-    return await fallbackAdminRequest<T>(url, options);
-  } catch (error: any) {
-    if (error?.message === 'Invalid admin credentials.' || error?.message === 'Choose a password with at least 12 characters.') {
-      throw error;
-    }
-    return await fallbackAdminRequest<T>(url, options);
-  }
-}
-
-export const WilpowerAdmin: React.FC = () => {
+export function WilpowerAdmin() {
   const [admin, setAdmin] = useState<AdminIdentity | null>(null);
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [config, setConfig] = useState<AdminConfig | null>(null);
+  const [bootstrapping, setBootstrapping] = useState(true);
+  const [view, setView] = useState<AdminView>('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    void Promise.all([
-      adminRequest<{ admin: AdminIdentity }>('/api/admin/auth/me').then((result) => setAdmin(result.admin)).catch(() => setAdmin(null)),
-      adminRequest<AdminConfig>('/api/admin/auth/config').then(setConfig).catch(() => setConfig(null)),
-    ]).finally(() => setCheckingSession(false));
-  }, []);
+  const [email, setEmail] = useState('admin@wilpower.gh');
+  const [password, setPassword] = useState('');
+  const [devHint, setDevHint] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  if (checkingSession) return <div className="wa-loading"><div className="wa-loading-mark">W</div><span>Securing admin workspace...</span></div>;
-  if (!admin) return <AdminLogin config={config} onAuthenticated={setAdmin} />;
-  if (admin.mustChangePassword) return <AdminPasswordChange admin={admin} onAuthenticated={setAdmin} />;
-  return <AdminWorkspace admin={admin} onSignOut={() => { void adminRequest('/api/admin/auth/logout', { method: 'POST' }).finally(() => { saveStoredAdminToken(''); setAdmin(null); }); }} />;
-};
-
-function AdminPasswordChange({ admin, onAuthenticated }: { admin: AdminIdentity; onAuthenticated: (admin: AdminIdentity) => void }) {
+  const [overview, setOverview] = useState<OverviewPayload | null>(null);
+  const [stations, setStations] = useState<Station[]>([]);
+  const [logs, setLogs] = useState<OcppLog[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [passwordBusy, setPasswordBusy] = useState(false);
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const wsPrimaryUrl = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`;
+
+  async function checkSession() {
+    try {
+      const [meRes, configRes] = await Promise.all([
+        fetch('/api/admin/auth/me', { credentials: 'include' }),
+        fetch('/api/admin/auth/config', { credentials: 'include' }),
+      ]);
+      if (configRes.ok) {
+        const cfg = await configRes.json();
+        if (cfg.defaultEmail) setEmail(cfg.defaultEmail);
+        if (cfg.defaultPasswordHint) setDevHint(cfg.defaultPasswordHint);
+      }
+      if (meRes.ok) {
+        const data = await meRes.json();
+        setAdmin(data.admin || null);
+      } else {
+        setAdmin(null);
+      }
+    } catch {
+      setAdmin(null);
+    } finally {
+      setBootstrapping(false);
+    }
+  }
+
+  async function refreshOperations() {
+    if (!admin) return;
+    setRefreshing(true);
+    try {
+      const [overviewRes, stationsRes, logsRes] = await Promise.all([
+        fetch('/api/admin/overview', { credentials: 'include' }),
+        fetch('/api/admin/stations', { credentials: 'include' }),
+        fetch('/api/admin/ocpp/logs', { credentials: 'include' }),
+      ]);
+      if (overviewRes.status === 401) {
+        setAdmin(null);
+        return;
+      }
+      if (overviewRes.ok) setOverview(await overviewRes.json());
+      if (stationsRes.ok) setStations(await stationsRes.json());
+      if (logsRes.ok) {
+        const nextLogs = await logsRes.json();
+        setLogs(Array.isArray(nextLogs) ? nextLogs.slice(0, 20) : []);
+      }
+    } catch {
+      setNotice('Live CSMS telemetry is temporarily unreachable.');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  async function dispatchAdminOcppCommand(action: string, payload: Record<string, any> = {}) {
+    try {
+      const res = await fetch('/api/ocpp/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chargeBoxId: 'CL-KSI-001',
+          action,
+          payload,
+        }),
+      });
+      const data = await res.json();
+      await refreshOperations();
+      if (res.ok) {
+        setNotice(`OCPP 1.6J [${action}] -> ${data?.responsePayload?.status || 'Accepted'}`);
+      } else {
+        setNotice(data.error || 'Command failed');
+      }
+    } catch {
+      setNotice('Could not dispatch OCPP 1.6J command.');
+    }
+  }
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (!admin) return;
+    refreshOperations();
+    const timer = window.setInterval(refreshOperations, 5000);
+    return () => window.clearInterval(timer);
+  }, [admin?.id]);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      const res = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setAuthError(data.error || 'Administrator login failed.');
+        return;
+      }
+      setAdmin(data.admin);
+      setPassword('');
+    } catch {
+      setAuthError('Could not connect to the Wilpower admin gateway.');
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function handleLogout() {
+    await fetch('/api/admin/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
+    setAdmin(null);
+    setOverview(null);
+  }
+
+  async function handlePasswordUpdate(e: React.FormEvent) {
+    e.preventDefault();
     if (newPassword.length < 12) {
-      setError('Choose a password with at least 12 characters.');
+      setNotice('New administrator password must be at least 12 characters.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('The new passwords do not match.');
+      setNotice('New password and confirmation do not match.');
       return;
     }
-    setBusy(true);
-    setError('');
+    setPasswordBusy(true);
     try {
-      const result = await adminRequest<{ admin: AdminIdentity; token?: string }>('/api/admin/auth/change-password', {
+      const res = await fetch('/api/admin/auth/change-password', {
         method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      if (result.token) saveStoredAdminToken(result.token);
-      onAuthenticated(result.admin);
-    } catch (requestError: any) {
-      setError(requestError.message || 'Unable to change the administrator password.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="wa-auth-shell">
-      <div className="wa-auth-orbit" aria-hidden="true" />
-      <section className="wa-auth-panel">
-        <div className="wa-brand-lockup"><div className="wa-brand-mark">W</div><div><strong>Wilpower</strong><span>Network control</span></div></div>
-        <span className="wa-eyebrow">FIRST LOGIN SECURITY CHECK</span>
-        <h1>Set your private access key.</h1>
-        <p>You are using the initial administrator password. Create a new password before entering the operations portal.</p>
-        <form className="wa-auth-form" onSubmit={submit}>
-          <label>
-            <span>Current password</span>
-            <div className="wa-password-wrap">
-              <input value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} type={showCurrentPassword ? 'text' : 'password'} autoComplete="current-password" required />
-              <button type="button" className="wa-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}>
-                {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-          <label>
-            <span>New password</span>
-            <div className="wa-password-wrap">
-              <input value={newPassword} onChange={(event) => setNewPassword(event.target.value)} type={showNewPassword ? 'text' : 'password'} autoComplete="new-password" minLength={12} required />
-              <button type="button" className="wa-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}>
-                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-          <label>
-            <span>Confirm new password</span>
-            <div className="wa-password-wrap">
-              <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" minLength={12} required />
-              <button type="button" className="wa-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label={showConfirmPassword ? 'Hide confirmed password' : 'Show confirmed password'}>
-                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-          {error && <div className="wa-error" role="alert"><AlertTriangle size={16} />{error}</div>}
-          <button className="wa-primary-button" disabled={busy}>{busy ? 'Saving secure password...' : 'Save password and continue'} <ArrowRight size={16} /></button>
-        </form>
-        <div className="wa-dev-note"><ShieldCheck size={15} /><span>Use at least 12 characters. Toggle the eye icon to verify your password.</span></div>
-      </section>
-    </div>
-  );
-}
-
-function AdminLogin({ config, onAuthenticated }: { config: AdminConfig | null; onAuthenticated: (admin: AdminIdentity) => void }) {
-  const [email, setEmail] = useState(config?.email || '');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (config?.email) setEmail(config.email);
-  }, [config?.email]);
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const result = await adminRequest<{ admin: AdminIdentity; token?: string }>('/api/admin/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-      if (result.token) saveStoredAdminToken(result.token);
-      onAuthenticated(result.admin);
-    } catch (requestError: any) {
-      setError(requestError.message || 'Unable to sign in to the admin portal.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="wa-auth-shell">
-      <div className="wa-auth-orbit" aria-hidden="true" />
-      <section className="wa-auth-panel">
-        <div className="wa-brand-lockup"><div className="wa-brand-mark">W</div><div><strong>Wilpower</strong><span>Network control</span></div></div>
-        <span className="wa-eyebrow">PRIVATE OPERATIONS PORTAL</span>
-        <h1>Control every part of the network.</h1>
-        <p>Admin access is separated from the driver experience. Sign in with your Wilpower operations credentials.</p>
-        <form className="wa-auth-form" onSubmit={submit}>
-          <label><span>Administrator email</span><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="username" placeholder="admin@wilpower.energy" required /></label>
-          <label>
-            <span>Password</span>
-            <div className="wa-password-wrap">
-              <input value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter secure password" required />
-              <button
-                type="button"
-                className="wa-password-toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-          {error && <div className="wa-error" role="alert"><AlertTriangle size={16} />{error}</div>}
-          <button className="wa-primary-button" disabled={busy}>{busy ? 'Authenticating...' : 'Enter operations portal'} <ArrowRight size={16} /></button>
-        </form>
-        {config?.defaultCredentialsEnabled && <div className="wa-dev-note"><ShieldCheck size={15} /><span>Initial access is enabled for {config.email || 'the configured administrator'} and requires a password change after login.</span></div>}
-        <a className="wa-back-link" href="/">Return to driver experience <ChevronRight size={14} /></a>
-      </section>
-    </div>
-  );
-}
-
-function AdminWorkspace({ admin, onSignOut }: { admin: AdminIdentity; onSignOut: () => void }) {
-  const [view, setView] = useState<AdminView>('overview');
-  const [overview, setOverview] = useState<AdminOverviewData | null>(null);
-  const [stations, setStations] = useState<ChargingStation[]>([]);
-  const [logs, setLogs] = useState<OcppMessage[]>([]);
-  const [mobileNav, setMobileNav] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState('');
-
-  const refresh = async (silent = false) => {
-    if (!silent) setBusy(true);
-    try {
-      const [nextOverview, nextStations, nextLogs] = await Promise.all([
-        adminRequest<AdminOverviewData>('/api/admin/overview'),
-        adminRequest<ChargingStation[]>('/api/admin/stations'),
-        adminRequest<OcppMessage[]>('/api/admin/ocpp/logs'),
-      ]);
-      setOverview(nextOverview);
-      setStations(nextStations);
-      setLogs(nextLogs);
-      if (!silent) setNotice('Operations data refreshed.');
-    } catch (error: any) {
-      setNotice(error.message || 'Unable to refresh operations data.');
-    } finally {
-      if (!silent) setBusy(false);
-    }
-  };
-
-  useEffect(() => {
-    void refresh(true);
-    const timer = window.setInterval(() => void refresh(true), 12000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const activeNav = useMemo(() => ADMIN_NAV.find((item) => item.id === view) || ADMIN_NAV[0], [view]);
-
-  const toggleStation = async (station: ChargingStation) => {
-    setBusy(true);
-    try {
-      await adminRequest(`/api/admin/stations/${station.id}`, { method: 'PUT', body: JSON.stringify({ isOnline: !station.isOnline }) });
-      await refresh(true);
-      setNotice(station.name + ' is now ' + (!station.isOnline ? 'online.' : 'offline.'));
-    } catch (error: any) {
-      setNotice(error.message || 'Station update failed.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const createStation = async (payload: { name: string; address: string; stationId?: string }) => {
-    setBusy(true);
-    try {
-      await adminRequest('/api/admin/stations', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: payload.name,
-          address: payload.address,
-          stationId: payload.stationId,
-          latitude: 6.6697479,
-          longitude: -1.5995679,
-        }),
-      });
-      await refresh(true);
-      setNotice(`Registered ${payload.name} on the network.`);
-    } catch (error: any) {
-      setNotice(error.message || 'Could not register station.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const toggleSimulatedSession = async (active: boolean) => {
-    setBusy(true);
-    try {
-      if (active) {
-        await adminRequest('/api/simulator/stop', { method: 'POST', body: JSON.stringify({}) });
-        setNotice('Active charging session stopped.');
-      } else {
-        await adminRequest('/api/simulator/start', { method: 'POST', body: JSON.stringify({ speedMultiplier: 5 }) });
-        setNotice('Simulated OCPP charging session started.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setNotice(data.error || 'Password could not be updated.');
+        return;
       }
-      await refresh(true);
-    } catch (error: any) {
-      setNotice(error.message || 'Session action failed.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setDevHint(null);
+      setNotice('Administrator password rotated and persisted.');
+    } catch {
+      setNotice('Could not reach the admin security service.');
     } finally {
-      setBusy(false);
+      setPasswordBusy(false);
     }
-  };
+  }
+
+  const navItems = useMemo(
+    () => [
+      { id: 'dashboard' as const, label: 'Dashboard', sub: 'Network overview', icon: LayoutDashboard },
+      { id: 'stations' as const, label: 'Stations', sub: 'Commissioning & guns', icon: Building2 },
+      { id: 'sessions' as const, label: 'Sessions', sub: 'Live energy ledger', icon: BatteryCharging },
+      { id: 'diagnostics' as const, label: 'OCPP 1.6J CSMS', sub: 'Commands & frames', icon: Cpu },
+      { id: 'security' as const, label: 'Security', sub: 'Credentials & access', icon: KeyRound },
+    ],
+    []
+  );
+
+  if (bootstrapping) {
+    return (
+      <div className="wa-loading">
+        <div className="wa-loading-mark">W</div>
+        <span>Verifying Wilpower Operations session...</span>
+      </div>
+    );
+  }
+
+  if (!admin) {
+    return (
+      <div className="wa-auth-shell">
+        <div className="wa-auth-orbit" />
+        <main className="wa-auth-panel">
+          <div className="wa-brand-lockup">
+            <div className="wa-brand-mark">W</div>
+            <div>
+              <strong>Wilpower Operations</strong>
+              <span>Restricted CSMS & Network Control Plane</span>
+            </div>
+          </div>
+
+          <span className="wa-eyebrow">ISOLATED ADMIN PORTAL</span>
+          <h1>Network Command Access.</h1>
+          <p>
+            Authenticate with your operator credentials to inspect station availability, OCPP 1.6 Edition 2 packets, and Ghana Cedi session reconciliation.
+          </p>
+
+          <form onSubmit={handleLogin} className="wa-auth-form">
+            <label>
+              <span>Administrator Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Security Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter operator password"
+                autoComplete="current-password"
+                required
+              />
+            </label>
+
+            {authError && (
+              <div className="wa-error">
+                <AlertTriangle size={15} />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <button type="submit" className="wa-primary-button" disabled={authBusy}>
+              <Lock size={15} />
+              <span>{authBusy ? 'Authenticating...' : 'Unlock Operations Console'}</span>
+              <ArrowUpRight size={16} />
+            </button>
+          </form>
+
+          {devHint && (
+            <div className="wa-dev-note">
+              <KeyRound size={14} />
+              <span>
+                Local dev credential active. Set <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD</code> in production.
+              </span>
+              <button type="button" className="wa-inline-button" onClick={() => setPassword(devHint)}>
+                Fill dev password
+              </button>
+            </div>
+          )}
+
+          <a className="wa-back-link" href="/">
+            <span>Return to driver application</span>
+            <ChevronRight size={14} />
+          </a>
+        </main>
+      </div>
+    );
+  }
+
+  const totalConnectors = overview?.connectors.total ?? stations.reduce((sum, s) => sum + s.connectors.length, 0);
+  const availableConnectors = overview?.connectors.available ?? 0;
 
   return (
     <div className="wa-app">
-      <aside className={mobileNav ? 'wa-sidebar is-open' : 'wa-sidebar'}>
-        <div className="wa-sidebar-top"><div className="wa-brand-lockup"><div className="wa-brand-mark">W</div><div><strong>Wilpower</strong><span>Network control</span></div></div><button className="wa-close-button" onClick={() => setMobileNav(false)} aria-label="Close admin navigation"><X size={18} /></button></div>
-        <div className="wa-admin-badge"><ShieldCheck size={15} /><span>ADMIN ONLY</span></div>
-        <nav className="wa-nav" aria-label="Admin navigation">{ADMIN_NAV.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? 'is-active' : ''} onClick={() => { setView(item.id); setMobileNav(false); }}><Icon size={17} /><span><strong>{item.label}</strong><small>{item.detail}</small></span>{view === item.id && <ChevronRight size={14} />}</button>; })}</nav>
-        <div className="wa-sidebar-bottom"><div className="wa-sidebar-note"><Network size={17} /><span>Live network bridge<br /><strong>{overview?.network.citrineOsBridge || 'Checking...'}</strong></span></div><div className="wa-admin-user"><div className="wa-admin-avatar">{admin.displayName.slice(0, 2).toUpperCase()}</div><div><strong>{admin.displayName}</strong><span>{admin.role.replace('_', ' ')}</span></div><button onClick={onSignOut} aria-label="Sign out of admin portal"><LogOut size={16} /></button></div></div>
-      </aside>
-      <main className="wa-main">
-        <header className="wa-topbar"><button className="wa-menu-button" onClick={() => setMobileNav(true)} aria-label="Open admin navigation"><Menu size={20} /></button><div><span className="wa-topbar-kicker">WILPOWER OPERATIONS</span><h2>{activeNav.label}</h2></div><div className="wa-top-actions"><span className="wa-secure-chip"><span /> Secure admin session</span><button className="wa-refresh-button" onClick={() => void refresh()} disabled={busy} aria-label="Refresh operations data"><RefreshCw size={17} className={busy ? 'is-spinning' : ''} /></button></div></header>
-        <div className="wa-content"><div className="wa-page-heading"><div><span className="wa-eyebrow">{activeNav.detail}</span><h1>{activeNav.label}</h1><p>Make informed network decisions from one operational view.</p></div><div className="wa-page-status"><span className="wa-live-dot" />{overview?.generatedAt ? 'Updated ' + new Date(overview.generatedAt).toLocaleTimeString('en-GH', { hour: '2-digit', minute: '2-digit' }) : 'Connecting'}</div></div>
-          {notice && <div className="wa-notice" role="status"><CheckCircle2 size={15} />{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notice"><X size={14} /></button></div>}
-          {view === 'overview' && <AdminOverview overview={overview} stations={stations} onStationView={() => setView('stations')} />}
-          {view === 'stations' && <AdminStations stations={stations} busy={busy} onToggle={toggleStation} onCreate={createStation} />}
-          {view === 'sessions' && <AdminSessions overview={overview} busy={busy} onToggleSession={toggleSimulatedSession} />}
-          {view === 'diagnostics' && <AdminDiagnostics overview={overview} logs={logs} />}
+      <aside className={`wa-sidebar ${mobileMenuOpen ? 'is-open' : ''}`}>
+        <div className="wa-sidebar-top">
+          <div className="wa-brand-lockup">
+            <div className="wa-brand-mark">W</div>
+            <div>
+              <strong>Wilpower Ops</strong>
+              <span>CSMS Control</span>
+            </div>
+          </div>
+          <button type="button" className="wa-close-button" onClick={() => setMobileMenuOpen(false)}>
+            <X size={18} />
+          </button>
         </div>
-      </main>
+
+        <div className="wa-admin-badge">
+          <ShieldCheck size={14} />
+          <span>RBAC · {admin.role.replace('_', ' ').toUpperCase()}</span>
+        </div>
+
+        <nav className="wa-nav" aria-label="Operations navigation">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                type="button"
+                key={item.id}
+                className={view === item.id ? 'is-active' : ''}
+                onClick={() => {
+                  setView(item.id);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Icon size={17} />
+                <span>
+                  <strong>{item.label}</strong>
+                  <small>{item.sub}</small>
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="wa-sidebar-bottom">
+          <div className="wa-sidebar-note">
+            <Radio size={15} />
+            <div>
+              <strong>CitrineOS Bridge</strong>
+              <span>{overview?.network.ocppVersion || 'OCPP 1.6J Edition 2'}</span>
+            </div>
+          </div>
+
+          <div className="wa-admin-user">
+            <div className="wa-admin-avatar">{admin.displayName.slice(0, 2).toUpperCase()}</div>
+            <div>
+              <strong>{admin.displayName}</strong>
+              <span>{admin.email}</span>
+            </div>
+            <button type="button" onClick={handleLogout} title="Sign out of admin portal">
+              <LogOut size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div className="wa-main">
+        <header className="wa-topbar">
+          <button type="button" className="wa-menu-button" onClick={() => setMobileMenuOpen(true)}>
+            <Menu size={18} />
+          </button>
+
+          <div>
+            <span className="wa-topbar-kicker">WILPOWER OPERATIONS PORTAL</span>
+            <h2>{navItems.find((item) => item.id === view)?.label}</h2>
+          </div>
+
+          <div className="wa-top-actions">
+            <div className="wa-secure-chip">
+              <span />
+              HttpOnly Session Active
+            </div>
+            <button type="button" className="wa-refresh-button" onClick={refreshOperations} title="Refresh telemetry">
+              <RefreshCw size={15} className={refreshing ? 'is-spinning' : ''} />
+            </button>
+          </div>
+        </header>
+
+        <main className="wa-content">
+          {notice && (
+            <div className="wa-notice">
+              <AlertTriangle size={15} />
+              <span>{notice}</span>
+              <button type="button" onClick={() => setNotice(null)}>
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {view === 'dashboard' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">LIVE NETWORK HEALTH</span>
+                  <h1>Ghana Charging Control Plane.</h1>
+                  <p>Greenwood Event Center (CL-KSI-001) MaxPower VCP160 160 kW DC Fast Charger commissioned on OCPP 1.6 Edition 2.</p>
+                </div>
+                <div className="wa-page-status">
+                  <span className="wa-live-dot" />
+                  <span>Updated {overview?.generatedAt ? new Date(overview.generatedAt).toLocaleTimeString() : 'now'}</span>
+                </div>
+              </div>
+
+              <div className="wa-metric-grid">
+                <article className="wa-metric">
+                  <div>
+                    <span>REGISTERED HUBS</span>
+                    <Building2 size={17} />
+                  </div>
+                  <strong>{overview?.stations.total ?? stations.length}</strong>
+                  <small>{overview?.stations.online ?? 1} online · {overview?.stations.offline ?? 0} offline</small>
+                </article>
+
+                <article className="wa-metric wa-metric-blue">
+                  <div>
+                    <span>CONNECTOR READY RATE</span>
+                    <Zap size={17} />
+                  </div>
+                  <strong>{availableConnectors} / {totalConnectors}</strong>
+                  <small>Outlet A (GB/T 160kW) & Outlet B (CCS2 160kW)</small>
+                </article>
+
+                <article className="wa-metric wa-metric-amber">
+                  <div>
+                    <span>ACTIVE SESSIONS</span>
+                    <BatteryCharging size={17} />
+                  </div>
+                  <strong>{overview?.sessions.active ?? 0}</strong>
+                  <small>{(overview?.sessions.kwhDelivered ?? 0).toFixed(2)} kWh delivered live</small>
+                </article>
+
+                <article className="wa-metric wa-metric-purple">
+                  <div>
+                    <span>LIVE ESCROW LEDGER</span>
+                    <Activity size={17} />
+                  </div>
+                  <strong>{formatGhs(overview?.sessions.currentCost ?? 0)}</strong>
+                  <small>Published rate: GH₵ 4.50 / kWh</small>
+                </article>
+              </div>
+
+              <div className="wa-dashboard-grid">
+                <div className="wa-panel wa-network-panel">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">GEOSPATIAL TELEMETRY</span>
+                      <h3>Kumasi Greenwood Corridor</h3>
+                    </div>
+                    <button type="button" className="wa-inline-button" onClick={() => setView('stations')}>
+                      <span>Manage stations</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+
+                  <div className="wa-network-map">
+                    <div className="wa-map-grid-lines" />
+                    <div className="wa-map-orbit wa-orbit-one" />
+                    <div className="wa-map-orbit wa-orbit-two" />
+                    <div className="wa-map-center">
+                      <MapPin size={18} />
+                      <span>KUMASI COMMAND</span>
+                      <b>6.6697 N · -1.5996 W</b>
+                    </div>
+                    {stations.map((station) => (
+                      <div key={station.id} className={`wa-network-pin ${station.isOnline ? 'is-online' : 'is-offline'}`} style={{ top: '48%', left: '53%' }}>
+                        <span />
+                        <strong>{station.stationId} · ONLINE</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="wa-panel wa-alert-panel">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">PRIORITY ALERTS</span>
+                      <h3>Hardware Exceptions</h3>
+                    </div>
+                    <AlertTriangle size={17} />
+                  </div>
+
+                  {overview?.alerts?.length ? (
+                    overview.alerts.map((alert) => (
+                      <div className="wa-alert-row" key={alert.id}>
+                        <AlertTriangle size={15} />
+                        <div>
+                          <strong>{alert.action}</strong>
+                          <span>Connector {alert.payload?.connectorId} reported {alert.payload?.errorCode || 'Faulted'}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="wa-empty-state">
+                      <CheckCircle2 size={24} />
+                      <strong>Zero active hardware faults</strong>
+                      <span>Outlet A (GB/T) and Outlet B (CCS2) report NoError on OCPP 1.6J.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {view === 'stations' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">STATION REGISTRY & COMMISSIONING</span>
+                  <h1>Charge Points & Connectors.</h1>
+                  <p>Live OCPP 1.6 Edition 2 status and the 5-step MaxPower VCP160 physical commissioning runbook.</p>
+                </div>
+                <button
+                  type="button"
+                  className="wa-primary-small"
+                  onClick={() => dispatchAdminOcppCommand('TriggerMessage', { requestedMessage: 'StatusNotification', connectorId: 1 })}
+                >
+                  <RefreshCw size={15} />
+                  <span>Poll StatusNotification</span>
+                </button>
+              </div>
+
+              <div className="wa-panel wa-table-panel">
+                <div className="wa-station-table">
+                  <div className="wa-table-row wa-table-head">
+                    <span>Station / Pile ID</span>
+                    <span>Status</span>
+                    <span>Outlets</span>
+                    <span>Remote OCPP 1.6J Actions</span>
+                  </div>
+                  {stations.map((station) => (
+                    <div className="wa-table-row" key={station.id}>
+                      <div className="wa-station-name">
+                        <div className="wa-station-icon"><Zap size={16} /></div>
+                        <span>
+                          <strong>{station.name}</strong>
+                          <small>{station.stationId} · Pile ID: {station.pileNumber || '19046744073709551615'} · {station.address}</small>
+                        </span>
+                      </div>
+                      <span className={`wa-state ${station.isOnline ? 'is-online' : 'is-offline'}`}>
+                        <i />
+                        {station.isOnline ? 'Online (1.6J)' : 'Offline'}
+                      </span>
+                      <span className="wa-connector-count">
+                        {station.connectors.map((c) => `${c.label || `Gun ${c.connectorId}`} (${c.type}): ${c.status}`).join(' · ')}
+                      </span>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="wa-row-action"
+                          onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 1 })}
+                        >
+                          <Unlock size={13} />
+                          <span>Unlock A</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="wa-row-action"
+                          onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 2 })}
+                        >
+                          <Unlock size={13} />
+                          <span>Unlock B</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="wa-row-action"
+                          onClick={() => dispatchAdminOcppCommand('Reset', { type: 'Soft' })}
+                        >
+                          <RefreshCw size={13} />
+                          <span>Soft Reset</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="wa-panel wa-next-panel" style={{ marginTop: 16 }}>
+                <div className="wa-panel-heading">
+                  <div>
+                    <span className="wa-eyebrow">MAXPOWER VCP160 · 5-STEP HMI COMMISSIONING GUIDE</span>
+                    <h3>Physical Charger Setup Parameters</h3>
+                  </div>
+                  <Wrench size={17} />
+                </div>
+
+                <div className="wp-commissioning-layout" style={{ marginTop: 16 }}>
+                  <img
+                    src="/ocpp-commissioning-guide.jpeg"
+                    alt="MaxPower VCP160 5-Step OCPP Setup"
+                    className="wp-commissioning-image"
+                  />
+                  <div className="wp-step-list">
+                    <div className="wp-step-item">
+                      <span className="wp-step-badge">1</span>
+                      <div>
+                        <strong>Step 1: Click Menu</strong>
+                        <p>On the main charger HMI (showing Outlet A & Outlet B voltage, current, capacity, time, price /kWh, and ID 19046744073709551615), tap <b>Menu</b>.</p>
+                      </div>
+                    </div>
+                    <div className="wp-step-item">
+                      <span className="wp-step-badge">2</span>
+                      <div>
+                        <strong>Step 2: Click System administrator</strong>
+                        <p>Select <b>System administrator</b> (bottom-right tile of the Menu screen).</p>
+                      </div>
+                    </div>
+                    <div className="wp-step-item">
+                      <span className="wp-step-badge">3</span>
+                      <div>
+                        <strong>Step 3: Enter password 1, and click OK</strong>
+                        <p>Enter administrator password <b>1</b> and tap <b>OK</b>.</p>
+                      </div>
+                    </div>
+                    <div className="wp-step-item">
+                      <span className="wp-step-badge">4</span>
+                      <div>
+                        <strong>Step 4: Click OCPP setup</strong>
+                        <p>Tap the <b>OCPP setup</b> tile in the System administrator menu.</p>
+                      </div>
+                    </div>
+                    <div className="wp-step-item">
+                      <span className="wp-step-badge">5</span>
+                      <div>
+                        <strong>Step 5: Set OCPP URL and stake number</strong>
+                        <p>
+                          Set <b>OCPP connection</b> = <code>Enable</code>, <b>URL setting</b> = <code>{wsPrimaryUrl}</code>, <b>port</b> = <code>5173</code>, <b>pile number</b> = <code>CL-KSI-001</code> (or <code>19046744073709551615</code>), and <b>Network mode</b> = <code>2.Ethernet</code> (for 4G SIM or network cable).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {view === 'sessions' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">ENERGY & ESCROW LEDGER</span>
+                  <h1>Active Charging Sessions.</h1>
+                  <p>Real-time Ghana Cedi pre-authorization holds, kWh metering, and idle fee enforcement.</p>
+                </div>
+              </div>
+
+              <div className="wa-session-hero">
+                <div>
+                  <span className="wa-eyebrow">SESSION TELEMETRY</span>
+                  <h3>{overview?.sessions.active ? '1 session active on network' : 'No active vehicle sessions'}</h3>
+                  <p>
+                    Pre-authorization holds of GH₵ 25.00 are locked before RemoteStartTransaction and reconciled immediately when StopTransaction is received.
+                  </p>
+                </div>
+                <div className="wa-session-figure">
+                  <Zap size={22} />
+                  <strong>{(overview?.sessions.kwhDelivered ?? 0).toFixed(2)} kWh</strong>
+                  <span>{formatGhs(overview?.sessions.currentCost ?? 0)} accrued</span>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {view === 'diagnostics' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">CITRINEOS / OCPP 1.6J BRIDGE</span>
+                  <h1>System Diagnostics & CSMS Console.</h1>
+                  <p>Inspect incoming and outgoing OCPP 1.6 Edition 2 JSON-RPC frames and dispatch remote commands.</p>
+                </div>
+              </div>
+
+              <div className="wa-diagnostics-grid">
+                <div className="wa-panel wa-health-card">
+                  <span className="wa-eyebrow">CSMS BACKBONE & REMOTE COMMANDS</span>
+                  <h3>CitrineOS OCPP 1.6J Bridge</h3>
+                  <div className="wa-health-status">
+                    <span className="wa-live-dot" />
+                    <strong>{overview?.network.citrineOsBridge || 'CONNECTED'}</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>Protocol</span>
+                    <strong>{overview?.network.ocppVersion || 'OCPP 1.6J Edition 2'}</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>WebSocket URL</span>
+                    <strong>{wsPrimaryUrl}</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>Primary Node</span>
+                    <strong>CL-KSI-001 · Greenwood Event Center</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>Factory Stake Alias</span>
+                    <strong>19046744073709551615</strong>
+                  </div>
+
+                  <div className="wp-hmi-actions" style={{ marginTop: 16 }}>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('TriggerMessage', { requestedMessage: 'Heartbeat' })}
+                    >
+                      Trigger Heartbeat
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('TriggerMessage', { requestedMessage: 'StatusNotification', connectorId: 1 })}
+                    >
+                      Trigger Status (Outlet A)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 1 })}
+                    >
+                      Unlock Outlet A
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 2 })}
+                    >
+                      Unlock Outlet B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('ClearCache', {})}
+                    >
+                      ClearCache
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchAdminOcppCommand('Reset', { type: 'Soft' })}
+                    >
+                      Soft Reset
+                    </button>
+                  </div>
+                </div>
+
+                <div className="wa-panel wa-log-card">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">PACKET AUDIT TRAIL</span>
+                      <h3>OCPP 1.6J Event Stream</h3>
+                    </div>
+                    <Terminal size={17} />
+                  </div>
+
+                  <div className="wa-log-list">
+                    {logs.map((log) => (
+                      <div className="wa-log-row" key={log.id}>
+                        <span className="wa-log-time">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <strong>{log.action} ({log.chargeBoxId || 'CL-KSI-001'})</strong>
+                        <span className={log.direction === 'INCOMING' ? 'wa-log-in' : 'wa-log-out'}>
+                          {log.direction}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {view === 'security' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">OPERATOR CREDENTIAL SECURITY</span>
+                  <h1>Admin Access & Password.</h1>
+                  <p>Rotate the operations portal password. Changes are hashed with scrypt and persisted on the server.</p>
+                </div>
+              </div>
+
+              <div className="wa-diagnostics-grid">
+                <div className="wa-panel wa-health-card">
+                  <span className="wa-eyebrow">ACTIVE OPERATOR</span>
+                  <h3>{admin.displayName}</h3>
+                  <div className="wa-detail-line">
+                    <span>Email</span>
+                    <strong>{admin.email}</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>Assigned Role</span>
+                    <strong>{admin.role}</strong>
+                  </div>
+                  <div className="wa-detail-line">
+                    <span>Session Cookie</span>
+                    <strong>HttpOnly · SameSite=Strict · 8h TTL</strong>
+                  </div>
+                </div>
+
+                <div className="wa-panel wa-log-card">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">PASSWORD ROTATION</span>
+                      <h3>Change Operator Password</h3>
+                    </div>
+                    <KeyRound size={17} />
+                  </div>
+
+                  <form onSubmit={handlePasswordUpdate} className="wa-auth-form">
+                    <label>
+                      <span>Current Password</span>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                      />
+                    </label>
+                    <label>
+                      <span>New Password (minimum 12 characters)</span>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={12}
+                        required
+                      />
+                    </label>
+                    <label>
+                      <span>Confirm New Password</span>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={12}
+                        required
+                      />
+                    </label>
+                    <button type="submit" className="wa-primary-button" disabled={passwordBusy}>
+                      <Lock size={15} />
+                      <span>{passwordBusy ? 'Rotating password...' : 'Update Admin Password'}</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
 
-function AdminOverview({ overview, stations, onStationView }: { overview: AdminOverviewData | null; stations: ChargingStation[]; onStationView: () => void }) {
-  const metrics = [
-    { label: 'Stations online', value: overview ? overview.stations.online + ' / ' + overview.stations.total : '--', detail: overview?.stations.offline ? overview.stations.offline + ' need attention' : 'All network points healthy', icon: Building2, tone: 'lime' },
-    { label: 'Available connectors', value: overview?.connectors.available ?? '--', detail: (overview?.connectors.total || 0) + ' connectors registered', icon: PlugZap, tone: 'blue' },
-    { label: 'Live sessions', value: overview?.sessions.active ?? '--', detail: overview ? overview.sessions.kwhDelivered.toFixed(2) + ' kWh in progress' : 'Awaiting telemetry', icon: BatteryCharging, tone: 'amber' },
-    { label: 'Current session value', value: overview ? adminMoney(overview.sessions.currentCost) : '--', detail: 'Live Ghana Cedi accrual', icon: CircleDollarSign, tone: 'purple' },
-  ];
-  return <div className="wa-page-body"><section className="wa-metric-grid">{metrics.map((metric) => { const Icon = metric.icon; return <div className={'wa-metric wa-metric-' + metric.tone} key={metric.label}><div><span>{metric.label}</span><Icon size={18} /></div><strong>{metric.value}</strong><small>{metric.detail}</small></div>; })}</section><div className="wa-dashboard-grid"><section className="wa-panel wa-network-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">NETWORK MAP</span><h3>Station pulse</h3></div><button className="wa-inline-button" onClick={onStationView}>Manage stations <ArrowRight size={14} /></button></div><div className="wa-network-map"><div className="wa-map-orbit wa-orbit-one" /><div className="wa-map-orbit wa-orbit-two" /><div className="wa-map-grid-lines" />{stations.map((station, index) => <div className={'wa-network-pin ' + (station.isOnline ? 'is-online' : 'is-offline')} key={station.id} style={{ left: (24 + index * 30) + '%', top: (35 + (index % 2) * 22) + '%' }}><span /><strong>{station.name}</strong></div>)}<div className="wa-map-center"><Gauge size={18} /><span>KUMASI<br /><b>CONTROL GRID</b></span></div></div></section><section className="wa-panel wa-alert-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">REQUIRES ATTENTION</span><h3>Operational alerts</h3></div><AlertTriangle size={18} /></div>{overview?.alerts.length ? overview.alerts.map((alert) => <div className="wa-alert-row" key={alert.id}><AlertTriangle size={15} /><div><strong>{alert.action}</strong><span>{String(alert.payload?.errorCode || 'Connector fault reported')}</span></div><Clock3 size={14} /></div>) : <div className="wa-empty-state"><CheckCircle2 size={22} /><strong>No active alerts</strong><span>Network events will appear here.</span></div>}</section></div><section className="wa-panel wa-next-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">OPERATIONS FOUNDATION</span><h3>Admin modules</h3></div><Settings2 size={18} /></div><div className="wa-module-grid"><ModuleCard icon={CircleDollarSign} title="Finance" detail="Wallets, payments and settlements" status="Next module" /><ModuleCard icon={Users} title="Drivers and fleets" detail="Accounts, vehicles and limits" status="Next module" /><ModuleCard icon={ShieldCheck} title="Staff and audit" detail="Roles, permissions and history" status="Next module" /></div></section></div>;
-}
-
-function AdminStations({ stations, busy, onToggle, onCreate }: { stations: ChargingStation[]; busy: boolean; onToggle: (station: ChargingStation) => void; onCreate: (payload: { name: string; address: string; stationId?: string }) => Promise<void> }) {
-  const [showAdd, setShowAdd] = useState(false);
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [stationId, setStationId] = useState('');
-
-  const submitNew = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!name.trim()) return;
-    await onCreate({ name: name.trim(), address: address.trim() || 'Kumasi, Ashanti', stationId: stationId.trim() || undefined });
-    setName('');
-    setAddress('');
-    setStationId('');
-    setShowAdd(false);
-  };
-
-  return <div className="wa-page-body"><section className="wa-panel wa-table-panel"><div className="wa-panel-heading"><div><span className="wa-eyebrow">ASSET REGISTER</span><h3>Stations and connectors</h3></div><button className="wa-primary-small" onClick={() => setShowAdd((v) => !v)} disabled={busy}><Building2 size={14} /> {showAdd ? 'Cancel' : 'Register station'}</button></div>{showAdd && <form className="wa-auth-form" onSubmit={submitNew} style={{ marginBottom: 20 }}><label><span>Station name</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. KNUST Commercial Hub" required /></label><label><span>Address</span><input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. Accra Road, Kumasi" required /></label><label><span>Station ID (optional)</span><input value={stationId} onChange={(e) => setStationId(e.target.value)} placeholder="e.g. CL-KSI-002" /></label><button className="wa-primary-button" type="submit" disabled={busy}>Create station <ArrowRight size={15} /></button></form>}<div className="wa-station-table"><div className="wa-table-row wa-table-head"><span>Station</span><span>State</span><span>Connectors</span><span>Action</span></div>{stations.map((station) => <div className="wa-table-row" key={station.id}><div className="wa-station-name"><div className="wa-station-icon"><Building2 size={16} /></div><span><strong>{station.name}</strong><small>{station.stationId} · {station.address}</small></span></div><span className={station.isOnline ? 'wa-state is-online' : 'wa-state is-offline'}><i />{station.isOnline ? 'Online' : 'Offline'}</span><span className="wa-connector-count"><strong>{station.connectors.filter((connector) => connector.status === 'Available').length}</strong> / {station.connectors.length} available</span><button className="wa-row-action" onClick={() => onToggle(station)} disabled={busy}>{station.isOnline ? 'Take offline' : 'Bring online'} <ArrowRight size={13} /></button></div>)}{!stations.length && <div className="wa-empty-state"><Building2 size={22} /><strong>No stations registered</strong><span>Station records will appear here.</span></div>}</div></section></div>;
-}
-
-function AdminSessions({ overview, busy, onToggleSession }: { overview: AdminOverviewData | null; busy: boolean; onToggleSession: (active: boolean) => void }) {
-  const isActive = Boolean(overview?.sessions.active);
-  return <div className="wa-page-body"><section className="wa-session-hero"><div><span className="wa-eyebrow">LIVE ENERGY CONTROL</span><h3>{isActive ? 'A charging session is active.' : 'No active charging sessions.'}</h3><p>{isActive ? 'Telemetry and financial accruals are being monitored from the control room.' : 'When a driver starts charging, live telemetry will appear here.'}</p><div style={{ marginTop: 14 }}><button className="wa-primary-small" onClick={() => onToggleSession(isActive)} disabled={busy}>{isActive ? 'Stop active session' : 'Start test session'} <ArrowRight size={14} /></button></div></div><div className="wa-session-figure"><Activity size={18} /><strong>{overview?.sessions.kwhDelivered.toFixed(2) || '0.00'}</strong><span>kWh in flight</span></div></section><section className="wa-panel wa-placeholder-panel"><Cpu size={22} /><h3>Session operations are ready for telemetry</h3><p>Current session accrual: <strong>{adminMoney(overview?.sessions.currentCost || 0)}</strong>. Start a test session above or from a driver account to watch live kWh and GH₵ accruals stream in.</p><span className="wa-coming-chip">{isActive ? 'LIVE TELEMETRY STREAMING' : 'TELEMETRY READY'}</span></section></div>;
-}
-
-function AdminDiagnostics({ overview, logs }: { overview: AdminOverviewData | null; logs: OcppMessage[] }) {
-  return <div className="wa-page-body"><section className="wa-diagnostics-grid"><div className="wa-panel wa-health-card"><div className="wa-panel-heading"><div><span className="wa-eyebrow">SYSTEM HEALTH</span><h3>Bridge status</h3></div><Network size={18} /></div><div className="wa-health-status"><span className="wa-live-dot" /><strong>{overview?.network.citrineOsBridge || 'CHECKING'}</strong></div><div className="wa-detail-line"><span>Protocol</span><strong>{overview?.network.ocppVersion || 'OCPP 1.6J / 2.0.1'}</strong></div><div className="wa-detail-line"><span>Recent packets</span><strong>{logs.length}</strong></div></div><div className="wa-panel wa-log-card"><div className="wa-panel-heading"><div><span className="wa-eyebrow">OCPP EVENT STREAM</span><h3>Recent packets</h3></div><ServerCog size={18} /></div><div className="wa-log-list">{logs.slice(0, 8).map((log) => <div className="wa-log-row" key={log.id}><span className="wa-log-time">{new Date(log.timestamp).toLocaleTimeString('en-GH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span><strong>{log.action}</strong><span className={log.direction === 'INCOMING' ? 'wa-log-in' : 'wa-log-out'}>{log.direction}</span></div>)}{!logs.length && <div className="wa-empty-state"><ServerCog size={22} /><strong>No OCPP events yet</strong><span>Hardware traffic will appear here.</span></div>}</div></div></section></div>;
-}
-
-function ModuleCard({ icon: Icon, title, detail, status }: { icon: React.ElementType; title: string; detail: string; status: string }) {
-  return <div className="wa-module-card"><div className="wa-module-icon"><Icon size={17} /></div><strong>{title}</strong><span>{detail}</span><small>{status}</small></div>;
-}
+export default WilpowerAdmin;

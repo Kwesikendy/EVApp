@@ -1,347 +1,404 @@
-// Wilpower / ChargeLink GH — Vercel Serverless Admin API Route Handler
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
-export type AdminRole = 'super_admin' | 'network_operator' | 'finance_manager' | 'fleet_manager' | 'support_agent' | 'read_only';
+// Standalone Vercel handler for /api/admin/* — kept in one file to respect the Hobby 12-function limit.
+const ADMIN_COOKIE_NAME = 'wilpower_admin_session';
+const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
+const DATA_DIR = process.env.VERCEL ? '/tmp/xcharge-data' : path.join(process.cwd(), 'data');
+const ADMINS_FILE = path.join(DATA_DIR, 'admins.json');
+const OCPP_STATE_FILE = path.join(DATA_DIR, 'ocpp-state.json');
 
-export interface AdminIdentity {
-  id: string;
-  email: string;
-  displayName: string;
-  role: AdminRole;
-  mustChangePassword?: boolean;
+const STATIONS = [
+  {
+    id: 'st-01',
+    stationId: 'CL-KSI-001',
+    chargeBoxId: 'CL-KSI-001',
+    pileNumber: '19046744073709551615',
+    name: 'Greenwood Event Center',
+    operator: 'ChargeLink GH',
+    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    isOnline: true,
+    ocppVersion: '1.6J',
+    vendor: 'MaxPower',
+    model: 'VCP160 Dual-Gun DC Fast Charger (160kW)',
+    firmwareVersion: 'MP-VCP160-OCPP16J-v2.4.8',
+    serialNumber: 'MP160-GH-KSI-2026001',
+    meterType: 'DC-DIN-4Q-160KW',
+    networkMode: '2.Ethernet (4G/LAN)',
+    rating: 5.0,
+    amenities: [
+      'Event Center',
+      'Parking Bay',
+      'Security',
+      '24/7 Operation',
+      'Opoku Bandoh Plaza',
+      'OCPP 1.6J Live',
+    ],
+    connectors: [
+      {
+        id: 101,
+        connectorId: 1,
+        label: 'Outlet A',
+        type: 'GB/T',
+        maxPowerKw: 160,
+        currentPowerKw: 0,
+        status: 'Available',
+        errorCode: 'NoError',
+        tariffPerKwh: 4.50,
+        tariffCurrency: 'GHS',
+      },
+      {
+        id: 102,
+        connectorId: 2,
+        label: 'Outlet B',
+        type: 'CCS2',
+        maxPowerKw: 160,
+        currentPowerKw: 0,
+        status: 'Available',
+        errorCode: 'NoError',
+        tariffPerKwh: 4.50,
+        tariffCurrency: 'GHS',
+      },
+    ],
+  },
+];
+
+const OCPP_LOGS = [
+  {
+    id: 'ocpp-05',
+    timestamp: new Date(Date.now() - 15000).toISOString(),
+    chargeBoxId: 'CL-KSI-001',
+    direction: 'INCOMING',
+    action: 'Heartbeat',
+    messageTypeId: 2,
+    uniqueId: 'hb-1002',
+    payload: {
+      chargeBoxId: 'CL-KSI-001',
+      pileNumber: '19046744073709551615',
+    },
+  },
+  {
+    id: 'ocpp-04',
+    timestamp: new Date(Date.now() - 120000).toISOString(),
+    chargeBoxId: 'CL-KSI-001',
+    direction: 'INCOMING',
+    action: 'StatusNotification',
+    messageTypeId: 2,
+    uniqueId: 'stat-1002',
+    payload: {
+      connectorId: 2,
+      connectorLabel: 'Outlet B',
+      errorCode: 'NoError',
+      status: 'Available',
+      info: 'MaxPower VCP160 Outlet B (CCS2 160kW) Ready',
+      timestamp: new Date(Date.now() - 120000).toISOString(),
+    },
+  },
+  {
+    id: 'ocpp-03',
+    timestamp: new Date(Date.now() - 125000).toISOString(),
+    chargeBoxId: 'CL-KSI-001',
+    direction: 'INCOMING',
+    action: 'StatusNotification',
+    messageTypeId: 2,
+    uniqueId: 'stat-1001',
+    payload: {
+      connectorId: 1,
+      connectorLabel: 'Outlet A',
+      errorCode: 'NoError',
+      status: 'Available',
+      info: 'MaxPower VCP160 Outlet A (GB/T 160kW) Ready',
+      timestamp: new Date(Date.now() - 125000).toISOString(),
+    },
+  },
+  {
+    id: 'ocpp-02',
+    timestamp: new Date(Date.now() - 3590000).toISOString(),
+    chargeBoxId: 'CL-KSI-001',
+    direction: 'OUTGOING',
+    action: 'BootNotification',
+    messageTypeId: 3,
+    uniqueId: 'boot-1001',
+    payload: {
+      status: 'Accepted',
+      currentTime: new Date().toISOString(),
+      interval: 60,
+    },
+  },
+  {
+    id: 'ocpp-01',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    chargeBoxId: 'CL-KSI-001',
+    direction: 'INCOMING',
+    action: 'BootNotification',
+    messageTypeId: 2,
+    uniqueId: 'boot-1001',
+    payload: {
+      chargePointVendor: 'MaxPower',
+      chargePointModel: 'VCP160',
+      chargePointSerialNumber: 'MP160-GH-KSI-2026001',
+      firmwareVersion: 'MP-VCP160-OCPP16J-v2.4.8',
+      chargeBoxId: 'CL-KSI-001',
+      pileNumber: '19046744073709551615',
+      location: 'Greenwood Event Center, Kumasi',
+    },
+  },
+];
+
+function sessionSecret(): string {
+  return process.env.ADMIN_SESSION_SECRET || process.env.PAYSTACK_SECRET_KEY || 'wilpower-dev-admin-secret-change-in-production';
 }
 
-const ADMIN_COOKIE = 'wilpower_admin_session';
-const SESSION_TTL_SECONDS = 60 * 60 * 8;
-const DEFAULT_ADMIN_EMAIL = 'admin@wilpower.local';
-const DEFAULT_ADMIN_PASSWORD = 'WilpowerLocalAdmin!2026';
-const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'xcharge-data') : path.join(process.cwd(), 'data');
-const PASSWORD_FILE = path.join(DATA_DIR, 'admin-password.json');
-
-interface PasswordOverride { salt: string; hash: string; changedAt: string; }
-
-function isProduction() {
-  return process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+function hashPassword(password: string, salt = crypto.randomBytes(16).toString('hex')): string {
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `scrypt:${salt}:${derivedKey}`;
 }
 
-function sessionSecret() {
-  return process.env.WILPOWER_ADMIN_SESSION_SECRET || process.env.OTP_SECRET || 'wilpower-local-admin-session-secret-change-me';
+function verifyPassword(password: string, storedHash: string): boolean {
+  const [scheme, salt, hash] = storedHash.split(':');
+  if (scheme !== 'scrypt' || !salt || !hash) return false;
+  const candidate = crypto.scryptSync(password, salt, 64);
+  const expected = Buffer.from(hash, 'hex');
+  if (candidate.length !== expected.length) return false;
+  return crypto.timingSafeEqual(candidate, expected);
 }
 
-function cleanEnv(value: string | undefined, fallback: string) {
-  const cleaned = (value || '').replace(/^["']|["']$/g, '').trim();
-  return cleaned || fallback;
-}
-
-function credentials() {
-  return {
-    email: cleanEnv(process.env.WILPOWER_ADMIN_EMAIL, DEFAULT_ADMIN_EMAIL).toLowerCase(),
-    password: cleanEnv(process.env.WILPOWER_ADMIN_PASSWORD, DEFAULT_ADMIN_PASSWORD),
-    displayName: cleanEnv(process.env.WILPOWER_ADMIN_NAME, 'Wilpower Administrator'),
-    role: cleanEnv(process.env.WILPOWER_ADMIN_ROLE, 'super_admin') as AdminRole,
-  };
-}
-
-function readOverride(): PasswordOverride | null {
+function loadAdmins() {
+  const email = (process.env.ADMIN_EMAIL || 'admin@wilpower.gh').trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD || 'WilpowerAdmin!2026';
+  const defaultAdmins = [
+    {
+      id: 'adm-wilpower-root',
+      email,
+      displayName: process.env.ADMIN_DISPLAY_NAME || 'Wilpower Operations',
+      role: 'super_admin',
+      passwordHash: process.env.ADMIN_PASSWORD_HASH || hashPassword(password),
+    },
+  ];
   try {
-    if (!fs.existsSync(PASSWORD_FILE)) return null;
-    const value = JSON.parse(fs.readFileSync(PASSWORD_FILE, 'utf8')) as PasswordOverride;
-    return value?.salt && value?.hash ? value : null;
-  } catch {
-    return null;
-  }
-}
-
-function safeEqual(left: string, right: string) {
-  const a = Buffer.from(left);
-  const b = Buffer.from(right);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
-function hashPassword(password: string, salt = crypto.randomBytes(16).toString('hex')) {
-  return { salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') };
-}
-
-function passwordMatches(password: string) {
-  const trimmed = password.trim();
-  const override = readOverride();
-  if (override) {
-    const candidate = Buffer.from(hashPassword(password, override.salt).hash, 'hex');
-    const expected = Buffer.from(override.hash, 'hex');
-    if (candidate.length === expected.length && crypto.timingSafeEqual(candidate, expected)) {
-      return true;
-    }
-  }
-  if (safeEqual(password, credentials().password) || safeEqual(trimmed, credentials().password)) {
-    return true;
-  }
-  if (safeEqual(password, DEFAULT_ADMIN_PASSWORD) || safeEqual(trimmed, DEFAULT_ADMIN_PASSWORD)) {
-    return true;
-  }
-  return false;
-}
-
-function hasChangedPassword() {
-  return Boolean(readOverride() || process.env.WILPOWER_ADMIN_PASSWORD);
-}
-
-function savePassword(password: string) {
-  try {
-    const hashed = hashPassword(password);
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(PASSWORD_FILE, JSON.stringify({ ...hashed, changedAt: new Date().toISOString() }, null, 2), 'utf8');
-    return true;
-  } catch (error) {
-    console.error('[Admin Auth] Could not persist password change:', error);
-    return false;
+    if (fs.existsSync(ADMINS_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(ADMINS_FILE, 'utf8'));
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Fall back to configured default admin.
+  }
+  return defaultAdmins;
+}
+
+function saveAdmins(admins: any[]) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins, null, 2), 'utf8');
+  } catch {
+    // Serverless memory/tmp fallback.
   }
 }
 
-function authenticateAdmin(email: string, password: string): AdminIdentity | null {
-  const configured = credentials();
-  const normalizedEmail = email.trim().toLowerCase();
-  const validEmails = new Set([
-    configured.email,
-    DEFAULT_ADMIN_EMAIL,
-    'admin@wilpower.energy',
-  ]);
-  if (!validEmails.has(normalizedEmail) || !passwordMatches(password)) return null;
-  return {
-    id: 'admin-primary',
-    email: normalizedEmail,
-    displayName: configured.displayName,
-    role: configured.role,
-    mustChangePassword: false,
+function signPayload(encodedPayload: string): string {
+  return crypto.createHmac('sha256', sessionSecret()).update(encodedPayload).digest('base64url');
+}
+
+function issueSession(admin: any): string {
+  const payload = {
+    sub: admin.id,
+    email: admin.email,
+    displayName: admin.displayName,
+    role: admin.role,
+    exp: Date.now() + SESSION_TTL_MS,
   };
+  const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  return `${encodedPayload}.${signPayload(encodedPayload)}`;
 }
 
-function changeAdminPassword(admin: AdminIdentity, currentPassword: string, newPassword: string) {
-  if (!admin?.email || newPassword.length < 12 || !passwordMatches(currentPassword) || !savePassword(newPassword)) return null;
-  return { ...admin, mustChangePassword: false };
+function readCookies(cookieHeader: string | undefined): Record<string, string> {
+  if (!cookieHeader) return {};
+  return Object.fromEntries(
+    cookieHeader
+      .split(';')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const idx = part.indexOf('=');
+        if (idx === -1) return [part, ''];
+        return [part.slice(0, idx), decodeURIComponent(part.slice(idx + 1))];
+      })
+  );
 }
 
-function encode(value: string) { return Buffer.from(value).toString('base64url'); }
-function decode(value: string) { return Buffer.from(value, 'base64url').toString('utf8'); }
-function sign(value: string) { return crypto.createHmac('sha256', sessionSecret()).update(value).digest('base64url'); }
-
-function issueAdminSession(identity: AdminIdentity) {
-  const payload = encode(JSON.stringify({ ...identity, exp: Date.now() + SESSION_TTL_SECONDS * 1000 }));
-  return payload + '.' + sign(payload);
-}
-
-function readAdminSession(req: any): AdminIdentity | null {
-  const cookieHeader = req.headers?.cookie || '';
-  const cookie = cookieHeader.split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith(ADMIN_COOKIE + '='));
-  const bearer = req.headers?.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '';
-  const token = cookie ? cookie.slice(ADMIN_COOKIE.length + 1) : bearer;
-  if (!token) return null;
-  const [payload, signature] = token.split('.');
-  if (!payload || !signature || !safeEqual(signature, sign(payload))) return null;
+function readSession(req: any) {
+  const cookies = readCookies(req.headers?.cookie);
+  const rawCookie = cookies[ADMIN_COOKIE_NAME];
+  const bearer = String(req.headers?.authorization || '').startsWith('Bearer ')
+    ? String(req.headers.authorization).slice(7).trim()
+    : '';
+  const token = rawCookie || bearer;
+  if (!token || !token.includes('.')) return null;
+  const [encodedPayload, signature] = token.split('.');
+  if (!encodedPayload || !signature) return null;
+  const expected = signPayload(encodedPayload);
+  const actualBuf = Buffer.from(signature);
+  const expectedBuf = Buffer.from(expected);
+  if (actualBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(actualBuf, expectedBuf)) return null;
   try {
-    const parsed = JSON.parse(decode(payload)) as AdminIdentity & { exp: number };
-    if (!parsed.exp || parsed.exp < Date.now() || !parsed.email || !parsed.role) return null;
-    return { id: parsed.id, email: parsed.email, displayName: parsed.displayName, role: parsed.role, mustChangePassword: parsed.mustChangePassword === true };
+    const parsed = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8'));
+    if (!parsed?.sub || !parsed?.email || typeof parsed.exp !== 'number' || parsed.exp < Date.now()) return null;
+    return parsed;
   } catch {
     return null;
   }
 }
 
 function setAdminCookie(res: any, token: string) {
-  const secure = isProduction() ? '; Secure' : '';
-  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL_SECONDS}${secure}`);
+  const secure = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  res.setHeader(
+    'Set-Cookie',
+    [
+      `${ADMIN_COOKIE_NAME}=${encodeURIComponent(token)}`,
+      'Path=/',
+      'HttpOnly',
+      'SameSite=Strict',
+      `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
+      secure ? 'Secure' : '',
+    ]
+      .filter(Boolean)
+      .join('; ')
+  );
 }
 
 function clearAdminCookie(res: any) {
-  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
+  const secure = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  res.setHeader(
+    'Set-Cookie',
+    [`${ADMIN_COOKIE_NAME}=`, 'Path=/', 'HttpOnly', 'SameSite=Strict', 'Max-Age=0', secure ? 'Secure' : '']
+      .filter(Boolean)
+      .join('; ')
+  );
 }
 
-function adminDevelopmentInfo() {
-  return { localCredentialsEnabled: !isProduction(), defaultCredentialsEnabled: !hasChangedPassword(), email: credentials().email };
-}
-
-type VercelRequest = any;
-type VercelResponse = any;
-
-const stations = [
-  {
-    id: 'st-01',
-    stationId: 'CL-KSI-001',
-    name: 'Greenwood Event Center',
-    operator: 'Wilpower',
-    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti',
-    city: 'Kumasi',
-    region: 'Ashanti',
-    latitude: 6.6697479,
-    longitude: -1.5995679,
-    isOnline: true,
-    constructionStatus: 'operational',
-    connectors: [
-      { id: 101, connectorId: 1, connectorLabel: 'A', type: 'GB/T', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-      { id: 102, connectorId: 2, connectorLabel: 'B', type: 'CCS2', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-    ],
-  },
-];
-
-const ocppLogs: any[] = [];
-
-function pathParts(req: VercelRequest) {
-  const value = req.query?.path ?? req.query?.['...path'];
-  const fromQuery = (Array.isArray(value) ? value : [value])
-    .filter(Boolean)
-    .flatMap((v) => String(v).split('/'))
-    .filter((segment) => Boolean(segment) && segment !== '[...path]');
-  if (fromQuery.length > 0) return fromQuery;
-  if (req.url) {
-    const cleanUrl = String(req.url).split('?')[0];
-    const match = cleanUrl.match(/\/api\/admin\/(.+)$/);
-    if (match?.[1] && match[1] !== '[...path]') return match[1].split('/').filter(Boolean);
+function loadLiveStationsAndLogs() {
+  try {
+    if (fs.existsSync(OCPP_STATE_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(OCPP_STATE_FILE, 'utf8'));
+      return {
+        stations: parsed.stations || STATIONS,
+        logs: parsed.logs || OCPP_LOGS,
+        activeSession: parsed.activeSession || null,
+      };
+    }
+  } catch {
+    // Ignore
   }
-  return [];
+  return { stations: STATIONS, logs: OCPP_LOGS, activeSession: null };
 }
 
-function parseBody(req: VercelRequest) {
-  if (!req.body) return {};
-  if (typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
-  try { return JSON.parse(Buffer.isBuffer(req.body) ? req.body.toString('utf8') : req.body); } catch { return {}; }
-}
-
-function sendUnauthorized(res: VercelResponse) {
-  return res.status(401).json({ error: 'Admin authentication required.' });
-}
-
-function currentAdmin(req: VercelRequest) {
-  return readAdminSession(req as any);
-}
-
-function requireAdmin(req: VercelRequest, res: VercelResponse) {
-  const admin = currentAdmin(req);
-  if (!admin) {
-    sendUnauthorized(res);
-    return null;
-  }
-  return admin;
-}
-
-function canOperate(admin: { role: AdminRole }) {
-  return admin.role === 'super_admin' || admin.role === 'network_operator';
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const origin = req.headers.origin;
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  if (origin) res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+export default function handler(req: any, res: any) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Vary', 'Origin');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  const urlPath = String(req.url || '').split('?')[0];
 
-  const parts = pathParts(req);
-  const route = parts.join('/');
-
-  if (route === 'auth/config' && req.method === 'GET') {
-    return res.status(200).json(adminDevelopmentInfo());
-  }
-
-  if (route === 'auth/login' && req.method === 'POST') {
-    const body = parseBody(req);
-    const admin = authenticateAdmin(String(body.email || ''), String(body.password || ''));
-    if (!admin) return res.status(401).json({ success: false, error: 'Invalid administrator credentials.' });
-    const token = issueAdminSession(admin);
-    setAdminCookie(res as any, token);
-    return res.status(200).json({ success: true, admin, token });
-  }
-
-  if (route === 'auth/change-password' && req.method === 'POST') {
-    const admin = requireAdmin(req, res);
-    if (!admin) return;
-    const body = parseBody(req);
-    const currentPassword = String(body.currentPassword || '');
-    const newPassword = String(body.newPassword || '');
-    if (newPassword.length < 12) return res.status(400).json({ error: 'New password must be at least 12 characters.' });
-    const updatedAdmin = changeAdminPassword(admin, currentPassword, newPassword);
-    if (!updatedAdmin) return res.status(400).json({ error: 'Current password is incorrect or the new password could not be saved.' });
-    const token = issueAdminSession(updatedAdmin);
-    setAdminCookie(res as any, token);
-    return res.status(200).json({ success: true, admin: updatedAdmin, token });
-  }
-
-  if (route === 'auth/me' && req.method === 'GET') {
-    const admin = requireAdmin(req, res);
-    if (!admin) return;
-    return res.status(200).json({ authenticated: true, admin });
-  }
-
-  if (route === 'auth/logout' && req.method === 'POST') {
-    clearAdminCookie(res as any);
-    return res.status(200).json({ success: true });
-  }
-
-  const admin = requireAdmin(req, res);
-  if (!admin) return;
-
-  if (route === 'overview' && req.method === 'GET') {
-    const connectorCount = stations.reduce((total, station) => total + station.connectors.length, 0);
-    const availableCount = stations.reduce((total, station) => total + station.connectors.filter((connector) => connector.status === 'Available').length, 0);
+  if (urlPath.endsWith('/auth/config') && req.method === 'GET') {
+    const configured = Boolean(process.env.ADMIN_EMAIL && (process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD_HASH));
     return res.status(200).json({
-      generatedAt: new Date().toISOString(),
-      stations: { total: stations.length, online: stations.filter((station) => station.isOnline).length, offline: stations.filter((station) => !station.isOnline).length },
-      connectors: { total: connectorCount, available: availableCount, occupied: connectorCount - availableCount },
-      sessions: { active: 0, currentCost: 0, kwhDelivered: 0 },
-      network: { health: 'ok', citrineOsBridge: 'CONNECTED', ocppVersion: 'OCPP 1.6J / 2.0.1' },
-      alerts: [],
+      configured,
+      defaultEmail: configured ? undefined : 'admin@wilpower.gh',
+      defaultPasswordHint: configured ? undefined : 'WilpowerAdmin!2026',
     });
   }
 
-  if (route === 'stations' && req.method === 'GET') {
-    return res.status(200).json(stations);
-  }
-
-  if (route === 'stations' && req.method === 'POST') {
-    if (!canOperate(admin)) return res.status(403).json({ error: 'Your admin role cannot perform this action.' });
-    const body = parseBody(req);
-    if (!body.name) return res.status(400).json({ error: 'Station name is required.' });
-    const newStation = {
-      id: `st-${Date.now()}`,
-      stationId: body.stationId || `CL-GH-${Math.floor(100 + Math.random() * 900)}`,
-      name: String(body.name),
-      operator: body.operator || 'Wilpower',
-      address: body.address || 'Kumasi, Ashanti',
-      city: 'Kumasi',
-      region: 'Ashanti',
-      latitude: Number(body.latitude) || 6.6697479,
-      longitude: Number(body.longitude) || -1.5995679,
-      isOnline: true,
-      constructionStatus: 'operational',
-      connectors: [
-        { id: Date.now(), connectorId: 1, connectorLabel: 'A', type: 'CCS2', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-        { id: Date.now() + 1, connectorId: 2, connectorLabel: 'B', type: 'GB/T', maxPowerKw: 160, currentPowerKw: 0, status: 'Available', tariffPerKwh: 4.5, tariffCurrency: 'GHS' },
-      ],
-    };
-    stations.unshift(newStation);
-    return res.status(201).json({ success: true, station: newStation });
-  }
-
-  if (route === 'ocpp/logs' && req.method === 'GET') {
-    return res.status(200).json(ocppLogs);
-  }
-
-  if (parts[0] === 'stations' && parts.length === 2 && req.method === 'PUT') {
-    if (!canOperate(admin)) return res.status(403).json({ error: 'Your admin role cannot perform this action.' });
-    const station = stations.find((item) => item.id === parts[1] || item.stationId === parts[1]);
-    if (!station) return res.status(404).json({ error: 'Station not found.' });
-    const body = parseBody(req);
-    if (typeof body.isOnline === 'boolean') {
-      station.isOnline = body.isOnline;
-      station.connectors = station.connectors.map((c) => ({
-        ...c,
-        status: body.isOnline ? (c.status === 'Unavailable' ? 'Available' : c.status) : (c.status === 'Available' ? 'Unavailable' : c.status),
-      }));
+  if (urlPath.endsWith('/auth/login') && req.method === 'POST') {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+    const admin = loadAdmins().find((item) => item.email.toLowerCase() === email);
+    if (!admin || !verifyPassword(password, admin.passwordHash)) {
+      return res.status(401).json({ success: false, error: 'Invalid administrator credentials.' });
     }
-    return res.status(200).json({ success: true, station });
+    const publicAdmin = { id: admin.id, email: admin.email, displayName: admin.displayName, role: admin.role };
+    setAdminCookie(res, issueSession(publicAdmin));
+    return res.status(200).json({ success: true, admin: publicAdmin });
   }
 
-  return res.status(404).json({ error: 'Admin route not found.' });
+  if (urlPath.endsWith('/auth/logout') && req.method === 'POST') {
+    clearAdminCookie(res);
+    return res.status(200).json({ success: true });
+  }
+
+  const session = readSession(req);
+  if (!session) {
+    return res.status(401).json({ error: 'Admin authentication required.' });
+  }
+
+  if (urlPath.endsWith('/auth/change-password') && req.method === 'POST') {
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '');
+    if (newPassword.length < 12) {
+      return res.status(400).json({ error: 'New password must be at least 12 characters.' });
+    }
+    const admins = loadAdmins();
+    const index = admins.findIndex((item) => item.id === session.sub || item.email.toLowerCase() === session.email.toLowerCase());
+    if (index === -1 || !verifyPassword(currentPassword, admins[index].passwordHash)) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+    admins[index] = { ...admins[index], passwordHash: hashPassword(newPassword) };
+    saveAdmins(admins);
+    const publicAdmin = { id: admins[index].id, email: admins[index].email, displayName: admins[index].displayName, role: admins[index].role };
+    setAdminCookie(res, issueSession(publicAdmin));
+    return res.status(200).json({ success: true, admin: publicAdmin });
+  }
+
+  if (urlPath.endsWith('/auth/me') && req.method === 'GET') {
+    return res.status(200).json({
+      authenticated: true,
+      admin: { id: session.sub, email: session.email, displayName: session.displayName, role: session.role },
+    });
+  }
+
+  const live = loadLiveStationsAndLogs();
+
+  if (urlPath.endsWith('/overview') && req.method === 'GET') {
+    const connectors = live.stations.flatMap((station: any) => station.connectors);
+    const availableConnectors = connectors.filter((connector: any) => connector.status === 'Available').length;
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      stations: {
+        total: live.stations.length,
+        online: live.stations.filter((station: any) => station.isOnline).length,
+        offline: live.stations.filter((station: any) => !station.isOnline).length,
+      },
+      connectors: {
+        total: connectors.length,
+        available: availableConnectors,
+        occupied: connectors.length - availableConnectors,
+      },
+      sessions: {
+        active: live.activeSession ? 1 : 0,
+        currentCost: live.activeSession?.accruedCost || 0,
+        kwhDelivered: live.activeSession?.kwhDelivered || 0,
+        activeSession: live.activeSession,
+      },
+      network: {
+        health: 'ok',
+        citrineOsBridge: 'CONNECTED',
+        ocppVersion: 'OCPP 1.6J Edition 2',
+      },
+      alerts: live.logs.filter((log: any) => log.action === 'StatusNotification' && log.payload?.status === 'Faulted').slice(0, 8),
+    });
+  }
+
+  if (urlPath.endsWith('/stations') && req.method === 'GET') {
+    return res.status(200).json(live.stations);
+  }
+
+  if (urlPath.endsWith('/ocpp/logs') && req.method === 'GET') {
+    return res.status(200).json(live.logs);
+  }
+
+  return res.status(404).json({ error: 'Unknown admin endpoint.' });
 }

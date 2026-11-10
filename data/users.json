@@ -152,7 +152,7 @@
     "phoneNumber": "+233595749197",
     "displayName": "Driver 9197",
     "email": "233595749197@chargelink.com.gh",
-    "walletBalance": 100,
+    "walletBalance": 129.1,
     "heldEscrow": 0,
     "defaultPaymentMethod": "MTN_MOMO",
     "registeredVehicles": [
@@ -168,6 +168,48 @@
       }
     ],
     "createdAt": "2026-09-18T21:32:00.441Z",
-    "updatedAt": "2026-09-18T21:32:00.441Z"
+    "updatedAt": "2026-11-10T18:51:38.640Z",
+    "transactions": [
+      {
+        "id": "tx-1794336698641",
+        "timestamp": "2026-11-10T18:51:38.641Z",
+        "amount": 50,
+        "type": "TOPUP",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "MTN-AUTH-13572350",
+        "description": "MTN MoMo Top-Up (+233595749197) · Approved"
+      },
+      {
+        "id": "settle-1794336514598",
+        "timestamp": "2026-11-10T18:48:34.598Z",
+        "amount": 20.9,
+        "type": "CHARGE_SETTLEMENT",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "STMT-ses-1794336377334",
+        "description": "Settlement: 4.65 kWh consumed (GH₵ 20.90)"
+      },
+      {
+        "id": "rel-1794336514598",
+        "timestamp": "2026-11-10T18:48:34.598Z",
+        "amount": 25,
+        "type": "PREAUTH_RELEASE",
+        "status": "RELEASED",
+        "provider": "MOMO",
+        "reference": "REL-1794336514598",
+        "description": "Release of GH₵ 25.00 pre-auth security hold"
+      },
+      {
+        "id": "hold-1794336377330",
+        "timestamp": "2026-11-10T18:46:17.330Z",
+        "amount": 25,
+        "type": "PREAUTH_HOLD",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "PREAUTH-1794336377330",
+        "description": "Security hold of GH₵ 25.00 at Greenwood Event Center"
+      }
+    ]
   }
 ]

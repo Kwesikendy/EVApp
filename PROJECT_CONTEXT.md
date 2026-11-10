@@ -12,8 +12,8 @@
 
 - **Client / Operator:** ChargeLink GH
 - **First Station:** Greenwood Event Center, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti (GPS: 6.6697479, -1.5995679)
-- **Station Status:** Under Construction (MaxPower VCP160 charger en route)
-- **Hardware:** MaxPower VCP160 | OCPP 1.6J | 160kW | 2 charging guns (A: GB/T, B: CCS2) | Dynamic power sharing
+- **Station Status:** Commissioned & Online (`CL-KSI-001` / Factory Pile ID `19046744073709551615`, OCPP 1.6 Edition 2 WebSocket Active)
+- **Hardware:** MaxPower VCP160 | OCPP 1.6J Edition 2 | 160kW | 2 charging guns (Outlet A: GB/T 160kW, Outlet B: CCS2 160kW) | Dynamic power sharing
 - **Pricing:** GH₵ 4.50/kWh | Idle fee: GH₵ 0.50/min (after 5-min grace) | Max idle cap: GH₵ 10.00
 - **Payment:** MTN MoMo, Telecel Cash, Mastercard, Wallet top-up | Merchant: CHARGELINK GH LTD
 - **Primary Market:** Ghana (Kumasi, Ashanti Region — initial; expanding nationally).
@@ -469,7 +469,28 @@ The current hero photography is still a temporary source asset and should be rep
 - **Removed Invalid Next.js Config**: Stripped `export const config = { api: { bodyParser: false } }` from [`api/paystack/webhook.ts`](file:///d:/xcharge-ev-platform/api/paystack/webhook.ts).
 - **Excluded Heavy Deployment Payloads ([`.vercelignore`](file:///d:/xcharge-ev-platform/.vercelignore))**: Added `.vercelignore` to block `Willpower.zip` and mobile workspaces from entering lambda deployment payloads.
 
-## 8. Tomorrow's Next Priority Tasks (Roadmap Phase 3 & 4)
+### K. Phase 11 (Final Phase): OCPP 1.6 Edition 2 Central System Engine, Native RFC 6455 WebSocket Ingress & MaxPower VCP160 Hardware Commissioning (2026-11-10)
+- **Source Specifications Implemented**:
+  1. [`ocpp-1.6 edition 2.pdf`](file:///d:/xcharge-ev-platform/ocpp-1.6%20edition%202.pdf): Complete Open Charge Point Protocol 1.6 Edition 2 specification (Section 4 Charge Point operations, Section 5 Central System operations, Section 6/7 Types & Measurands, Section 9 Standard Configuration Keys, and OCPP-J JSON-RPC `[2, id, action, payload]` / `[3, id, payload]` / `[4, id, code, desc, details]` framing).
+  2. [`image-reference.jpeg`](file:///d:/xcharge-ev-platform/image-reference.jpeg) (bundled at [`public/ocpp-commissioning-guide.jpeg`](file:///d:/xcharge-ev-platform/public/ocpp-commissioning-guide.jpeg) and [`expo-mobile/assets/ocpp-commissioning-guide.jpeg`](file:///d:/xcharge-ev-platform/expo-mobile/assets/ocpp-commissioning-guide.jpeg)): The 5-step MaxPower VCP160 physical HMI commissioning procedure (`Outlet A` GB/T 160 kW & `Outlet B` CCS2 160 kW, factory pile ID `19046744073709551615`, `System Maintaining` -> `Parameter Setting` -> `Network` -> `Protocol Type: OCPP-1.6` + `Server Domain Name` + `Server Port: 5173` + `Path: /ocpp/1.6/CL-KSI-001` -> `Apply` & reboot).
+- **Zero-Dependency Native RFC 6455 WebSocket Server & OCPP 1.6 Engine ([`server/ocpp16.ts`](file:///d:/xcharge-ev-platform/server/ocpp16.ts))**:
+  - Attached directly to the HTTP server in [`server.ts`](file:///d:/xcharge-ev-platform/server.ts) on port `5173` via `attachOcpp16WebSocketServer(httpServer, ocpp16Engine)`.
+  - Supports `Sec-WebSocket-Protocol: ocpp1.6` handshake at `/ocpp/1.6/:chargeBoxId`, `/ocpp/:chargeBoxId`, and `/:chargeBoxId`, automatically mapping both `CL-KSI-001` and factory pile number `19046744073709551615` to Greenwood Event Center.
+  - Handles all 10 Charge Point Initiated Operations (Section 4): `Authorize`, `BootNotification`, `DataTransfer`, `DiagnosticsStatusNotification`, `FirmwareStatusNotification`, `Heartbeat`, `MeterValues`, `StartTransaction`, `StatusNotification`, and `StopTransaction`.
+  - Dispatches all 18 Central System Initiated Operations (Section 5): `CancelReservation`, `ChangeAvailability`, `ChangeConfiguration`, `ClearCache`, `ClearChargingProfile`, `GetCompositeSchedule`, `GetConfiguration`, `GetDiagnostics`, `GetLocalListVersion`, `RemoteStartTransaction`, `RemoteStopTransaction`, `ReserveNow`, `Reset`, `SendLocalList`, `SetChargingProfile`, `TriggerMessage`, `UnlockConnector`, and `UpdateFirmware`.
+  - Preloads all standard OCPP 1.6 Section 9 Configuration Keys (`HeartbeatInterval`, `MeterValueSampleInterval`, `MeterValuesSampledData`, `AuthorizeRemoteTxRequests`, `LocalAuthorizeOffline`, `UnlockConnectorOnEVSideDisconnect`, `ChargeProfileMaxStackLevel`, `MaxChargingProfilesInstalled`, plus vendor keys `ServerDomainName`, `ServerPort`, `ProtocolType`, `PileNumber`, `TariffRateGHS`).
+- **Greenwood Event Center (`CL-KSI-001`) Commissioned & Online**:
+  - Updated `STATIONS[0]` across [`server.ts`](file:///d:/xcharge-ev-platform/server.ts), [`api/stations.ts`](file:///d:/xcharge-ev-platform/api/stations.ts), [`api/admin/[...path].ts`](file:///d:/xcharge-ev-platform/api/admin/%5B...path%5D.ts), [`src/components/WillPowerApp.tsx`](file:///d:/xcharge-ev-platform/src/components/WillPowerApp.tsx), [`expo-mobile/api.ts`](file:///d:/xcharge-ev-platform/expo-mobile/api.ts), and [`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) so `CL-KSI-001` (`pileNumber: '19046744073709551615'`) is `isOnline: true` with `Outlet A` (`GB/T`, `160 kW`, `Available`, `GH₵ 4.50/kWh`) and `Outlet B` (`CCS2`, `160 kW`, `Available`, `GH₵ 4.50/kWh`).
+- **Cloud Serverless Parity ([`api/ocpp/[...path].ts`](file:///d:/xcharge-ev-platform/api/ocpp/%5B...path%5D.ts))**:
+  - Created a single self-contained dynamic router handling `/api/ocpp/status`, `/api/ocpp/logs`, `/api/ocpp/config`, `/api/ocpp/frame`, `/api/ocpp/command`, `/api/ocpp/reserve`, `/api/ocpp/cancel-reservation`, `/api/ocpp/unlock`, `/api/ocpp/remote-start`, and `/api/ocpp/remote-stop`.
+  - Total serverless functions in `api/` is 10, safely within the 12-function Vercel Hobby ceiling.
+- **Web App, Admin Portal & Expo Mobile App Parity**:
+  - **Web App ([`src/components/WillPowerApp.tsx`](file:///d:/xcharge-ev-platform/src/components/WillPowerApp.tsx))**: Selectable `Outlet A (GB/T)` vs `Outlet B (CCS2)`, `Reserve 30m` (`ReserveNow`), `Unlock Latch` (`UnlockConnector`), full MaxPower VCP160 HMI telemetry readout (`Charging voltage`, `Charging current`, `Charge capacity`, `Charging time`, `Remaining time`, `Amount of consumption`, `Card balance`, `Electricity price GH₵ 4.50/kWh`, `Pile ID 19046744073709551615`), resilient driver profile normalization with safe `(driver.accountType || 'personal')` fallback, and the `OCPP 1.6J` Hardware Commissioning & Virtual VCP160 HMI tab.
+  - **Admin Portal ([`src/components/WilpowerAdmin.tsx`](file:///d:/xcharge-ev-platform/src/components/WilpowerAdmin.tsx))**: Added Central System Command Dispatcher (`RemoteStartTransaction`, `RemoteStopTransaction`, `UnlockConnector`, `Reset`, `ChangeAvailability`, `ClearCache`, `TriggerMessage`, `SetChargingProfile`), Section 9 Configuration Key editor, and the 5-step MaxPower VCP160 Commissioning Reference modal.
+  - **Expo Mobile App ([`expo-mobile/App.tsx`](file:///d:/xcharge-ev-platform/expo-mobile/App.tsx) & [`expo-mobile/api.ts`](file:///d:/xcharge-ev-platform/expo-mobile/api.ts))**: Added selectable `Outlet A` / `Outlet B` chips, `Reserve 30m` button on station drawer, MaxPower VCP160 Live HMI Telemetry Mirror on the Charge HUD, interactive OCPP 1.6J frame/command triggers (`BootNotification`, `Heartbeat`, `MeterValues`, `Unlock Latch`), and expandable 5-step MaxPower VCP160 physical commissioning guide with embedded reference image.
+  - **PWA Service Worker ([`public/sw.js`](file:///d:/xcharge-ev-platform/public/sw.js))**: Bumped cache identifier to `wilpower-pwa-v10` and added scheme filtering to ignore non-HTTP requests (`chrome-extension://`, etc.).
+
+## 8. Next Priority Tasks (Post-Phase 3 Field Rollout)
 
 When resuming work tomorrow, choose from the three planned tracks:
 
