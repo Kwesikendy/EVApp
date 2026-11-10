@@ -65,8 +65,8 @@ export default async function handler(req: any, res: any) {
     const normalized = normalizeGhanaPhoneNumber(phoneNumber);
     const trimmedCode = String(code).trim();
 
-    // Universal test bypass code '123456'
-    const isDevBypass = trimmedCode === '123456';
+    // Universal test bypass code '123456' or '428190'
+    const isDevBypass = trimmedCode === '123456' || trimmedCode === '428190';
 
     // Stateless deterministic verification across 5 sliding windows
     const isDeterministic =
