@@ -389,8 +389,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
   const selectedConnector = useMemo(
     () =>
-      selectedStation.connectors.find((c) => c.connectorId === selectedConnectorId) ||
-      selectedStation.connectors[0],
+      selectedStation?.connectors?.find((c) => c.connectorId === selectedConnectorId) ||
+      selectedStation?.connectors?.[0] ||
+      defaultStation.connectors[0],
     [selectedStation, selectedConnectorId]
   );
 
@@ -1283,8 +1284,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   const currentTheme = themeOptions.find((option) => option.id === theme) || themeOptions[0];
   const CurrentThemeIcon = currentTheme.icon;
 
-  const hmiConnector = selectedStation.connectors.find((c) => c.connectorId === (hmiTab === 'outletB' ? 2 : 1)) || selectedStation.connectors[0];
-  const isHmiOutletCharging = activeSession && activeSession.connectorId === hmiConnector.connectorId;
+  const hmiConnector = selectedStation?.connectors?.find((c) => c.connectorId === (hmiTab === 'outletB' ? 2 : 1)) || selectedStation?.connectors?.[0] || defaultStation.connectors[0];
+  const isHmiOutletCharging = Boolean(activeSession && activeSession.connectorId === hmiConnector?.connectorId);
   const wsPrimaryUrl =
     ocppStatus?.websocketEndpoints?.primary ||
     `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`;
@@ -1441,12 +1442,12 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 <div className="wp-hero-copy">
                   <div className="wp-hero-signal">
                     <span className="wp-status-dot" />
-                    <span>{selectedStation.name.toUpperCase()}</span>
-                    <span>{selectedStation.isOnline ? 'ONLINE · OCPP 1.6J' : 'OFFLINE'}</span>
+                    <span>{(selectedStation?.name || 'Greenwood Event Center').toUpperCase()}</span>
+                    <span>{selectedStation?.isOnline ? 'ONLINE · OCPP 1.6J' : 'OFFLINE'}</span>
                   </div>
                   <h2>160 kW DC fast charging, built for Ghana.</h2>
                   <p>
-                    {selectedStation.address}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (CCS2) at {formatGhs(4.5)}/kWh.
+                    {selectedStation?.address || 'Greenwood Event Center, Kumasi'}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (CCS2) at {formatGhs(4.5)}/kWh.
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button
@@ -1487,7 +1488,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 <div className="wp-hero-image">
                   <div className="wp-hero-image-grid" />
                   <img src={HERO_PHOTO} alt="Wilpower charging concept" />
-                  <b>PILE ID · {selectedStation.stationId}</b>
+                  <b>PILE ID · {selectedStation?.stationId || 'CL-KSI-001'}</b>
                   <span>WILPOWER · KUMASI CORRIDOR</span>
                 </div>
               </div>
@@ -1503,8 +1504,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>01 · Locate</span>
                     <Compass size={18} />
                   </span>
-                  <strong>{selectedStation.name}</strong>
-                  <small>Outlet A ({selectedStation.connectors[0]?.status || 'Available'}) · Outlet B ({selectedStation.connectors[1]?.status || 'Available'})</small>
+                  <strong>{selectedStation?.name || 'Greenwood Station'}</strong>
+                  <small>Outlet A ({selectedStation?.connectors?.[0]?.status || 'Available'}) · Outlet B ({selectedStation?.connectors?.[1]?.status || 'Available'})</small>
                 </button>
 
                 <button type="button" className="wp-essential-card" onClick={() => setTopupOpen(true)}>
@@ -1512,9 +1513,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>02 · Fund Wallet</span>
                     <Wallet size={18} />
                   </span>
-                  <strong><em>{formatGhs(wallet.availableBalance)}</em></strong>
+                  <strong><em>{formatGhs(wallet?.availableBalance ?? 0)}</em></strong>
                   <small>
-                    {wallet.heldBalance > 0
+                    {(wallet?.heldBalance ?? 0) > 0
                       ? `${formatGhs(wallet.heldBalance)} held in active session escrow`
                       : 'MTN MoMo, Telecel Cash, and Mastercard ready'}
                   </small>
@@ -1531,12 +1532,12 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </span>
                   <strong>
                     {activeSession
-                      ? `${Math.round(activeSession.currentSocPercent)}% SoC · ${activeSession.currentPowerKw.toFixed(0)} kW`
+                      ? `${Math.round(activeSession.currentSocPercent || 0)}% SoC · ${(activeSession.currentPowerKw || 0).toFixed(0)} kW`
                       : 'Ready for plug-in'}
                   </strong>
                   <small>
                     {activeSession
-                      ? `${activeSession.connectorLabel || 'Outlet A'} · ${activeSession.kwhDelivered.toFixed(2)} kWh · ${formatGhs(activeSession.accruedCost)}`
+                      ? `${activeSession.connectorLabel || 'Outlet A'} · ${(activeSession.kwhDelivered || 0).toFixed(2)} kWh · ${formatGhs(activeSession.accruedCost || 0)}`
                       : `${formatGhs(25)} escrow pre-authorization before unlock`}
                   </small>
                 </button>
@@ -1547,7 +1548,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   <div className="wp-balance-top">
                     <div>
                       <span className="wp-kicker">GHANA CEDI WALLET</span>
-                      <h3>{formatGhs(wallet.availableBalance)}</h3>
+                      <h3>{formatGhs(wallet?.availableBalance ?? 0)}</h3>
                     </div>
                     <CreditCard size={20} />
                   </div>
@@ -1564,13 +1565,13 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   <div className="wp-card-heading">
                     <div>
                       <span className="wp-kicker">REGISTERED VEHICLE</span>
-                      <h3>{driver.vehiclePlate || 'GT-8842-26'}</h3>
+                      <h3>{driver?.vehiclePlate || 'GT-8842-26'}</h3>
                     </div>
                     <ShieldCheck size={20} />
                   </div>
                   <div className="wp-vehicle-meta">
                     <span>Account</span>
-                    <strong>{(driver.accountType || 'personal').toUpperCase()}</strong>
+                    <strong>{(driver?.accountType || 'personal').toUpperCase()}</strong>
                   </div>
                   <div className="wp-vehicle-meta">
                     <span>Idle grace policy</span>
@@ -1578,7 +1579,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
                   <div className="wp-vehicle-line">
                     <span className="wp-status-dot wp-status-dot-green" />
-                    <span>OCPP 1.6 Edition 2 JSON-over-WebSocket active ({selectedStation.stationId})</span>
+                    <span>OCPP 1.6 Edition 2 JSON-over-WebSocket active ({selectedStation?.stationId || 'CL-KSI-001'})</span>
                   </div>
                 </div>
               </div>
@@ -1673,14 +1674,14 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
                   <div className="wp-map-sheet">
                     <span className="wp-kicker">
-                      {selectedStation.stationId} · PILE ID {selectedStation.pileNumber || '19046744073709551615'}
+                      {selectedStation?.stationId || 'CL-KSI-001'} · PILE ID {selectedStation?.pileNumber || '19046744073709551615'}
                     </span>
-                    <h3>{selectedStation.name}</h3>
-                    <p>{selectedStation.address}</p>
+                    <h3>{selectedStation?.name || 'Greenwood Event Center'}</h3>
+                    <p>{selectedStation?.address || 'Greenwood Event Center, Kumasi'}</p>
 
                     <div className="wp-connector-selector">
-                      {selectedStation.connectors.map((c) => {
-                        const active = selectedConnector.connectorId === c.connectorId;
+                      {(selectedStation?.connectors || []).map((c) => {
+                        const active = (selectedConnector?.connectorId ?? 1) === c.connectorId;
                         const label = c.label || (c.connectorId === 1 ? 'Outlet A' : 'Outlet B');
                         return (
                           <button
@@ -1698,9 +1699,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     </div>
 
                     <div className="wp-map-sheet-meta">
-                      <span>{selectedStation.distanceKm || 1.4} km away</span>
+                      <span>{selectedStation?.distanceKm || 1.4} km away</span>
                       <span>MaxPower VCP160</span>
-                      <span>OCPP {selectedStation.ocppVersion || '1.6J'}</span>
+                      <span>OCPP {selectedStation?.ocppVersion || '1.6J'}</span>
                     </div>
 
                     <div className="wp-map-actions">
@@ -1734,10 +1735,10 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <button
                         type="button"
                         className="wp-primary-button"
-                        onClick={() => startCharging(selectedStation, selectedConnector.connectorId)}
+                        onClick={() => startCharging(selectedStation, selectedConnector?.connectorId || 1)}
                       >
                         <Zap size={15} />
-                        <span>Start {selectedConnector?.label || `Outlet ${selectedConnector.connectorId}`}</span>
+                        <span>Start {selectedConnector?.label || `Outlet ${selectedConnector?.connectorId || 1}`}</span>
                       </button>
                     </div>
                   </div>
@@ -1859,7 +1860,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     </div>
                     <div className="wp-detail-row">
                       <span>Pile / Stake ID & Temperature</span>
-                      <strong>{selectedStation.pileNumber || '19046744073709551615'} · {(activeSession.temperatureC || 34.8).toFixed(1)} °C</strong>
+                      <strong>{selectedStation?.pileNumber || '19046744073709551615'} · {(activeSession?.temperatureC || 34.8).toFixed(1)} °C</strong>
                     </div>
                     <div className="wp-notice">
                       <ShieldCheck size={17} />
@@ -1876,7 +1877,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
                   <h2>Ready when the cable is connected</h2>
                   <p>
-                    Greenwood Event Center ({selectedStation.stationId}) is ONLINE on OCPP 1.6J. Choose Outlet A (GB/T 160 kW) or Outlet B (CCS2 160 kW) to begin charging immediately.
+                    Greenwood Event Center ({selectedStation?.stationId || 'CL-KSI-001'}) is ONLINE on OCPP 1.6J. Choose Outlet A (GB/T 160 kW) or Outlet B (CCS2 160 kW) to begin charging immediately.
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                     <button
@@ -2013,8 +2014,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>CHARGE POINT STATUS</span>
                     <Activity size={16} />
                   </div>
-                  <strong>{selectedStation.isOnline ? 'ONLINE' : 'OFFLINE'}</strong>
-                  <small>{selectedStation.stationId} · Pile ID {selectedStation.pileNumber || '19046744073709551615'}</small>
+                  <strong>{selectedStation?.isOnline ? 'ONLINE' : 'OFFLINE'}</strong>
+                  <small>{selectedStation?.stationId || 'CL-KSI-001'} · Pile ID {selectedStation?.pileNumber || '19046744073709551615'}</small>
                 </div>
                 <div className="wp-metric">
                   <div>
@@ -2029,7 +2030,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>PUBLISHED TARIFF</span>
                     <Zap size={16} />
                   </div>
-                  <strong>{formatGhs(selectedStation.connectors[0]?.tariffPerKwh || 4.5)}</strong>
+                  <strong>{formatGhs(selectedStation?.connectors?.[0]?.tariffPerKwh || 4.5)}</strong>
                   <small>Per kWh · 5 min grace then {formatGhs(0.5)}/min</small>
                 </div>
               </div>

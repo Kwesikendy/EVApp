@@ -48,6 +48,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Refined mobile card sizing, action widths, detail-row wrapping, theme access, safe-area spacing, and viewport-safe modals.
 - [x] Removed the redundant bottom navigation and added an in-app Wilpower route panel with live location, OpenStreetMap tiles, OSRM driving geometry, route distance, ETA, route steps, and recentering. No Google Maps API key is required by the active web/PWA route.
 - [x] Removed visible em-dash, en-dash, ellipsis, and mojibake punctuation from the Wilpower web experience and replaced ambiguous status glyphs with clear text values.
+- [x] Resolved client-side blank/dark screen crash: implemented top-level `<ErrorBoundary />` in `src/main.tsx` with one-tap session recovery, disabled service worker intercept in dev mode (`registerServiceWorker.ts`), and fortified all `selectedStation`, `driver`, `activeSession`, and `wallet` accesses in `WillPowerApp.tsx` with safe nullish coalescing.
 - [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
 - [x] Connected physical charger OCPP 1.6 Edition 2 WebSocket ingress (`/ocpp/1.6/CL-KSI-001` & `/ocpp/1.6/19046744073709551615`), commissioned Greenwood Event Center (`Outlet A` GB/T 160 kW & `Outlet B` CCS2 160 kW `Available`), and added the 5-step MaxPower VCP160 commissioning guide + Virtual VCP160 HMI across Web, Admin, and Mobile.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.

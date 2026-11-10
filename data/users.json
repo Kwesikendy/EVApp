@@ -152,7 +152,7 @@
     "phoneNumber": "+233595749197",
     "displayName": "Driver 9197",
     "email": "233595749197@chargelink.com.gh",
-    "walletBalance": 129.1,
+    "walletBalance": 179.1,
     "heldEscrow": 0,
     "defaultPaymentMethod": "MTN_MOMO",
     "registeredVehicles": [
@@ -168,8 +168,18 @@
       }
     ],
     "createdAt": "2026-09-18T21:32:00.441Z",
-    "updatedAt": "2026-11-10T18:51:38.640Z",
+    "updatedAt": "2026-11-10T19:06:56.813Z",
     "transactions": [
+      {
+        "id": "tx-1794337616813",
+        "timestamp": "2026-11-10T19:06:56.813Z",
+        "amount": 50,
+        "type": "TOPUP",
+        "status": "SUCCESS",
+        "provider": "MOMO",
+        "reference": "MTN-AUTH-44942554",
+        "description": "MTN MoMo Top-Up (+233595749197) · Approved"
+      },
       {
         "id": "tx-1794336698641",
         "timestamp": "2026-11-10T18:51:38.641Z",
