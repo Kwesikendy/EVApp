@@ -141,7 +141,7 @@ const STATIONS: ChargingStation[] = [
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     latitude: 6.6697479,
     longitude: -1.5995679,
-    isOnline: true,
+    isOnline: false,
     ocppVersion: '1.6J',
     lastHeartbeat: new Date().toISOString(),
     vendor: 'MaxPower',

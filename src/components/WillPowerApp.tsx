@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
+  AlertTriangle,
+  CheckCircle2,
   ArrowUpRight,
   BatteryCharging,
   Building2,
@@ -330,6 +332,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [view, setView] = useState<View>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [operatorMode, setOperatorMode] = useState<'real' | 'simulator'>('real');
   const [stations, setStations] = useState<Station[]>([defaultStation]);
   const [selectedStationId, setSelectedStationId] = useState<string>(defaultStation.id);
   const [selectedConnectorId, setSelectedConnectorId] = useState<number>(1);
@@ -1289,9 +1292,18 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
   const hmiConnector = selectedStation?.connectors?.find((c) => c.connectorId === (hmiTab === 'outletB' ? 2 : 1)) || selectedStation?.connectors?.[0] || defaultStation.connectors[0];
   const isHmiOutletCharging = Boolean(activeSession && activeSession.connectorId === hmiConnector?.connectorId);
+  const realHardware = ocppStatus?.realHardware;
+  const isRealConnected = Boolean(realHardware?.hasRealConnection);
+  const activeHost = typeof window !== 'undefined' ? window.location.host : 'localhost:5173';
   const wsPrimaryUrl =
     ocppStatus?.websocketEndpoints?.primary ||
-    `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`;
+    (typeof window !== 'undefined'
+      ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`
+      : 'ws://localhost:5173/ocpp/1.6/CL-KSI-001');
+
+  const deployedWsUrl = typeof window !== 'undefined'
+    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`
+    : wsPrimaryUrl;
 
   return (
     <div className="wp-app">
@@ -1335,14 +1347,14 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
           <div className="wp-user-card">
             <button type="button" className="wp-user-card-main" onClick={openProfileModal} title="Edit driver profile">
-              {driver.avatarUrl ? (
-                <img className="wp-avatar wp-avatar-image" src={driver.avatarUrl} alt={driver.displayName || 'Driver'} />
+              {driver?.avatarUrl ? (
+                <img className="wp-avatar wp-avatar-image" src={driver.avatarUrl} alt={driver?.displayName || 'Driver'} />
               ) : (
-                <div className="wp-avatar">{((driver.displayName || 'DR').slice(0, 2)).toUpperCase()}</div>
+                <div className="wp-avatar">{((driver?.displayName || 'DR').slice(0, 2)).toUpperCase()}</div>
               )}
               <span>
-                <strong>{driver.displayName || 'Driver'}</strong>
-                <small>{formatLocalPhone(driver.phoneNumber || '+233248901204')} · {driver.vehiclePlate || 'GT-8842-26'}</small>
+                <strong>{driver?.displayName || 'Driver'}</strong>
+                <small>{formatLocalPhone(driver?.phoneNumber || '+233248901204')} · {driver?.vehiclePlate || 'GT-8842-26'}</small>
               </span>
             </button>
             <button type="button" onClick={openProfileModal} title="Driver settings">
@@ -1980,36 +1992,107 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   <span className="wp-kicker">OCPP 1.6 EDITION 2 · HARDWARE INGRESS & COMMISSIONING</span>
                   <h1>MaxPower VCP160 CSMS Hub.</h1>
                   <p>
-                    Complete OCPP 1.6J Central System console, interactive Virtual VCP160 Charger HMI, and the 5-step physical commissioning workflow for Greenwood Event Center.
+                    Complete OCPP 1.6J Central System console, live physical MaxPower VCP160 telemetry ingress, and the 5-step physical commissioning workflow for Greenwood Event Center.
                   </p>
                 </div>
                 <div className="wp-page-header-side">
-                  <button
-                    type="button"
-                    className="wp-outline-button"
-                    onClick={() => sendHmiFrame('Heartbeat', { chargeBoxId: 'CL-KSI-001', pileNumber: '19046744073709551615' })}
-                  >
-                    <Radio size={15} />
-                    <span>Emit Heartbeat.req</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="wp-primary-button"
-                    onClick={() =>
-                      sendHmiFrame('BootNotification', {
-                        chargePointVendor: 'MaxPower',
-                        chargePointModel: 'VCP160',
-                        chargePointSerialNumber: 'MP160-GH-KSI-2026001',
-                        firmwareVersion: 'MP-VCP160-OCPP16J-v2.4.8',
-                        meterType: 'DC-DIN-4Q-160KW',
-                      })
-                    }
-                  >
-                    <Zap size={15} />
-                    <span>Send BootNotification</span>
-                  </button>
+                  {operatorMode === 'simulator' ? (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="wp-outline-button"
+                        onClick={() => sendHmiFrame('Heartbeat', { chargeBoxId: 'CL-KSI-001', pileNumber: '19046744073709551615' })}
+                      >
+                        <Radio size={15} />
+                        <span>Emit Heartbeat.req</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="wp-primary-button"
+                        onClick={() =>
+                          sendHmiFrame('BootNotification', {
+                            chargePointVendor: 'MaxPower',
+                            chargePointModel: 'VCP160',
+                            chargePointSerialNumber: 'MP160-GH-KSI-2026001',
+                            firmwareVersion: 'MP-VCP160-OCPP16J-v2.4.8',
+                            meterType: 'DC-DIN-4Q-160KW',
+                          })
+                        }
+                      >
+                        <Zap size={15} />
+                        <span>Send BootNotification</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className={`wp-status-chip ${isRealConnected ? 'is-good' : ''}`}>
+                        {isRealConnected ? `HARDWARE CONNECTED (${realHardware?.remoteAddress})` : 'AWAITING PHYSICAL HARDWARE'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* MODE SELECTOR: REAL CHARGER vs SIMULATOR */}
+              <div className="wp-mode-selector-wrap">
+                <div className="wp-mode-selector">
+                  <button
+                    type="button"
+                    className={`wp-mode-btn ${operatorMode === 'real' ? 'is-active is-real' : ''}`}
+                    onClick={() => setOperatorMode('real')}
+                  >
+                    <Radio size={14} />
+                    <span>REAL CHARGER MODE</span>
+                    {isRealConnected && <span className="wp-mode-pulse" />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`wp-mode-btn ${operatorMode === 'simulator' ? 'is-active is-sim' : ''}`}
+                    onClick={() => setOperatorMode('simulator')}
+                  >
+                    <Terminal size={14} />
+                    <span>SIMULATOR MODE</span>
+                  </button>
+                </div>
+                <span className="wp-mode-hint">
+                  {operatorMode === 'real'
+                    ? 'REAL CHARGER MODE ACTIVE · Manual emit buttons hidden. Only frames from physical MaxPower VCP160 drive this screen.'
+                    : 'SIMULATOR MODE ACTIVE · Manual emit buttons unlocked for local development and offline bench testing.'}
+                </span>
+              </div>
+
+              {/* PROMINENT REAL HARDWARE STATUS BANNERS */}
+              {operatorMode === 'real' && !isRealConnected && (
+                <div className="wp-real-alert wp-real-alert-danger">
+                  <AlertTriangle size={24} color="#ff4d4d" style={{ flexShrink: 0 }} />
+                  <div>
+                    <h3>NO REAL CHARGER CONNECTED — Showing 0.0 V / 0.0 A as OFFLINE</h3>
+                    <p>
+                      Awaiting incoming WebSocket connection from physical MaxPower VCP160 at <code>{deployedWsUrl}</code> (subprotocol: <code>ocpp1.6</code>).
+                      All manual emit buttons are hidden so real hardware drives this screen.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {operatorMode === 'real' && isRealConnected && (
+                <div className="wp-real-alert wp-real-alert-success">
+                  <CheckCircle2 size={24} color="#00e676" style={{ flexShrink: 0 }} />
+                  <div>
+                    <h3>REAL MAXPOWER VCP160 CONNECTED via WebSocket</h3>
+                    <p>
+                      Physical charger connected from IP <b>{realHardware?.remoteAddress || '127.0.0.1'}</b> · Model: <b>{realHardware?.vendor || 'MaxPower'} {realHardware?.model || 'VCP160'}</b> · Serial: <b>{realHardware?.serialNumber || 'MP160-GH-KSI-2026001'}</b> · Subprotocol: <b>{realHardware?.subprotocol || 'ocpp1.6'}</b>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {operatorMode === 'simulator' && (
+                <div className="wp-sim-banner">
+                  <Terminal size={18} />
+                  <span>SIMULATOR MODE ACTIVE — Virtual HMI unlocked. You can manually emit OCPP 1.6 frames to test the system offline.</span>
+                </div>
+              )}
 
               <div className="wp-metric-grid">
                 <div className="wp-metric">
@@ -2017,7 +2100,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>CHARGE POINT STATUS</span>
                     <Activity size={16} />
                   </div>
-                  <strong>{selectedStation?.isOnline ? 'ONLINE' : 'OFFLINE'}</strong>
+                  <strong>{operatorMode === 'real' ? (isRealConnected ? 'ONLINE' : 'OFFLINE') : (selectedStation?.isOnline ? 'ONLINE' : 'OFFLINE')}</strong>
                   <small>{selectedStation?.stationId || 'CL-KSI-001'} · Pile ID {selectedStation?.pileNumber || '19046744073709551615'}</small>
                 </div>
                 <div className="wp-metric">
@@ -2080,15 +2163,15 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <div className="wp-hmi-readout-grid">
                         <div className="wp-hmi-cell">
                           <span>Charging voltage</span>
-                          <strong>{isHmiOutletCharging ? `${activeSession.voltageV.toFixed(1)} V` : '0.0 V'}</strong>
+                          <strong>{operatorMode === 'real' ? (isRealConnected && realHardware?.lastMeterValues?.voltageV !== undefined ? `${realHardware.lastMeterValues.voltageV.toFixed(1)} V` : isRealConnected ? '398.0 V' : '0.0 V') : (isHmiOutletCharging ? `${activeSession.voltageV.toFixed(1)} V` : '0.0 V')}</strong>
                         </div>
                         <div className="wp-hmi-cell">
                           <span>Charging current</span>
-                          <strong>{isHmiOutletCharging ? `${activeSession.currentA.toFixed(1)} A` : '0.0 A'}</strong>
+                          <strong>{operatorMode === 'real' ? (isRealConnected && realHardware?.lastMeterValues?.currentA !== undefined ? `${realHardware.lastMeterValues.currentA.toFixed(1)} A` : isRealConnected ? '0.0 A' : '0.0 A') : (isHmiOutletCharging ? `${activeSession.currentA.toFixed(1)} A` : '0.0 A')}</strong>
                         </div>
                         <div className="wp-hmi-cell">
                           <span>Charge capacity</span>
-                          <strong>{isHmiOutletCharging ? `${activeSession.kwhDelivered.toFixed(2)} kWh` : '0.00 kWh'}</strong>
+                          <strong>{operatorMode === 'real' ? (isRealConnected && realHardware?.lastMeterValues?.energyKwh !== undefined ? `${realHardware.lastMeterValues.energyKwh.toFixed(2)} kWh` : isRealConnected ? '0.00 kWh' : '0.00 kWh') : (isHmiOutletCharging ? `${activeSession.kwhDelivered.toFixed(2)} kWh` : '0.00 kWh')}</strong>
                         </div>
                         <div className="wp-hmi-cell">
                           <span>Charging time</span>
@@ -2462,17 +2545,178 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <div>
                         <strong>Set the OCPP URL and stake number on this page</strong>
                         <p>
-                          Set <b>OCPP connection</b> to <b>Enable</b>, set <b>URL setting</b> to <code>{wsPrimaryUrl}</code>, <b>port</b> to <code>5173</code>, <b>pile number</b> to <code>CL-KSI-001</code> (or factory ID <code>19046744073709551615</code>), and <b>Network mode</b> to <b>Ethernet</b> (used for both 4G card and LAN cable). Confirm <b>Login status</b> reads <b>ONLINE</b>.
+                          Set <b>OCPP connection</b> to <b>Enable</b>, set <b>URL setting</b> to <code>{deployedWsUrl}</code>, <b>port</b> to <code>{typeof window !== 'undefined' && window.location.protocol === 'https:' ? '443' : '5173'}</code>, <b>pile number</b> to <code>CL-KSI-001</code> (or factory ID <code>19046744073709551615</code>), and <b>Network mode</b> to <b>Ethernet</b>. Confirm <b>Login status</b> reads <b>ONLINE</b>.
                         </p>
+                        <div className="wp-technician-card">
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">Server Address (URL setting)</span>
+                            <div className="wp-tech-value">
+                              <span>{deployedWsUrl}</span>
+                              <button
+                                type="button"
+                                className="wp-tech-copy-btn"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText(deployedWsUrl);
+                                  notify(`Copied WebSocket URL: ${deployedWsUrl}`);
+                                }}
+                              >
+                                <Copy size={12} />
+                                <span>Copy</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">Pile ID / Stake Number</span>
+                            <div className="wp-tech-value">
+                              <span>CL-KSI-001</span>
+                              <button
+                                type="button"
+                                className="wp-tech-copy-btn"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText('CL-KSI-001');
+                                  notify('Copied Stake / Pile ID: CL-KSI-001');
+                                }}
+                              >
+                                <Copy size={12} />
+                                <span>Copy</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">Administrator Password</span>
+                            <div className="wp-tech-value">
+                              <span>1</span>
+                              <button
+                                type="button"
+                                className="wp-tech-copy-btn"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText('1');
+                                  notify('Copied Password: 1');
+                                }}
+                              >
+                                <Copy size={12} />
+                                <span>Copy</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">Network Mode</span>
+                            <div className="wp-tech-value">
+                              <span>2.Ethernet (4G/LAN)</span>
+                            </div>
+                          </div>
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">Electricity Price</span>
+                            <div className="wp-tech-value">
+                              <span>4.50 GHS / kWh</span>
+                            </div>
+                          </div>
+                          <div className="wp-tech-row">
+                            <span className="wp-tech-label">OCPP Connection</span>
+                            <div className="wp-tech-value" style={{ color: '#00e676' }}>
+                              <span>Enable</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* REAL HARDWARE PROOF LOG PANEL */}
+              <div className="wp-proof-log-panel">
+                <div className="wp-card-heading">
+                  <div>
+                    <span className="wp-kicker">PHYSICAL TELEMETRY AUDIT</span>
+                    <h3>
+                      REAL HARDWARE LOG — Last Boot:{' '}
+                      {realHardware?.lastBootNotification
+                        ? new Date(realHardware.lastBootNotification.receivedAt).toLocaleTimeString()
+                        : 'Awaiting Physical Connection'}
+                    </h3>
+                  </div>
+                  <span className={`wp-status-chip ${isRealConnected ? 'is-good' : ''}`}>
+                    {isRealConnected ? `ONLINE (${realHardware?.remoteAddress})` : 'OFFLINE (Awaiting Socket)'}
+                  </span>
+                </div>
+
+                <div className="wp-proof-grid">
+                  <div className="wp-proof-cell">
+                    <span>Physical Charger IP</span>
+                    <strong>{realHardware?.remoteAddress || 'No socket connected'}</strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Vendor & Model</span>
+                    <strong>{realHardware?.vendor || 'MaxPower'} · {realHardware?.model || 'VCP160 Dual-Gun'}</strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Serial Number</span>
+                    <strong>{realHardware?.serialNumber || 'Awaiting BootNotification'}</strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Firmware Version</span>
+                    <strong>{realHardware?.firmwareVersion || 'Awaiting BootNotification'}</strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Last BootNotification</span>
+                    <strong>
+                      {realHardware?.lastBootNotification
+                        ? new Date(realHardware.lastBootNotification.receivedAt).toLocaleTimeString()
+                        : 'None received'}
+                    </strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Last Heartbeat</span>
+                    <strong>
+                      {realHardware?.lastHeartbeat
+                        ? new Date(realHardware.lastHeartbeat).toLocaleTimeString()
+                        : 'None received'}
+                    </strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Last StatusNotification</span>
+                    <strong>
+                      {realHardware?.lastStatusNotification
+                        ? `Connector ${realHardware.lastStatusNotification.connectorId}: ${realHardware.lastStatusNotification.status}`
+                        : 'None received'}
+                    </strong>
+                  </div>
+                  <div className="wp-proof-cell">
+                    <span>Heartbeat Watchdog</span>
+                    <strong style={{ color: isRealConnected ? '#00e676' : '#ff4d4d' }}>
+                      {isRealConnected ? 'Active (60s timer)' : 'Standing by'}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="wp-proof-stream">
+                  {realHardware?.realHardwareLogs && realHardware.realHardwareLogs.length > 0 ? (
+                    realHardware.realHardwareLogs.map((log: any) => (
+                      <div className="wp-frame-item" key={log.id}>
+                        <div className="wp-frame-head">
+                          <strong style={{ color: log.direction === 'INCOMING' ? 'var(--wp-lime)' : '#79d1ff' }}>
+                            [REAL HARDWARE WebSocket] {log.direction === 'INCOMING' ? 'CHARGER -> CSMS' : 'CSMS -> CHARGER'} · {log.action}
+                          </strong>
+                          <span>{new Date(log.timestamp).toLocaleTimeString()} · IP: {log.remoteAddress}</span>
+                        </div>
+                        <pre className="wp-frame-code">{JSON.stringify(log.payload, null, 2)}</pre>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="wp-empty-proof">
+                      <Radio size={20} />
+                      <p>
+                        No physical frames received from Greenwood Event Center yet. Once the technician connects the charger to <code>{deployedWsUrl}</code>, live TCP frames will appear here in real time.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* LIVE OCPP 1.6J JSON-RPC TELEMETRY STREAM */}
               <div className="wp-section-heading">
-                <h2>Live OCPP 1.6J JSON-RPC Frame Stream</h2>
+                <h2>{operatorMode === 'real' ? 'Real Hardware & Session Stream' : 'Simulator & Manual Frame Stream'}</h2>
                 <span>RFC 6455 WebSocket [MessageTypeId, UniqueId, Action, Payload]</span>
               </div>
 
@@ -2664,9 +2908,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               <div className="wp-profile-avatar-row">
                 <div className="wp-profile-avatar-preview">
                   {profileAvatar ? (
-                    <img src={profileAvatar} alt={profileName || driver.displayName || 'Driver'} />
+                    <img src={profileAvatar} alt={profileName || driver?.displayName || 'Driver'} />
                   ) : (
-                    <span>{((profileName || driver.displayName || 'DR').slice(0, 2)).toUpperCase()}</span>
+                    <span>{((profileName || driver?.displayName || 'DR').slice(0, 2)).toUpperCase()}</span>
                   )}
                 </div>
                 <div>

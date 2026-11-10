@@ -51,6 +51,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Resolved client-side blank/dark screen crash: implemented top-level `<ErrorBoundary />` in `src/main.tsx` with one-tap session recovery, disabled service worker intercept in dev mode (`registerServiceWorker.ts`), and fortified all `selectedStation`, `driver`, `activeSession`, and `wallet` accesses in `WillPowerApp.tsx` with safe nullish coalescing.
 - [x] Verified root build, root TypeScript, mobile TypeScript, and local API smoke tests.
 - [x] Connected physical charger OCPP 1.6 Edition 2 WebSocket ingress (`/ocpp/1.6/CL-KSI-001` & `/ocpp/1.6/19046744073709551615`), commissioned Greenwood Event Center (`Outlet A` GB/T 160 kW & `Outlet B` CCS2 160 kW `Available`), and added the 5-step MaxPower VCP160 commissioning guide + Virtual VCP160 HMI across Web, Admin, and Mobile.
+- [x] Implemented dedicated `[ REAL CHARGER | SIMULATOR ]` mode toggle (defaulting to `REAL CHARGER` with all EMIT/simulate buttons hidden), added 60-second hardware heartbeat watchdog marking charger `Faulted / Offline` upon disconnection, created real hardware proof log panel (`REAL HARDWARE LOG`), and embedded dynamic deployed WebSocket URLs with 1-tap copy buttons for on-site commissioning.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases
