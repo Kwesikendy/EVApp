@@ -65,6 +65,7 @@ export interface Connector {
   tariffGhsPerKwh?: number;
   tariffCurrency?: string;
   label?: string; // 'Outlet A' or 'Outlet B' (MaxPower VCP160 HMI)
+  imageUrl?: string; // photo of this gun/outlet
   errorCode?: ChargePointErrorCode;
   info?: string;
   vendorId?: string;
@@ -79,6 +80,7 @@ export interface ChargingStation {
   stationId: string; // OCPP ChargeBoxId (e.g. 'CL-KSI-001')
   chargeBoxId?: string;
   pileNumber?: string; // MaxPower VCP160 Stake/Pile Number ('19046744073709551615' or 'CL-KSI-001')
+  imageUrl?: string; // station hero photo
   name: string;
   operator: string;
   address: string;

@@ -15,6 +15,7 @@ export interface MobileConnector {
   id: number;
   connectorId: number;
   label?: string; // 'Outlet A' or 'Outlet B' (MaxPower VCP160 HMI)
+  imageUrl?: string;
   type: 'CCS2' | 'Type2' | 'CHAdeMO' | 'GB/T';
   maxPowerKw: number;
   currentPowerKw: number;
@@ -40,6 +41,7 @@ export interface MobileStation {
   id: string;
   stationId: string;
   pileNumber?: string;
+  imageUrl?: string;
   name: string;
   operator: string;
   address: string;
@@ -192,6 +194,7 @@ export const OFFLINE_STATIONS: MobileStation[] = [
     stationId: 'CL-KSI-001',
     pileNumber: '19046744073709551615',
     name: 'Greenwood Event Center Station 1',
+    imageUrl: '/stations/greenwood-site.jpg',
     operator: 'ChargeLink GH',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     latitude: 6.6697479,
@@ -218,6 +221,7 @@ export const OFFLINE_STATIONS: MobileStation[] = [
         id: 101,
         connectorId: 1,
         label: 'Outlet A',
+        imageUrl: '/stations/station1-outlet-a.jpg',
         type: 'GB/T',
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -230,6 +234,7 @@ export const OFFLINE_STATIONS: MobileStation[] = [
         id: 102,
         connectorId: 2,
         label: 'Outlet B',
+        imageUrl: '/stations/station1-outlet-b.jpg',
         type: 'CCS2',
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -245,6 +250,7 @@ export const OFFLINE_STATIONS: MobileStation[] = [
     stationId: 'CL-KSI-002',
     pileNumber: 'CL-KSI-002',
     name: 'Greenwood Event Center Station 2',
+    imageUrl: '/stations/station2-40kw.jpg',
     operator: 'ChargeLink GH',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     latitude: 6.6697479,

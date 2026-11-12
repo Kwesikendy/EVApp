@@ -62,6 +62,7 @@ interface Connector {
   id?: number;
   connectorId: number;
   label?: string;
+  imageUrl?: string;
   type: 'CCS2' | 'GB/T' | 'Type2' | 'CHAdeMO';
   maxPowerKw: number;
   currentPowerKw?: number;
@@ -77,6 +78,7 @@ interface Station {
   id: string;
   stationId: string;
   pileNumber?: string;
+  imageUrl?: string;
   name: string;
   operator?: string;
   address: string;
@@ -175,7 +177,8 @@ const defaultStation: Station = {
   id: 'st-01',
   stationId: 'CL-KSI-001',
   pileNumber: '19046744073709551615',
-  name: 'Greenwood Event Center',
+  name: 'Greenwood Event Center Station 1',
+  imageUrl: '/stations/greenwood-site.jpg',
   operator: 'Wilpower Charge Network',
   address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
   latitude: 6.6697479,
@@ -195,6 +198,7 @@ const defaultStation: Station = {
       id: 101,
       connectorId: 1,
       label: 'Outlet A',
+      imageUrl: '/stations/station1-outlet-a.jpg',
       type: 'GB/T',
       maxPowerKw: 160,
       currentPowerKw: 0,
@@ -206,6 +210,7 @@ const defaultStation: Station = {
       id: 102,
       connectorId: 2,
       label: 'Outlet B',
+      imageUrl: '/stations/station1-outlet-b.jpg',
       type: 'CCS2',
       maxPowerKw: 160,
       currentPowerKw: 0,
@@ -1651,6 +1656,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                         className={`wp-station-item ${selectedStation.id === station.id ? 'is-selected' : ''}`}
                         onClick={() => setSelectedStationId(station.id)}
                       >
+                        {station.imageUrl && (
+                          <img className="wp-station-thumb" src={station.imageUrl} alt={station.name} loading="lazy" />
+                        )}
                         <div className="wp-station-item-top">
                           <strong>{station.name}</strong>
                           <span className={`wp-status-chip ${station.isOnline ? 'is-good' : ''}`}>
@@ -1689,6 +1697,19 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
 
                   <div className="wp-map-sheet">
+                    {(selectedConnector?.imageUrl || selectedStation?.imageUrl) && (
+                      <figure className="wp-station-photo">
+                        <img
+                          src={selectedConnector?.imageUrl || selectedStation?.imageUrl}
+                          alt={selectedConnector?.imageUrl ? `${selectedStation?.name} ${selectedConnector?.label || ''}` : selectedStation?.name}
+                        />
+                        <figcaption>
+                          {selectedConnector?.imageUrl
+                            ? `${selectedConnector?.label || 'Outlet'} · ${selectedStation?.stationId}`
+                            : `${selectedStation?.stationId} · site photo`}
+                        </figcaption>
+                      </figure>
+                    )}
                     <span className="wp-kicker">
                       {selectedStation?.stationId || 'CL-KSI-001'} · PILE ID {selectedStation?.pileNumber || '19046744073709551615'}
                     </span>
@@ -1716,7 +1737,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
                     <div className="wp-map-sheet-meta">
                       <span>{selectedStation?.distanceKm || 1.4} km away</span>
-                      <span>MaxPower VCP160</span>
+                      <span>
+                        {selectedStation?.vendor || 'MaxPower'} {Math.max(0, ...(selectedStation?.connectors || []).map((cn) => cn.maxPowerKw))} kW
+                      </span>
                       <span>OCPP {selectedStation?.ocppVersion || '1.6J'}</span>
                     </div>
 

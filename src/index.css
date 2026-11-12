@@ -929,3 +929,9 @@ html[data-wp-theme='light'] .wp-navigation-message strong { color: var(--wp-ink)
   background: #00f0ff;
   color: #10141a;
 }
+
+/* Station photos (Greenwood Event Center) */
+.wp-station-photo { margin: 0 0 12px; border-radius: 12px; overflow: hidden; background: #181c22; border: 1px solid rgba(255,255,255,0.08); }
+.wp-station-photo img { display: block; width: 100%; height: 170px; object-fit: cover; }
+.wp-station-photo figcaption { padding: 6px 10px; font-size: 11px; letter-spacing: 0.04em; color: #9aa4b2; }
+.wp-station-thumb { display: block; width: 100%; height: 96px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: #181c22; }

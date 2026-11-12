@@ -74,6 +74,7 @@ import { OtpVerificationScreen } from './screens/OtpVerificationScreen';
 import { OtpSuccessScreen } from './screens/OtpSuccessScreen';
 import { LegalScreen } from './screens/LegalScreen';
 import { SessionStorage } from './storage';
+import { STATION_IMAGES, CONNECTOR_IMAGES } from './stationImages';
 
 export interface Connector {
   id: number;
@@ -1271,6 +1272,20 @@ function AppContent() {
               <View style={s.mapOverlayBottom}>
                 {selectedStation ? (
                   <View style={s.floatingStationCard}>
+                    {(CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]) ? (
+                      <View style={{ marginBottom: 10 }}>
+                        <Image
+                          source={CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]}
+                          style={{ width: '100%', height: 140, borderRadius: 10, backgroundColor: '#0f172a' }}
+                          resizeMode="cover"
+                        />
+                        <Text style={{ color: '#94a3b8', fontSize: 10, marginTop: 4 }}>
+                          {CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`]
+                            ? `${selectedStation.connectors.find((cn) => cn.connectorId === selectedConnectorId)?.label || 'Outlet'} · ${selectedStation.stationId}`
+                            : `${selectedStation.stationId} · site photo`}
+                        </Text>
+                      </View>
+                    ) : null}
                     <View style={s.stationCardHeader}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.stationCardTitle}>{selectedStation.name}</Text>
