@@ -924,7 +924,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chargeBoxId: 'CL-KSI-001',
+          chargeBoxId: selectedStation?.stationId || 'CL-KSI-001',
           action,
           payload,
         }),
@@ -947,7 +947,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chargeBoxId: 'CL-KSI-001',
+          chargeBoxId: selectedStation?.stationId || 'CL-KSI-001',
           action,
           payload,
         }),
@@ -971,7 +971,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chargeBoxId: 'CL-KSI-001',
+          chargeBoxId: selectedStation?.stationId || 'CL-KSI-001',
           key: configEditKey,
           value: configEditValue,
         }),
@@ -1292,17 +1292,18 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
   const hmiConnector = selectedStation?.connectors?.find((c) => c.connectorId === (hmiTab === 'outletB' ? 2 : 1)) || selectedStation?.connectors?.[0] || defaultStation.connectors[0];
   const isHmiOutletCharging = Boolean(activeSession && activeSession.connectorId === hmiConnector?.connectorId);
-  const realHardware = ocppStatus?.realHardware;
+  const activeChargeBoxId = selectedStation?.stationId || 'CL-KSI-001';
+  const realHardware = ocppStatus?.realHardwareByBox?.[activeChargeBoxId] ?? ocppStatus?.realHardware;
   const isRealConnected = Boolean(realHardware?.hasRealConnection);
   const activeHost = typeof window !== 'undefined' ? window.location.host : 'localhost:5173';
   const wsPrimaryUrl =
-    ocppStatus?.websocketEndpoints?.primary ||
+    ocppStatus?.websocketEndpoints?.byStation?.[activeChargeBoxId] ||
     (typeof window !== 'undefined'
-      ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`
-      : 'ws://localhost:5173/ocpp/1.6/CL-KSI-001');
+      ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/${activeChargeBoxId}`
+      : `ws://localhost:5173/ocpp/1.6/${activeChargeBoxId}`);
 
   const deployedWsUrl = typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/CL-KSI-001`
+    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ocpp/1.6/${activeChargeBoxId}`
     : wsPrimaryUrl;
 
   return (
@@ -2001,7 +2002,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <button
                         type="button"
                         className="wp-outline-button"
-                        onClick={() => sendHmiFrame('Heartbeat', { chargeBoxId: 'CL-KSI-001', pileNumber: '19046744073709551615' })}
+                        onClick={() => sendHmiFrame('Heartbeat', { chargeBoxId: activeChargeBoxId, pileNumber: selectedStation?.pileNumber || activeChargeBoxId })}
                       >
                         <Radio size={15} />
                         <span>Emit Heartbeat.req</span>
@@ -2031,6 +2032,29 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* CHARGER SELECTOR: one OCPP identity per physical machine */}
+              <div className="wp-mode-selector-wrap" style={{ marginBottom: 8 }}>
+                {stations.map((st) => {
+                  const hw = ocppStatus?.realHardwareByBox?.[st.stationId];
+                  const active = st.stationId === activeChargeBoxId;
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      className={`wp-mode-btn ${active ? 'is-active' : ''}`}
+                      onClick={() => setSelectedStationId(st.id)}
+                    >
+                      <span>
+                        {st.stationId} · {Math.max(...st.connectors.map((cn) => cn.maxPowerKw || 0))} kW · {st.connectors.length} gun{st.connectors.length > 1 ? 's' : ''}
+                      </span>
+                      <span className={`wp-status-chip ${hw?.hasRealConnection ? 'is-good' : ''}`} style={{ marginLeft: 8 }}>
+                        {hw?.hasRealConnection ? 'ONLINE' : 'OFFLINE'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* MODE SELECTOR: REAL CHARGER vs SIMULATOR */}
@@ -2288,7 +2312,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       </div>
                       <div className="wp-detail-row">
                         <span>Pile number (Stake number)</span>
-                        <strong>CL-KSI-001 / 19046744073709551615</strong>
+                        <strong>{activeChargeBoxId}{selectedStation?.pileNumber && selectedStation.pileNumber !== activeChargeBoxId ? ` / ${selectedStation.pileNumber}` : ''}</strong>
                       </div>
                       <div className="wp-detail-row">
                         <span>Administrator password</span>
@@ -2318,8 +2342,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                           type="button"
                           className="wp-primary-button"
                           onClick={() => {
-                            navigator.clipboard?.writeText('CL-KSI-001');
-                            notify('Copied Stake / Pile Number: CL-KSI-001');
+                            navigator.clipboard?.writeText(activeChargeBoxId);
+                            notify(`Copied Stake / Pile Number: ${activeChargeBoxId}`);
                           }}
                         >
                           <Copy size={14} />
@@ -2568,13 +2592,13 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                           <div className="wp-tech-row">
                             <span className="wp-tech-label">Pile ID / Stake Number</span>
                             <div className="wp-tech-value">
-                              <span>CL-KSI-001</span>
+                              <span>{activeChargeBoxId}</span>
                               <button
                                 type="button"
                                 className="wp-tech-copy-btn"
                                 onClick={() => {
-                                  navigator.clipboard?.writeText('CL-KSI-001');
-                                  notify('Copied Stake / Pile ID: CL-KSI-001');
+                                  navigator.clipboard?.writeText(activeChargeBoxId);
+                                  notify(`Copied Stake / Pile ID: ${activeChargeBoxId}`);
                                 }}
                               >
                                 <Copy size={12} />

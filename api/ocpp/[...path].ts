@@ -63,6 +63,68 @@ const COMMISSIONING_GUIDE = {
   ],
 };
 
+const STATION_2 = {
+  id: 'st-02',
+  stationId: 'CL-KSI-002',
+  chargeBoxId: 'CL-KSI-002',
+  pileNumber: 'CL-KSI-002',
+  name: 'Greenwood Event Center Station 2',
+  operator: 'ChargeLink GH',
+  address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+  latitude: 6.6697479,
+  longitude: -1.5995679,
+  isOnline: false,
+  ocppVersion: '1.6J',
+  vendor: 'MaxPower',
+  model: 'DC Fast Charger (40kW)',
+  firmwareVersion: 'Awaiting BootNotification',
+  serialNumber: 'Awaiting BootNotification',
+  meterType: 'DC-40KW',
+  networkMode: '2.Ethernet (4G/LAN)',
+  rating: 5.0,
+  amenities: ['Event Center', 'Parking Bay', 'Security', '24/7 Operation', 'Opoku Bandoh Plaza', 'OCPP 1.6J Live'],
+  connectors: [
+    {
+      id: 201,
+      connectorId: 1,
+      label: 'Outlet A',
+      type: 'GB/T',
+      maxPowerKw: 40,
+      currentPowerKw: 0,
+      status: 'Available',
+      errorCode: 'NoError',
+      tariffPerKwh: 4.5,
+      tariffGhsPerKwh: 4.5,
+      tariffCurrency: 'GHS',
+    },
+  ],
+};
+
+function emptyTelemetry(s: any) {
+  return {
+    hasRealConnection: false,
+    socketCount: 0,
+    chargeBoxId: s.stationId,
+    pileNumber: s.pileNumber,
+    remoteAddress: null,
+    subprotocol: null,
+    connectedAt: null,
+    lastSeenAt: null,
+    vendor: null,
+    model: null,
+    firmwareVersion: null,
+    serialNumber: null,
+    meterType: null,
+    lastBootNotification: null,
+    lastHeartbeat: null,
+    lastStatusNotification: null,
+    lastMeterValues: null,
+    lastStartTransaction: null,
+    lastStopTransaction: null,
+    realHardwareLogs: [] as any[],
+  };
+}
+
 function createDefaultState() {
   return {
     nextTransactionId: 98421,
@@ -73,7 +135,7 @@ function createDefaultState() {
         stationId: 'CL-KSI-001',
         chargeBoxId: 'CL-KSI-001',
         pileNumber: '19046744073709551615',
-        name: 'Greenwood Event Center',
+        name: 'Greenwood Event Center Station 1',
         operator: 'ChargeLink GH',
         address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
         latitude: 6.6697479,
@@ -125,6 +187,7 @@ function createDefaultState() {
           },
         ],
       },
+      STATION_2,
     ],
     activeSession: null as any,
     reservations: [] as any[],
@@ -307,6 +370,7 @@ export default function handler(req: any, res: any) {
 
   const urlPath = String(req.url || '').split('?')[0];
   const state = loadState();
+  if (!state.stations.find((s: any) => s.id === 'st-02')) state.stations.push(STATION_2);
   const station = state.stations[0];
   const host = req.headers?.host || 'localhost:5173';
   const wsScheme = host.includes('.vercel.app') || host.includes('.run.app') ? 'wss' : 'ws';
@@ -328,9 +392,14 @@ export default function handler(req: any, res: any) {
         primary: `${wsScheme}://${host}/ocpp/1.6/CL-KSI-001`,
         factoryPileAlias: `${wsScheme}://${host}/ocpp/1.6/19046744073709551615`,
         shortPath: `${wsScheme}://${host}/ocpp/CL-KSI-001`,
+        byStation: Object.fromEntries(
+          state.stations.map((s: any) => [s.stationId, `${wsScheme}://${host}/ocpp/1.6/${s.stationId}`])
+        ),
       },
       commissioning: COMMISSIONING_GUIDE,
       greenwoodStation: station,
+      allStations: state.stations,
+      realHardwareByBox: Object.fromEntries(state.stations.map((s: any) => [s.stationId, emptyTelemetry(s)])),
       connectedSockets: [],
       realHardware: {
         hasRealConnection: false,

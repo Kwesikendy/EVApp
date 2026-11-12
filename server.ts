@@ -136,7 +136,7 @@ const STATIONS: ChargingStation[] = [
     stationId: 'CL-KSI-001',
     chargeBoxId: 'CL-KSI-001',
     pileNumber: '19046744073709551615',
-    name: 'Greenwood Event Center',
+    name: 'Greenwood Event Center Station 1',
     operator: 'ChargeLink GH',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     latitude: 6.6697479,
@@ -179,6 +179,49 @@ const STATIONS: ChargingStation[] = [
         label: 'Outlet B',
         type: 'CCS2',
         maxPowerKw: 160,
+        currentPowerKw: 0,
+        status: 'Available',
+        errorCode: 'NoError',
+        tariffPerKwh: 4.50,
+        tariffGhsPerKwh: 4.50,
+        tariffCurrency: 'GHS',
+      },
+    ],
+  },
+  {
+    id: 'st-02',
+    stationId: 'CL-KSI-002',
+    chargeBoxId: 'CL-KSI-002',
+    pileNumber: 'CL-KSI-002',
+    name: 'Greenwood Event Center Station 2',
+    operator: 'ChargeLink GH',
+    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    isOnline: false,
+    ocppVersion: '1.6J',
+    vendor: 'MaxPower',
+    model: 'DC Fast Charger (40kW)',
+    firmwareVersion: 'Awaiting BootNotification',
+    serialNumber: 'Awaiting BootNotification',
+    meterType: 'DC-40KW',
+    networkMode: '2.Ethernet (4G/LAN)',
+    rating: 5.0,
+    amenities: [
+      'Event Center',
+      'Parking Bay',
+      'Security',
+      '24/7 Operation',
+      'Opoku Bandoh Plaza',
+      'OCPP 1.6J Live',
+    ],
+    connectors: [
+      {
+        id: 201,
+        connectorId: 1,
+        label: 'Outlet A',
+        type: 'GB/T',
+        maxPowerKw: 40,
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
@@ -704,7 +747,7 @@ app.get('/api/admin/overview', requireAdmin, (req, res) => {
       connectedSockets: ocpp16Engine.getConnectedChargePoints().length,
     },
     commissioning: MAXPOWER_VCP160_COMMISSIONING,
-    ocppStatus: ocpp16Engine.getStatusSnapshot(req.get('host')),
+    ocppStatus: ocpp16Engine.getStatusSnapshot(req.get('host'), typeof req.query.chargeBoxId === 'string' ? req.query.chargeBoxId : undefined),
     alerts: OCPP_LOGS.filter(
       (log) => log.action === 'StatusNotification' && log.payload?.status === 'Faulted'
     ).slice(0, 8),
@@ -1085,7 +1128,7 @@ app.get('/api/session/active', (_req, res) => {
 
 // Full OCPP 1.6 Edition 2 Status, Commissioning Guide, Configuration Keys, Reservations & Frames
 app.get('/api/ocpp/status', (req, res) => {
-  res.json(ocpp16Engine.getStatusSnapshot(req.get('host')));
+  res.json(ocpp16Engine.getStatusSnapshot(req.get('host'), typeof req.query.chargeBoxId === 'string' ? req.query.chargeBoxId : undefined));
 });
 
 // Get or Update OCPP 1.6 Standard Configuration Keys (Section 9)

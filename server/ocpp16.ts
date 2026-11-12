@@ -443,35 +443,58 @@ export class Ocpp16Engine {
     | 'Installing'
     | 'Installed' = 'Idle';
   private sockets = new Map<string, ConnectedChargePointSocket>();
-  private realHardware: RealHardwareTelemetry = {
-    hasRealConnection: false,
-    socketCount: 0,
-    chargeBoxId: 'CL-KSI-001',
-    pileNumber: '19046744073709551615',
-    remoteAddress: null,
-    subprotocol: null,
-    connectedAt: null,
-    lastSeenAt: null,
-    vendor: null,
-    model: null,
-    firmwareVersion: null,
-    serialNumber: null,
-    meterType: null,
-    lastBootNotification: null,
-    lastHeartbeat: null,
-    lastStatusNotification: null,
-    lastMeterValues: null,
-    lastStartTransaction: null,
-    lastStopTransaction: null,
-    realHardwareLogs: [],
-  };
+  private realHardwareMap = new Map<string, RealHardwareTelemetry>();
+
+  /** Per-charger real hardware telemetry (one record per chargeBoxId). */
+  private rh(rawChargeBoxId: string): RealHardwareTelemetry {
+    const id = this.normalizeChargeBoxId(rawChargeBoxId);
+    let t = this.realHardwareMap.get(id);
+    if (!t) {
+      const st = this.ctx.getStations().find((s) => s.stationId === id);
+      t = {
+        hasRealConnection: false,
+        socketCount: 0,
+        chargeBoxId: id,
+        pileNumber: st?.pileNumber || id,
+        remoteAddress: null,
+        subprotocol: null,
+        connectedAt: null,
+        lastSeenAt: null,
+        vendor: null,
+        model: null,
+        firmwareVersion: null,
+        serialNumber: null,
+        meterType: null,
+        lastBootNotification: null,
+        lastHeartbeat: null,
+        lastStatusNotification: null,
+        lastMeterValues: null,
+        lastStartTransaction: null,
+        lastStopTransaction: null,
+        realHardwareLogs: [],
+      };
+      this.realHardwareMap.set(id, t);
+    }
+    return t;
+  }
+
   private watchdogTimer?: NodeJS.Timeout;
 
-  public getRealHardwareSnapshot(): RealHardwareTelemetry {
+  public getRealHardwareSnapshot(chargeBoxId = 'CL-KSI-001'): RealHardwareTelemetry {
+    const t = this.rh(chargeBoxId);
     return {
-      ...this.realHardware,
-      realHardwareLogs: this.realHardware.realHardwareLogs.slice(0, 30),
+      ...t,
+      socketCount: this.sockets.has(t.chargeBoxId) ? 1 : 0,
+      realHardwareLogs: t.realHardwareLogs.slice(0, 30),
     };
+  }
+
+  public getAllRealHardwareSnapshots(): Record<string, RealHardwareTelemetry> {
+    const out: Record<string, RealHardwareTelemetry> = {};
+    for (const st of this.ctx.getStations()) {
+      out[st.stationId] = this.getRealHardwareSnapshot(st.stationId);
+    }
+    return out;
   }
 
   public startHeartbeatWatchdog(timeoutMs = 60000) {
@@ -482,24 +505,25 @@ export class Ocpp16Engine {
   }
 
   public checkHeartbeatTimeout(timeoutMs = 60000) {
-    if (!this.realHardware.hasRealConnection) return;
-    const last = this.realHardware.lastSeenAt || this.realHardware.lastHeartbeat;
-    if (!last) return;
-    const elapsed = Date.now() - new Date(last).getTime();
-    if (elapsed > timeoutMs) {
-      console.warn(`[OCPP Watchdog] Physical charger CL-KSI-001 heartbeat timed out (${Math.round(elapsed / 1000)}s > 60s). Marking OFFLINE/Faulted.`);
-      this.realHardware.hasRealConnection = false;
-      const station = this.findStation(this.realHardware.chargeBoxId);
+    for (const t of this.realHardwareMap.values()) {
+      if (!t.hasRealConnection) continue;
+      const last = t.lastSeenAt || t.lastHeartbeat;
+      if (!last) continue;
+      const elapsed = Date.now() - new Date(last).getTime();
+      if (elapsed <= timeoutMs) continue;
+      console.warn(`[OCPP Watchdog] Physical charger ${t.chargeBoxId} heartbeat timed out (${Math.round(elapsed / 1000)}s > 60s). Marking OFFLINE/Faulted.`);
+      t.hasRealConnection = false;
+      const station = this.findStation(t.chargeBoxId);
       if (station) {
         station.isOnline = false;
-        station.connectors.forEach((c) => {
-          c.status = 'Faulted';
-          c.errorCode = 'OtherError';
-          c.info = 'Physical charger heartbeat timeout (>60s)';
+        station.connectors.forEach((cn) => {
+          cn.status = 'Faulted';
+          cn.errorCode = 'OtherError';
+          cn.info = 'Physical charger heartbeat timeout (>60s)';
         });
       }
       this.ctx.pushLog(
-        this.realHardware.chargeBoxId,
+        t.chargeBoxId,
         'INCOMING',
         'StatusNotification',
         { status: 'Faulted', errorCode: 'OtherError', info: 'Heartbeat timeout > 60s. Physical charger disconnected.' },
@@ -527,7 +551,7 @@ export class Ocpp16Engine {
 
   public normalizeChargeBoxId(rawId: string): string {
     const cleaned = decodeURIComponent(String(rawId || '').trim());
-    if (!cleaned || cleaned === '19046744073709551615' || cleaned.toUpperCase() === 'CL-KSI-001') {
+    if (!cleaned || cleaned === '19046744073709551615') {
       return 'CL-KSI-001';
     }
     const stations = this.ctx.getStations();
@@ -549,7 +573,7 @@ export class Ocpp16Engine {
           s.stationId === normalized ||
           s.id === chargeBoxIdOrStationId ||
           s.pileNumber === chargeBoxIdOrStationId
-      ) || stations[0]
+      ) || (chargeBoxIdOrStationId ? undefined : stations[0])
     );
   }
 
@@ -595,8 +619,7 @@ export class Ocpp16Engine {
     if (found.key === 'MaxPower.ElectricityPriceGhsPerKwh') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed) && parsed > 0) {
-        const station = this.findStation('CL-KSI-001');
-        if (station) {
+        for (const station of this.ctx.getStations()) {
           station.connectors.forEach((c) => {
             c.tariffPerKwh = Number(parsed.toFixed(2));
             c.tariffGhsPerKwh = Number(parsed.toFixed(2));
@@ -626,11 +649,11 @@ export class Ocpp16Engine {
     }));
   }
 
-  public getStatusSnapshot(hostHeader?: string) {
+  public getStatusSnapshot(hostHeader?: string, chargeBoxId = 'CL-KSI-001') {
     const host = hostHeader || 'localhost:5173';
     const isSecure = host.includes('.vercel.app') || host.includes('.run.app');
     const wsScheme = isSecure ? 'wss' : 'ws';
-    const station = this.findStation('CL-KSI-001');
+    const station = this.findStation(chargeBoxId);
     return {
       protocol: 'OCPP 1.6 Edition 2 (OCPP-J)',
       subprotocol: 'ocpp1.6',
@@ -646,11 +669,16 @@ export class Ocpp16Engine {
         primary: `${wsScheme}://${host}/ocpp/1.6/CL-KSI-001`,
         factoryPileAlias: `${wsScheme}://${host}/ocpp/1.6/19046744073709551615`,
         shortPath: `${wsScheme}://${host}/ocpp/CL-KSI-001`,
+        byStation: Object.fromEntries(
+          this.ctx.getStations().map((s) => [s.stationId, `${wsScheme}://${host}/ocpp/1.6/${s.stationId}`])
+        ),
       },
       commissioning: MAXPOWER_VCP160_COMMISSIONING,
       greenwoodStation: station,
       connectedSockets: this.getConnectedChargePoints(),
-      realHardware: this.getRealHardwareSnapshot(),
+      realHardware: this.getRealHardwareSnapshot(chargeBoxId),
+      realHardwareByBox: this.getAllRealHardwareSnapshots(),
+      allStations: this.ctx.getStations(),
       activeSession: this.ctx.getActiveSession(),
       configurationKeys: this.configKeys,
       reservations: this.reservations,
@@ -683,12 +711,13 @@ export class Ocpp16Engine {
       station.lastHeartbeat = nowIso;
     }
 
+    const rhw = this.rh(chargeBoxId);
     if (isRealHardware) {
-      this.realHardware.hasRealConnection = true;
-      this.realHardware.lastSeenAt = nowIso;
-      if (remoteAddress) this.realHardware.remoteAddress = remoteAddress;
+      rhw.hasRealConnection = true;
+      rhw.lastSeenAt = nowIso;
+      if (remoteAddress) rhw.remoteAddress = remoteAddress;
 
-      this.realHardware.realHardwareLogs.unshift({
+      rhw.realHardwareLogs.unshift({
         id: `rh-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         timestamp: nowIso,
         action,
@@ -697,8 +726,8 @@ export class Ocpp16Engine {
         remoteAddress: remoteAddress || '127.0.0.1',
         uniqueId,
       });
-      if (this.realHardware.realHardwareLogs.length > 50) {
-        this.realHardware.realHardwareLogs.pop();
+      if (rhw.realHardwareLogs.length > 50) {
+        rhw.realHardwareLogs.pop();
       }
     }
 
@@ -726,7 +755,7 @@ export class Ocpp16Engine {
           });
         }
         if (isRealHardware) {
-          this.realHardware.lastBootNotification = {
+          rhw.lastBootNotification = {
             receivedAt: nowIso,
             chargePointVendor: payload.chargePointVendor,
             chargePointModel: payload.chargePointModel,
@@ -735,11 +764,11 @@ export class Ocpp16Engine {
             meterType: payload.meterType,
             rawPayload: payload,
           };
-          if (payload.chargePointVendor) this.realHardware.vendor = payload.chargePointVendor;
-          if (payload.chargePointModel) this.realHardware.model = payload.chargePointModel;
-          if (payload.firmwareVersion) this.realHardware.firmwareVersion = payload.firmwareVersion;
-          if (payload.chargePointSerialNumber) this.realHardware.serialNumber = payload.chargePointSerialNumber;
-          if (payload.meterType) this.realHardware.meterType = payload.meterType;
+          if (payload.chargePointVendor) rhw.vendor = payload.chargePointVendor;
+          if (payload.chargePointModel) rhw.model = payload.chargePointModel;
+          if (payload.firmwareVersion) rhw.firmwareVersion = payload.firmwareVersion;
+          if (payload.chargePointSerialNumber) rhw.serialNumber = payload.chargePointSerialNumber;
+          if (payload.meterType) rhw.meterType = payload.meterType;
         }
 
         const heartbeatKey = this.configKeys.find((k) => k.key === 'HeartbeatInterval');
@@ -758,7 +787,7 @@ export class Ocpp16Engine {
           station.lastHeartbeat = nowIso;
         }
         if (isRealHardware) {
-          this.realHardware.lastHeartbeat = nowIso;
+          rhw.lastHeartbeat = nowIso;
         }
         responsePayload = {
           currentTime: nowIso,
@@ -812,7 +841,7 @@ export class Ocpp16Engine {
           }
         }
         if (isRealHardware) {
-          this.realHardware.lastStatusNotification = {
+          rhw.lastStatusNotification = {
             receivedAt: nowIso,
             connectorId,
             status,
@@ -861,7 +890,7 @@ export class Ocpp16Engine {
         }
 
         if (isRealHardware) {
-          this.realHardware.lastStartTransaction = {
+          rhw.lastStartTransaction = {
             receivedAt: nowIso,
             transactionId,
             connectorId,
@@ -913,7 +942,7 @@ export class Ocpp16Engine {
           }
         }
         if (isRealHardware) {
-          this.realHardware.lastMeterValues = {
+          rhw.lastMeterValues = {
             receivedAt: nowIso,
             connectorId: Number(payload.connectorId ?? 1),
             transactionId: payload.transactionId ? Number(payload.transactionId) : undefined,
@@ -938,9 +967,9 @@ export class Ocpp16Engine {
         }
         if (isRealHardware) {
           const meterStop = meterStopWh ?? 0;
-          const startWh = this.realHardware.lastStartTransaction?.meterStartWh ?? 0;
+          const startWh = rhw.lastStartTransaction?.meterStartWh ?? 0;
           const energyKwh = Math.max(0, (meterStop - startWh) / 1000);
-          this.realHardware.lastStopTransaction = {
+          rhw.lastStopTransaction = {
             receivedAt: nowIso,
             transactionId: Number(payload.transactionId || 1),
             meterStopWh: meterStop,
@@ -1446,6 +1475,12 @@ export class Ocpp16Engine {
       socket,
     };
     this.sockets.set(chargeBoxId, record);
+
+    const telemetry = this.rh(chargeBoxId);
+    telemetry.remoteAddress = remoteAddress;
+    telemetry.subprotocol = subprotocol;
+    telemetry.connectedAt = nowIso;
+    telemetry.socketCount = 1;
 
     const station = this.findStation(chargeBoxId);
     if (station) {
