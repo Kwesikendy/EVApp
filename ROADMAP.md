@@ -241,3 +241,5 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [x] Fixed mobile sidebar drawer opacity (solid background across all themes) and light-theme Wilpower wordmark contrast (LOGO_PRIMARY).
 
 - [x] Switched Moolre SMS Sender ID to approved 'WillPower' in server/auth.ts and api/auth/send-otp.ts.
+
+- [x] Redesigned Sign-In / Sign-Up web & mobile layout and fixed light/mint contrast bugs with neumorphic/claymorphic card styling.

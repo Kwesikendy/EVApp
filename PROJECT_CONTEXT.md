@@ -533,3 +533,5 @@ When resuming work tomorrow, choose from the three planned tracks:
 - Mobile sidebar opacity & light-theme Wilpower wordmark fix (src/index.css, src/components/WillPowerApp.tsx): made the mobile slide-out sidebar 100% opaque across Night, Mint, and Light themes (z-index 60, no bleed-through over page/bottom nav) and switched the sidebar/auth-mobile logo from LOGO_REVERSE (white text) to LOGO_PRIMARY (dark text) whenever theme !== 'night'.
 
 - Moolre SMS Sender ID updated to WillPower (server/auth.ts, api/auth/send-otp.ts, .env.example): updated PRODUCTION_MOOLRE_SENDER_ID default to 'WillPower' (retaining 'Business_Ad' only as automatic ASMS07 fallback).
+
+- Auth Sign-In / Sign-Up redesign (src/index.css): fixed dark-on-dark contrast bug on Mint/Light themes in .wp-auth-aside (#f4f9f4 headline/copy on #102d1b–#07110b panel) and .wp-auth-form (neumorphic/claymorphic light card #f5faf4 / #faf9f5 with high-contrast #0e2115 typography, crisp white inputs, debossed segmented switch, and legible demo CTA). Improved mobile layout with a compact rounded hero banner so the sign-in card sits comfortably above the fold.

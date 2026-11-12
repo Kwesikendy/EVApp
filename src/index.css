@@ -1132,3 +1132,202 @@ html[data-wp-theme='light'] .wp-connector-option.is-active {
     color: var(--wp-ink);
   }
 }
+
+/* ==========================================================================
+   AUTH SIGN-IN / SIGN-UP POLISH (Contrast, Layout, Neumorphism & Claymorphism)
+   ========================================================================== */
+.wp-auth-aside {
+  background: linear-gradient(145deg, #102d1b 0%, #07110b 100%);
+  color: #f4f9f4;
+}
+.wp-auth-aside-copy h1 {
+  color: #f4f9f4;
+  letter-spacing: -0.035em;
+  line-height: 1.03;
+  text-wrap: balance;
+}
+.wp-auth-aside-copy p {
+  color: #c5dac8;
+  text-wrap: pretty;
+}
+.wp-auth-aside-foot {
+  color: #a9c5ae;
+}
+.wp-auth-heading h2 {
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.wp-auth-heading p {
+  text-wrap: pretty;
+}
+.wp-auth-form .wp-primary-button {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.12), inset 2px 2px 6px rgba(255, 255, 255, 0.45), 0 8px 20px rgba(139, 189, 36, 0.25);
+  transition-property: transform, box-shadow, background-color;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+.wp-auth-form .wp-primary-button:active {
+  transform: scale(0.98);
+}
+
+/* Light & Mint Theme Auth Card: Selective Neumorphism + High-Contrast Text */
+html[data-wp-theme='mint'] .wp-auth,
+html[data-wp-theme='light'] .wp-auth {
+  background: #e9f2e7;
+}
+html[data-wp-theme='light'] .wp-auth {
+  background: #f2f1eb;
+}
+html[data-wp-theme='mint'] .wp-auth-form,
+html[data-wp-theme='light'] .wp-auth-form {
+  background: #f5faf4;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
+  box-shadow: -10px -10px 24px rgba(255, 255, 255, 0.9), 10px 10px 26px rgba(130, 158, 134, 0.24);
+  backdrop-filter: none;
+}
+html[data-wp-theme='light'] .wp-auth-form {
+  background: #faf9f5;
+  box-shadow: -10px -10px 24px rgba(255, 255, 255, 0.92), 10px 10px 26px rgba(155, 150, 138, 0.22);
+}
+html[data-wp-theme='mint'] .wp-auth-heading h2,
+html[data-wp-theme='light'] .wp-auth-heading h2 {
+  color: #0e2115;
+}
+html[data-wp-theme='mint'] .wp-auth-heading p,
+html[data-wp-theme='light'] .wp-auth-heading p {
+  color: #465f4d;
+  font-size: 13px;
+}
+html[data-wp-theme='mint'] .wp-auth-form .wp-kicker,
+html[data-wp-theme='light'] .wp-auth-form .wp-kicker {
+  color: #4d7c0f;
+}
+html[data-wp-theme='mint'] .wp-auth-switch,
+html[data-wp-theme='light'] .wp-auth-switch {
+  background: #e5efe4;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 16px;
+  padding: 5px;
+  box-shadow: inset -3px -3px 7px rgba(255, 255, 255, 0.85), inset 3px 3px 8px rgba(140, 165, 145, 0.25);
+}
+html[data-wp-theme='light'] .wp-auth-switch {
+  background: #eceae2;
+}
+html[data-wp-theme='mint'] .wp-auth-switch button,
+html[data-wp-theme='light'] .wp-auth-switch button {
+  color: #425948;
+  border-radius: 12px;
+  font-size: 12px;
+}
+html[data-wp-theme='mint'] .wp-auth-switch button.is-active,
+html[data-wp-theme='light'] .wp-auth-switch button.is-active {
+  background: #92c828;
+  color: #0d1f13;
+  box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.08), inset 2px 2px 5px rgba(255, 255, 255, 0.55), 0 4px 10px rgba(130, 185, 25, 0.24);
+}
+html[data-wp-theme='mint'] .wp-auth-form .wp-field > span,
+html[data-wp-theme='light'] .wp-auth-form .wp-field > span {
+  color: #1c3524;
+  font-weight: 700;
+}
+html[data-wp-theme='mint'] .wp-auth-form .wp-input-wrap,
+html[data-wp-theme='light'] .wp-auth-form .wp-input-wrap,
+html[data-wp-theme='mint'] .wp-auth-form .wp-field > input,
+html[data-wp-theme='light'] .wp-auth-form .wp-field > input {
+  background: #ffffff;
+  border: 1.5px solid #c5d6c7;
+  color: #0e2115;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 3px rgba(16, 33, 21, 0.05);
+}
+html[data-wp-theme='mint'] .wp-auth-form .wp-input-wrap span,
+html[data-wp-theme='light'] .wp-auth-form .wp-input-wrap span {
+  color: #4d7c0f;
+  font-weight: 800;
+}
+html[data-wp-theme='mint'] .wp-auth-form .wp-input-wrap input,
+html[data-wp-theme='light'] .wp-auth-form .wp-input-wrap input {
+  color: #0e2115;
+}
+html[data-wp-theme='mint'] .wp-auth-demo span,
+html[data-wp-theme='light'] .wp-auth-demo span {
+  color: #4f6755;
+  font-size: 11px;
+}
+html[data-wp-theme='mint'] .wp-auth-demo .wp-text-button,
+html[data-wp-theme='light'] .wp-auth-demo .wp-text-button {
+  color: #3f6b0c;
+  font-weight: 800;
+  font-size: 12px;
+}
+html[data-wp-theme='mint'] .wp-choice,
+html[data-wp-theme='light'] .wp-choice {
+  background: #ffffff;
+  border: 1.5px solid #d5e2d7;
+  color: #425948;
+}
+html[data-wp-theme='mint'] .wp-choice strong,
+html[data-wp-theme='light'] .wp-choice strong {
+  color: #0e2115;
+}
+
+/* Mobile Auth Layout: compact header + centered crisp card */
+@media (max-width: 720px) {
+  .wp-auth {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+  .wp-auth-aside {
+    min-height: auto;
+    padding: calc(18px + var(--sat)) 20px 22px;
+    border-right: 0;
+    border-radius: 0 0 26px 26px;
+    box-shadow: 0 10px 28px rgba(7, 17, 11, 0.22);
+  }
+  .wp-auth-brand {
+    width: 128px;
+    margin-bottom: 12px;
+  }
+  .wp-auth-aside-copy h1 {
+    font-size: 30px;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    margin: 8px 0 8px;
+  }
+  .wp-auth-aside-copy p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .wp-auth-aside-foot {
+    margin-top: 14px;
+    font-size: 10px;
+  }
+  .wp-auth-panel {
+    flex: 1;
+    min-height: auto;
+    padding: 20px 16px calc(28px + var(--sab));
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .wp-auth-form {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+  .wp-auth-heading h2 {
+    font-size: 26px;
+    letter-spacing: -0.025em;
+    margin: 6px 0 8px;
+  }
+  .wp-auth-heading p {
+    margin-bottom: 18px;
+  }
+}
