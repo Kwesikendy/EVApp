@@ -231,3 +231,5 @@ The admin surface is intentionally isolated from the normal driver experience. A
 
 
 - [x] Added Greenwood Station 2 (CL-KSI-002, 40 kW DC GB/T, 1 bay) alongside Station 1 (CL-KSI-001, 160 kW dual-gun) with per-charger OCPP telemetry, watchdog, endpoints and operator hub selector. [ ] Concurrent multi-session tracking; [ ] Station 2 photo from client.
+
+- [x] Mobile app parity with web for multi-station OCPP hub (charger selector, REAL/SIMULATOR toggle, offline banner, per-charger commissioning values).

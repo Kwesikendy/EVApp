@@ -129,7 +129,7 @@ const DEFAULT_STATIONS: Station[] = [
     stationId: 'CL-KSI-001',
     pileNumber: '19046744073709551615',
     isOnline: true,
-    name: 'Wilpower · Greenwood Event Center',
+    name: 'Wilpower · Greenwood Event Center Station 1',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -143,6 +143,22 @@ const DEFAULT_STATIONS: Station[] = [
   },
   {
     id: 'st-02',
+    stationId: 'CL-KSI-002',
+    pileNumber: 'CL-KSI-002',
+    isOnline: true,
+    name: 'Wilpower · Greenwood Event Center Station 2',
+    address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
+    distanceKm: 0.8,
+    etaMins: 3,
+    latitude: 6.6697479,
+    longitude: -1.5995679,
+    connectors: [
+      { id: 201, connectorId: 1, label: 'Outlet A', type: 'GB/T', maxPowerKw: 40, status: 'Available', tariffPerKwh: 4.50 },
+    ],
+    amenities: ['Event Center', 'Parking Bay', '24/7 Security', 'Opoku Bandoh Plaza'],
+  },
+  {
+    id: 'st-05',
     stationId: 'CL-ACC-001',
     name: 'Wilpower · Airport City',
     address: 'Liberation Rd, Terminal 3 District, Accra',
@@ -356,6 +372,15 @@ function AppContent() {
   const [ocppTransactionId, setOcppTransactionId] = useState<number>(10042);
   const [ocppPileNumber, setOcppPileNumber] = useState<string>('19046744073709551615');
   const [showCommissioningGuide, setShowCommissioningGuide] = useState<boolean>(false);
+  const [operatorMode, setOperatorMode] = useState<'real' | 'simulator'>('real');
+  const [hubChargeBoxId, setHubChargeBoxId] = useState<string>('CL-KSI-001');
+  const [ocppHardware, setOcppHardware] = useState<Record<string, any>>({});
+  const hubStation = stations.find((st) => st.stationId === hubChargeBoxId) || stations[0];
+  const hubHw = ocppHardware[hubChargeBoxId];
+  const hubRealConnected = Boolean(hubHw?.hasRealConnection);
+  const hubWsUrl = `${BACKEND_URL.replace(/^http/, 'ws')}/ocpp/1.6/${hubChargeBoxId}`;
+  const hubConnector =
+    hubStation?.connectors.find((cn) => cn.connectorId === selectedConnectorId) || hubStation?.connectors[0];
 
   // Real-time Station Hardware Simulator state
   const [simSpeed, setSimSpeed] = useState<number>(1);
@@ -446,6 +471,10 @@ function AppContent() {
         api.getActiveSession(),
         api.getOcppStatus().catch(() => null),
       ]);
+
+      if (ocppStatus?.realHardwareByBox) {
+        setOcppHardware(ocppStatus.realHardwareByBox);
+      }
 
       if (ocppStatus && ocppStatus.pileNumber) {
         setOcppPileNumber(ocppStatus.pileNumber);
@@ -1574,14 +1603,99 @@ function AppContent() {
                 </TouchableOpacity>
               </View>
 
+              {/* Charger selector + REAL CHARGER / SIMULATOR toggle */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                {stations
+                  .filter((st) => st.stationId.startsWith('CL-KSI'))
+                  .map((st) => {
+                    const on = st.stationId === hubChargeBoxId;
+                    const hw = ocppHardware[st.stationId];
+                    return (
+                      <TouchableOpacity
+                        key={st.id}
+                        onPress={() => {
+                          setHubChargeBoxId(st.stationId);
+                          setSelectedConnectorId(1);
+                        }}
+                        style={{
+                          paddingVertical: 6,
+                          paddingHorizontal: 10,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: on ? '#00f0ff' : '#334155',
+                          backgroundColor: on ? 'rgba(0,240,255,0.12)' : '#0f172a',
+                        }}
+                      >
+                        <Text style={{ color: on ? '#00f0ff' : '#94a3b8', fontSize: 10, fontWeight: '800' }}>
+                          {st.stationId} · {Math.max(...st.connectors.map((cn) => cn.maxPowerKw))} kW ·{' '}
+                          <Text style={{ color: hw?.hasRealConnection ? '#00e676' : '#ff4d4d' }}>
+                            {hw?.hasRealConnection ? 'ONLINE' : 'OFFLINE'}
+                          </Text>
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+              </View>
+              <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
+                {(['real', 'simulator'] as const).map((m) => (
+                  <TouchableOpacity
+                    key={m}
+                    onPress={() => setOperatorMode(m)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 7,
+                      borderRadius: 8,
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: operatorMode === m ? '#00f0ff' : '#334155',
+                      backgroundColor: operatorMode === m ? 'rgba(0,240,255,0.12)' : '#0f172a',
+                    }}
+                  >
+                    <Text style={{ color: operatorMode === m ? '#00f0ff' : '#94a3b8', fontSize: 10, fontWeight: '800' }}>
+                      {m === 'real' ? 'REAL CHARGER' : 'SIMULATOR'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {operatorMode === 'real' ? (
+                <View
+                  style={{
+                    marginTop: 8,
+                    padding: 8,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: hubRealConnected ? '#00e676' : '#ff4d4d',
+                    backgroundColor: hubRealConnected ? 'rgba(0,230,118,0.10)' : 'rgba(255,77,77,0.10)',
+                  }}
+                >
+                  <Text style={{ color: hubRealConnected ? '#00e676' : '#ff4d4d', fontSize: 10, fontWeight: '800' }}>
+                    {hubRealConnected
+                      ? `REAL CHARGER ONLINE · ${hubChargeBoxId} · IP ${hubHw?.remoteAddress || 'unknown'}`
+                      : `NO REAL CHARGER CONNECTED · ${hubChargeBoxId} OFFLINE (0.0 V / 0.0 A)`}
+                  </Text>
+                  {hubRealConnected && (
+                    <Text style={{ color: '#94a3b8', fontSize: 9, marginTop: 2 }}>
+                      {hubHw?.vendor || 'MaxPower'} {hubHw?.model || ''} · SN {hubHw?.serialNumber || 'n/a'} · Last heartbeat{' '}
+                      {hubHw?.lastHeartbeat ? new Date(hubHw.lastHeartbeat).toLocaleTimeString() : 'n/a'}
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <View style={{ marginTop: 8, padding: 8, borderRadius: 8, borderWidth: 1, borderColor: '#f59e0b' }}>
+                  <Text style={{ color: '#f59e0b', fontSize: 10, fontWeight: '800' }}>
+                    SIMULATOR MODE · frames below are virtual, not from physical hardware
+                  </Text>
+                </View>
+              )}
+
               {/* Live MaxPower VCP160 HMI Screen Mirror */}
               <View style={{ backgroundColor: '#020817', borderRadius: 10, padding: 12, marginTop: 10, borderWidth: 1, borderColor: '#1e293b' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text style={{ color: '#22c55e', fontSize: 11, fontWeight: '800' }}>
-                    {selectedConnectorId === 2 ? 'OUTLET B (CCS2 160 kW)' : 'OUTLET A (GB/T 160 kW)'} · {isCharging ? 'CHARGING' : 'STANDBY'}
+                    {hubConnector ? `${(hubConnector.label || 'Outlet A').toUpperCase()} (${hubConnector.type} ${hubConnector.maxPowerKw} kW)` : 'OUTLET A'} · {operatorMode === 'real' && !hubRealConnected ? 'OFFLINE' : isCharging ? 'CHARGING' : 'STANDBY'}
                   </Text>
                   <Text style={{ color: '#94a3b8', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
-                    NO. {ocppPileNumber}
+                    NO. {hubStation?.pileNumber || hubChargeBoxId}
                   </Text>
                 </View>
 
@@ -1589,7 +1703,9 @@ function AppContent() {
                   <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
                     <Text style={{ color: '#64748b', fontSize: 9 }}>CHARGING VOLTAGE / CURRENT</Text>
                     <Text style={{ color: '#f8fafc', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
-                      {packVoltage.toFixed(1)} V · {packCurrent.toFixed(1)} A
+                      {operatorMode === 'real' && !hubRealConnected
+                        ? '0.0 V · 0.0 A'
+                        : `${(operatorMode === 'real' && hubHw?.lastMeterValues?.voltageV != null ? hubHw.lastMeterValues.voltageV : packVoltage).toFixed(1)} V · ${(operatorMode === 'real' && hubHw?.lastMeterValues?.currentA != null ? hubHw.lastMeterValues.currentA : packCurrent).toFixed(1)} A`}
                     </Text>
                   </View>
                   <View style={{ width: '48%', backgroundColor: '#0f172a', padding: 8, borderRadius: 8 }}>
@@ -1619,7 +1735,9 @@ function AppContent() {
                     { label: 'Heartbeat', action: 'Heartbeat', isFrame: true },
                     { label: 'MeterValues', action: 'MeterValues', isFrame: true },
                     { label: 'Unlock Latch', action: 'UnlockConnector', isFrame: false },
-                  ].map((btn) => (
+                  ]
+                    .filter((btn) => operatorMode === 'simulator' || !btn.isFrame)
+                    .map((btn) => (
                     <TouchableOpacity
                       key={btn.label}
                       style={{
@@ -1632,7 +1750,7 @@ function AppContent() {
                       }}
                       onPress={async () => {
                         if (btn.isFrame) {
-                          const res = await api.sendOcppFrame(btn.action, {}, 'CL-KSI-001');
+                          const res = await api.sendOcppFrame(btn.action, {}, hubChargeBoxId);
                           const nowStr = new Date().toLocaleTimeString();
                           setRecentOcppPackets((prev) => [
                             {
@@ -1643,9 +1761,9 @@ function AppContent() {
                             },
                             ...prev.slice(0, 4),
                           ]);
-                          Alert.alert(`OCPP 1.6J ${btn.action}`, `Dispatched [2, id, "${btn.action}"] from MaxPower VCP160 (CL-KSI-001).`);
+                          Alert.alert(`OCPP 1.6J ${btn.action}`, `Dispatched [2, id, "${btn.action}"] from MaxPower (${hubChargeBoxId}).`);
                         } else {
-                          const res = await api.unlockConnector('CL-KSI-001', selectedConnectorId);
+                          const res = await api.unlockConnector(hubChargeBoxId, selectedConnectorId);
                           Alert.alert('OCPP 1.6J UnlockConnector', `Connector #${selectedConnectorId} solenoid status: ${res?.status || 'Unlocked'}`);
                         }
                         syncBackendData();
@@ -1664,7 +1782,7 @@ function AppContent() {
                     MAXPOWER VCP160 5-STEP OCPP 1.6J COMMISSIONING GUIDE
                   </Text>
                   <Text style={{ color: '#94a3b8', fontSize: 10, marginBottom: 8 }}>
-                    WebSocket Endpoint: ws://&lt;server-host&gt;:5173/ocpp/1.6/CL-KSI-001 (Subprotocol: ocpp1.6)
+                    Server Address: {hubWsUrl}{'\n'}Pile ID / Charge Point ID: {hubChargeBoxId}{'\n'}Password: 1 · Subprotocol: ocpp1.6
                   </Text>
                   <Image
                     source={require('./assets/ocpp-commissioning-guide.jpeg')}
