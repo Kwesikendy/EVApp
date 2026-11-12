@@ -712,8 +712,10 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         notify(data.message || 'Gateway notice. Use code 123456 to continue.');
         return;
       }
-      setDemoOtp(data.devCode || data.demoCode || '123456');
-      if (data.devCode || data.demoCode) setOtpInput(String(data.devCode || data.demoCode));
+      const fallbackCode = data.devCode || data.demoCode || '';
+      setDemoOtp(fallbackCode);
+      if (fallbackCode) setOtpInput(String(fallbackCode));
+      else setOtpInput('');
       setAuthStep('otp');
       notify(`Verification code ready for ${formatLocalPhone(normalized)}`);
     } catch {

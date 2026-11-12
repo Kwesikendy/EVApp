@@ -237,59 +237,57 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
   // If live Moolre API/VAS key is configured, dispatch live SMS via Moolre
   if (moolreVasKey) {
     try {
-      const messageText = `Your ChargeLink GH code is ${code}. Valid for 5 minutes.`;
-      const url = new URL('https://api.moolre.com/open/sms/send');
-      url.searchParams.append('type', '1');
-      url.searchParams.append('senderid', moolreSenderId);
-      url.searchParams.append('recipient', rawRecipient);
-      url.searchParams.append('message', messageText);
+      const messageText = `Your Wilpower EV code is ${code}. Valid for 5 minutes.`;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      async function dispatchMoolre(sender: string) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        try {
+          const postRes = await fetch('https://api.moolre.com/open/sms/send', {
+            method: 'POST',
+            headers: {
+              'X-API-VASKEY': moolreVasKey,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 1,
+              senderid: sender,
+              messages: [{ recipient: rawRecipient, message: messageText }],
+            }),
+            signal: controller.signal,
+          });
+          const postData = await postRes.json().catch(() => null);
+          if (postData && postData.status === 1) return postData;
 
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'X-API-VASKEY': moolreVasKey,
-          'Accept': 'application/json',
-        },
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
+          const url = new URL('https://api.moolre.com/open/sms/send');
+          url.searchParams.append('type', '1');
+          url.searchParams.append('senderid', sender);
+          url.searchParams.append('recipient', rawRecipient);
+          url.searchParams.append('message', messageText);
+          const getRes = await fetch(url.toString(), {
+            method: 'GET',
+            headers: { 'X-API-VASKEY': moolreVasKey, 'Accept': 'application/json' },
+            signal: controller.signal,
+          });
+          return await getRes.json().catch(() => postData);
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
 
-      const data = await response.json().catch(() => null);
-      console.log(`[Moolre SMS Gateway] Dispatched to ${normalized}:`, data);
+      let data = await dispatchMoolre(moolreSenderId);
+      console.log(`[Moolre SMS Gateway] Dispatched to ${normalized} (sender=${moolreSenderId}):`, data);
 
       if (data && data.code === 'ASMS07' && moolreSenderId !== 'Business_Ad') {
-        const retryUrl = new URL('https://api.moolre.com/open/sms/send');
-        retryUrl.searchParams.append('type', '1');
-        retryUrl.searchParams.append('senderid', 'Business_Ad');
-        retryUrl.searchParams.append('recipient', rawRecipient);
-        retryUrl.searchParams.append('message', messageText);
-
-        const retryRes = await fetch(retryUrl.toString(), {
-          method: 'GET',
-          headers: {
-            'X-API-VASKEY': moolreVasKey,
-            'Accept': 'application/json',
-          },
-        });
-        const retryData = await retryRes.json().catch(() => null);
-        console.log(`[Moolre SMS Gateway Retry] Dispatched to ${normalized}:`, retryData);
-        if (retryData && retryData.status === 1) {
-          return {
-            success: true,
-            message: `OTP sent via Moolre SMS to ${normalized}`,
-            devCode: code,
-          };
-        }
+        data = await dispatchMoolre('Business_Ad');
+        console.log(`[Moolre SMS Gateway Retry] Dispatched to ${normalized}:`, data);
       }
 
       if (data && data.status === 1) {
         return {
           success: true,
-          message: `OTP sent via Moolre SMS to ${normalized}`,
-          devCode: code,
+          message: `Verification SMS sent via WillPower to ${normalized}`,
         };
       }
 
