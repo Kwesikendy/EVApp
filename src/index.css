@@ -1114,3 +1114,21 @@ html[data-wp-theme='light'] .wp-connector-option.is-active {
     transform: none !important;
   }
 }
+
+/* Solid opaque mobile sidebar drawer across all themes (prevents underlying content bleed-through) */
+@media (max-width: 720px) {
+  .wp-sidebar {
+    z-index: 60;
+    background: linear-gradient(180deg, #0b180f 0%, #07110b 100%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  html[data-wp-theme='mint'] .wp-sidebar {
+    background: #edf5ec;
+    color: var(--wp-ink);
+  }
+  html[data-wp-theme='light'] .wp-sidebar {
+    background: #f8f7f2;
+    color: var(--wp-ink);
+  }
+}

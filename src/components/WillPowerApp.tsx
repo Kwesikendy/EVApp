@@ -170,6 +170,7 @@ interface DriverSession {
 const SESSION_KEY = 'wilpower_web_session_v1';
 const THEME_KEY = 'wilpower_theme_v1';
 const LOGO_REVERSE = '/willpower/WillPower_Logo_Reverse_V3.svg';
+const LOGO_PRIMARY = '/willpower/WillPower_Logo_Primary_V3.svg';
 const HERO_PHOTO = '/willpower/Photo_Concept_Only.jpg';
 const COMMISSIONING_IMAGE = '/ocpp-commissioning-guide.jpeg';
 
@@ -1112,7 +1113,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           {authStep === 'entry' ? (
             <form className="wp-auth-form" onSubmit={handleRequestOtp}>
               <div className="wp-auth-mobile-brand">
-                <img src={LOGO_REVERSE} alt="Wilpower" />
+                <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Wilpower" />
               </div>
 
               <div className="wp-auth-heading">
@@ -1314,7 +1315,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       <aside className={`wp-sidebar ${mobileMenuOpen ? 'is-open' : ''}`}>
         <div className="wp-sidebar-top">
           <div className="wp-sidebar-brand">
-            <img src={LOGO_REVERSE} alt="Wilpower" />
+            <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Wilpower" />
           </div>
           <button type="button" className="wp-mobile-close" onClick={() => setMobileMenuOpen(false)}>
             <X size={18} />
