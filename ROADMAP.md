@@ -239,3 +239,5 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [x] Renamed stations to Station A (StationA.jpeg) & Station B (StationB.jpeg), fixed full-length portrait photo framing on web & mobile, and applied selective neumorphism, claymorphism, and ECC design-engineering/a11y polish.
 
 - [x] Fixed mobile sidebar drawer opacity (solid background across all themes) and light-theme Wilpower wordmark contrast (LOGO_PRIMARY).
+
+- [x] Switched Moolre SMS Sender ID to approved 'WillPower' in server/auth.ts and api/auth/send-otp.ts.

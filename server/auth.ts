@@ -212,7 +212,7 @@ export function normalizeGhanaPhoneNumber(rawPhone: string): string {
 }
 
 export const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0';
-export const PRODUCTION_MOOLRE_SENDER_ID = 'Business_Ad';
+export const PRODUCTION_MOOLRE_SENDER_ID = 'WillPower';
 
 /**
  * Send OTP via Moolre Ghana Messaging API (https://api.moolre.com/open/sms/send) or dev sandbox
