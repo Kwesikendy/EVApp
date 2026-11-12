@@ -930,8 +930,187 @@ html[data-wp-theme='light'] .wp-navigation-message strong { color: var(--wp-ink)
   color: #10141a;
 }
 
-/* Station photos (Greenwood Event Center) */
-.wp-station-photo { margin: 0 0 12px; border-radius: 12px; overflow: hidden; background: #181c22; border: 1px solid rgba(255,255,255,0.08); }
-.wp-station-photo img { display: block; width: 100%; height: 170px; object-fit: cover; }
-.wp-station-photo figcaption { padding: 6px 10px; font-size: 11px; letter-spacing: 0.04em; color: #9aa4b2; }
-.wp-station-thumb { display: block; width: 100%; height: 96px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: #181c22; }
+/* Station photos (Greenwood Event Center — full-length uncropped display) */
+.wp-station-photo {
+  margin: 0 0 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #10141a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+}
+.wp-station-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #10141a;
+  outline: 1px solid rgba(255, 255, 255, 0.08);
+  outline-offset: -1px;
+}
+.wp-station-photo figcaption {
+  padding: 8px 6px 2px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #9aa4b2;
+  text-align: center;
+}
+.wp-station-thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #10141a;
+  outline: 1px solid rgba(255, 255, 255, 0.08);
+  outline-offset: -1px;
+}
+html[data-wp-theme='mint'] .wp-station-photo,
+html[data-wp-theme='light'] .wp-station-photo {
+  background: #e6eee7;
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: inset -3px -3px 8px rgba(255, 255, 255, 0.85), inset 3px 3px 8px rgba(145, 165, 150, 0.22);
+}
+html[data-wp-theme='mint'] .wp-station-photo img,
+html[data-wp-theme='light'] .wp-station-photo img,
+html[data-wp-theme='mint'] .wp-station-thumb,
+html[data-wp-theme='light'] .wp-station-thumb {
+  background: #dce7de;
+  outline-color: rgba(0, 0, 0, 0.08);
+}
+html[data-wp-theme='mint'] .wp-station-photo figcaption,
+html[data-wp-theme='light'] .wp-station-photo figcaption {
+  color: #4a6150;
+}
+
+/* ==========================================================================
+   SELECTIVE NEUMORPHISM (Light/Mint Surfaces) + CLAYMORPHISM (Tactile Pills)
+   + Design Engineering Polish (ECC make-interfaces-feel-better + a11y)
+   ========================================================================== */
+h1, h2, h3, .wp-station-item-top strong {
+  text-wrap: balance;
+}
+.wp-station-address, .wp-station-connectors, .wp-map-sheet p {
+  text-wrap: pretty;
+}
+.wp-telemetry-grid strong, .wp-metric strong, .wp-ledger-amount, .wp-essential-card strong {
+  font-variant-numeric: tabular-nums;
+}
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--wp-lime);
+  outline-offset: 2px;
+}
+
+/* Selective Neumorphism on Mint / Light matte surfaces */
+html[data-wp-theme='mint'] .wp-filter-row,
+html[data-wp-theme='light'] .wp-filter-row {
+  background: #e9f1ea;
+  border-radius: 18px;
+  padding: 6px;
+  margin: 0 20px 18px;
+  box-shadow: inset -3px -3px 7px rgba(255, 255, 255, 0.85), inset 3px 3px 8px rgba(145, 165, 150, 0.25);
+}
+html[data-wp-theme='mint'] .wp-filter-row button,
+html[data-wp-theme='light'] .wp-filter-row button {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: #f2f7f2;
+  box-shadow: -3px -3px 7px rgba(255, 255, 255, 0.85), 3px 3px 7px rgba(145, 165, 150, 0.24);
+  transition-property: transform, background-color, box-shadow, border-color;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+html[data-wp-theme='mint'] .wp-filter-row button:active,
+html[data-wp-theme='light'] .wp-filter-row button:active {
+  box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.8), inset 2px 2px 5px rgba(145, 165, 150, 0.3);
+  transform: scale(0.97);
+}
+html[data-wp-theme='mint'] .wp-filter-row button.is-active,
+html[data-wp-theme='light'] .wp-filter-row button.is-active {
+  background: var(--wp-lime);
+  color: var(--wp-ink);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.08), inset 2px 2px 5px rgba(255, 255, 255, 0.55), 0 4px 10px rgba(132, 196, 20, 0.22);
+}
+
+html[data-wp-theme='mint'] .wp-station-item,
+html[data-wp-theme='light'] .wp-station-item {
+  background: #eef5ef;
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: -6px -6px 14px rgba(255, 255, 255, 0.88), 6px 6px 14px rgba(145, 165, 150, 0.25);
+  transition-property: transform, background-color, box-shadow, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+html[data-wp-theme='mint'] .wp-station-item:hover,
+html[data-wp-theme='light'] .wp-station-item:hover {
+  transform: translateY(-1px);
+  box-shadow: -8px -8px 16px rgba(255, 255, 255, 0.92), 8px 8px 16px rgba(145, 165, 150, 0.3);
+}
+html[data-wp-theme='mint'] .wp-station-item.is-selected,
+html[data-wp-theme='light'] .wp-station-item.is-selected {
+  background: #e7f2e4;
+  border: 2px solid rgba(132, 196, 20, 0.55);
+  box-shadow: inset -3px -3px 8px rgba(255, 255, 255, 0.82), inset 3px 3px 8px rgba(135, 165, 130, 0.24);
+  transform: none;
+}
+
+html[data-wp-theme='mint'] .wp-mode-selector-wrap,
+html[data-wp-theme='light'] .wp-mode-selector-wrap {
+  background: #e9f1ea;
+  border-radius: 18px;
+  padding: 6px;
+  box-shadow: inset -3px -3px 7px rgba(255, 255, 255, 0.85), inset 3px 3px 8px rgba(145, 165, 150, 0.25);
+}
+html[data-wp-theme='mint'] .wp-mode-btn.is-active,
+html[data-wp-theme='light'] .wp-mode-btn.is-active {
+  border-radius: 14px;
+  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.9), 3px 3px 8px rgba(145, 165, 150, 0.28);
+}
+
+/* Claymorphism on Tactile Status Chips & Connector Option Cards */
+.wp-status-chip.is-good {
+  border-radius: 16px;
+  border-width: 2px;
+  box-shadow: inset -2px -2px 4px rgba(0, 0, 0, 0.08), inset 2px 2px 4px rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+.wp-connector-option {
+  border-radius: 18px;
+  border-width: 2px;
+  transition-property: transform, background-color, box-shadow, border-color;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.wp-connector-option:active {
+  transform: scale(0.97);
+}
+.wp-connector-option.is-active {
+  box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.12), inset 2px 2px 6px rgba(255, 255, 255, 0.28), 0 6px 14px rgba(0, 0, 0, 0.14);
+}
+html[data-wp-theme='mint'] .wp-connector-option,
+html[data-wp-theme='light'] .wp-connector-option {
+  background: #f1f6f1;
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.88), 4px 4px 10px rgba(145, 165, 150, 0.24);
+}
+html[data-wp-theme='mint'] .wp-connector-option.is-active,
+html[data-wp-theme='light'] .wp-connector-option.is-active {
+  background: #e3f2da;
+  border-color: rgba(132, 196, 20, 0.65);
+  box-shadow: inset -2px -2px 6px rgba(255, 255, 255, 0.78), inset 2px 2px 6px rgba(120, 150, 110, 0.22), 0 4px 12px rgba(132, 196, 20, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wp-filter-row button,
+  .wp-station-item,
+  .wp-connector-option {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}

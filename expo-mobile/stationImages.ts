@@ -1,11 +1,8 @@
 // Bundled photos of the Greenwood Event Center chargers (Kumasi).
-// Keyed by OCPP station ID, and by "stationId:connectorId" for individual guns.
+// Station A (CL-KSI-001) uses StationA.jpeg; Station B (CL-KSI-002) uses StationB.jpeg.
 export const STATION_IMAGES: Record<string, any> = {
-  'CL-KSI-001': require('./assets/stations/greenwood-site.jpg'),
-  'CL-KSI-002': require('./assets/stations/station2-40kw.jpg'),
+  'CL-KSI-001': require('./assets/stations/station-a.jpg'),
+  'CL-KSI-002': require('./assets/stations/station-b.jpg'),
 };
 
-export const CONNECTOR_IMAGES: Record<string, any> = {
-  'CL-KSI-001:1': require('./assets/stations/station1-outlet-a.jpg'),
-  'CL-KSI-001:2': require('./assets/stations/station1-outlet-b.jpg'),
-};
+export const CONNECTOR_IMAGES: Record<string, any> = {};

@@ -235,3 +235,5 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [x] Mobile app parity with web for multi-station OCPP hub (charger selector, REAL/SIMULATOR toggle, offline banner, per-charger commissioning values).
 
 - [x] Station photos on web and mobile (Station 1 site + Outlet A/B guns, Station 2 temporary crop). [ ] Replace Station 2 crop with a proper photo.
+
+- [x] Renamed stations to Station A (StationA.jpeg) & Station B (StationB.jpeg), fixed full-length portrait photo framing on web & mobile, and applied selective neumorphism, claymorphism, and ECC design-engineering/a11y polish.

@@ -22,7 +22,7 @@ import type {
 export const MAXPOWER_VCP160_COMMISSIONING = {
   stationId: 'CL-KSI-001',
   internalId: 'st-01',
-  stationName: 'Greenwood Event Center',
+  stationName: 'Greenwood Event Center Station A',
   locationAddress: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
   chargeBoxId: 'CL-KSI-001',
   factoryPileNumber: '19046744073709551615',

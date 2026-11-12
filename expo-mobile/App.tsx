@@ -130,7 +130,7 @@ const DEFAULT_STATIONS: Station[] = [
     stationId: 'CL-KSI-001',
     pileNumber: '19046744073709551615',
     isOnline: true,
-    name: 'Wilpower · Greenwood Event Center Station 1',
+    name: 'Wilpower · Greenwood Event Center Station A',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -147,7 +147,7 @@ const DEFAULT_STATIONS: Station[] = [
     stationId: 'CL-KSI-002',
     pileNumber: 'CL-KSI-002',
     isOnline: true,
-    name: 'Wilpower · Greenwood Event Center Station 2',
+    name: 'Wilpower · Greenwood Event Center Station B',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -1189,6 +1189,24 @@ function AppContent() {
                       onPress={() => setSelectedStation(station)}
                       activeOpacity={0.85}
                     >
+                      {STATION_IMAGES[station.stationId] ? (
+                        <View
+                          style={{
+                            marginBottom: 10,
+                            borderRadius: 16,
+                            backgroundColor: '#0b1220',
+                            borderWidth: 1.5,
+                            borderColor: 'rgba(255,255,255,0.12)',
+                            padding: 6,
+                          }}
+                        >
+                          <Image
+                            source={STATION_IMAGES[station.stationId]}
+                            style={{ width: '100%', height: 210, borderRadius: 10 }}
+                            resizeMode="contain"
+                          />
+                        </View>
+                      ) : null}
                       <View style={s.stationListHeader}>
                         <View style={{ flex: 1 }}>
                           <Text style={s.stationListTitle}>{station.name}</Text>
@@ -1272,17 +1290,24 @@ function AppContent() {
               <View style={s.mapOverlayBottom}>
                 {selectedStation ? (
                   <View style={s.floatingStationCard}>
-                    {(CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]) ? (
-                      <View style={{ marginBottom: 10 }}>
+                    {STATION_IMAGES[selectedStation.stationId] ? (
+                      <View
+                        style={{
+                          marginBottom: 10,
+                          borderRadius: 16,
+                          backgroundColor: '#0b1220',
+                          borderWidth: 1.5,
+                          borderColor: 'rgba(255,255,255,0.14)',
+                          padding: 6,
+                        }}
+                      >
                         <Image
-                          source={CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]}
-                          style={{ width: '100%', height: 140, borderRadius: 10, backgroundColor: '#0f172a' }}
-                          resizeMode="cover"
+                          source={STATION_IMAGES[selectedStation.stationId]}
+                          style={{ width: '100%', height: 230, borderRadius: 12 }}
+                          resizeMode="contain"
                         />
-                        <Text style={{ color: '#94a3b8', fontSize: 10, marginTop: 4 }}>
-                          {CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`]
-                            ? `${selectedStation.connectors.find((cn) => cn.connectorId === selectedConnectorId)?.label || 'Outlet'} · ${selectedStation.stationId}`
-                            : `${selectedStation.stationId} · site photo`}
+                        <Text style={{ color: '#94a3b8', fontSize: 10, marginTop: 4, textAlign: 'center' }}>
+                          {selectedStation.name} · {selectedStation.stationId}
                         </Text>
                       </View>
                     ) : null}
@@ -3273,8 +3298,8 @@ const s = StyleSheet.create({
   },
   stationListCard: {
     backgroundColor: '#0b1324',
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    borderWidth: 1.5,
     borderColor: '#1e293b',
     padding: 14,
     marginBottom: 12,
@@ -3299,11 +3324,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   powerHighlightText: {
     fontSize: 11,
@@ -3332,10 +3357,10 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   miniConnectorChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
   miniChipAvailable: {
     backgroundColor: 'rgba(34, 197, 94, 0.1)',

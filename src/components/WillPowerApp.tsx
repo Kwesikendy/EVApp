@@ -177,8 +177,8 @@ const defaultStation: Station = {
   id: 'st-01',
   stationId: 'CL-KSI-001',
   pileNumber: '19046744073709551615',
-  name: 'Greenwood Event Center Station 1',
-  imageUrl: '/stations/greenwood-site.jpg',
+  name: 'Greenwood Event Center Station A',
+  imageUrl: '/stations/station-a.jpg',
   operator: 'Wilpower Charge Network',
   address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
   latitude: 6.6697479,
@@ -198,7 +198,6 @@ const defaultStation: Station = {
       id: 101,
       connectorId: 1,
       label: 'Outlet A',
-      imageUrl: '/stations/station1-outlet-a.jpg',
       type: 'GB/T',
       maxPowerKw: 160,
       currentPowerKw: 0,
@@ -210,7 +209,6 @@ const defaultStation: Station = {
       id: 102,
       connectorId: 2,
       label: 'Outlet B',
-      imageUrl: '/stations/station1-outlet-b.jpg',
       type: 'CCS2',
       maxPowerKw: 160,
       currentPowerKw: 0,
@@ -1653,6 +1651,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <button
                         type="button"
                         key={station.id}
+                        aria-pressed={selectedStation.id === station.id}
                         className={`wp-station-item ${selectedStation.id === station.id ? 'is-selected' : ''}`}
                         onClick={() => setSelectedStationId(station.id)}
                       >
@@ -1724,6 +1723,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                           <button
                             type="button"
                             key={c.connectorId}
+                            aria-pressed={active}
                             className={`wp-connector-option ${active ? 'is-active' : ''}`}
                             onClick={() => setSelectedConnectorId(c.connectorId)}
                           >
