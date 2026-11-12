@@ -243,3 +243,5 @@ The admin surface is intentionally isolated from the normal driver experience. A
 - [x] Switched Moolre SMS Sender ID to approved 'WillPower' in server/auth.ts and api/auth/send-otp.ts.
 
 - [x] Redesigned Sign-In / Sign-Up web & mobile layout and fixed light/mint contrast bugs with neumorphic/claymorphic card styling.
+
+- [x] Upgraded Moolre SMS dispatch to POST JSON + GET fallback and suppressed sandbox OTP when live SMS succeeds (requires valid MOOLRE_VAS_KEY in Vercel/env).
