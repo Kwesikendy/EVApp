@@ -12,7 +12,7 @@ export const PrivacyPolicyPage: React.FC = () => {
   useEffect(() => {
     const launchScreen = document.getElementById('pwa-launch-screen');
     if (launchScreen) launchScreen.remove();
-    document.title = 'Privacy Policy — Willpower EV Charging';
+    document.title = 'Privacy Policy — Wilpower EV Charging';
   }, []);
 
   return (
@@ -24,7 +24,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             className="inline-flex items-center gap-2 text-xs font-semibold text-[#BDF22E] hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Willpower
+            Back to Wilpower
           </a>
           <span className="text-[11px] font-semibold px-3 py-1 rounded-full border border-[#BDF22E]/30 bg-[#BDF22E]/10 text-[#BDF22E]">
             Act 843 Compliant
@@ -41,12 +41,12 @@ export const PrivacyPolicyPage: React.FC = () => {
                 {LEGAL_ENTITY_NAME}
               </p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Willpower Privacy Policy
+                Wilpower Privacy Policy
               </h1>
             </div>
           </div>
           <p className="text-sm text-slate-300 leading-relaxed">
-            This Privacy Policy governs the <strong>Willpower</strong> mobile application (Android &amp; iOS), web application, and EV charging services operated by <strong>{LEGAL_ENTITY_NAME}</strong> in the Republic of Ghana.
+            This Privacy Policy governs the <strong>Wilpower</strong> mobile application (Android &amp; iOS), web application, and EV charging services operated by <strong>{LEGAL_ENTITY_NAME}</strong> in the Republic of Ghana.
           </p>
           <p className="text-xs text-slate-400 mt-3">
             Last Updated: {LEGAL_LAST_UPDATED}
@@ -90,13 +90,13 @@ export const PrivacyPolicyPage: React.FC = () => {
               </h2>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed mb-3">
-              You may request permanent deletion of your Willpower driver account, profile, saved vehicles, and personal telemetry at any time:
+              You may request permanent deletion of your Wilpower driver account, profile, saved vehicles, and personal telemetry at any time:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-300">
               <li>
                 Send an email to{' '}
                 <a
-                  href={`mailto:${LEGAL_CONTACT_EMAIL}?subject=Willpower%20Account%20Deletion%20Request`}
+                  href={`mailto:${LEGAL_CONTACT_EMAIL}?subject=Wilpower%20Account%20Deletion%20Request`}
                   className="text-[#BDF22E] font-semibold hover:underline"
                 >
                   {LEGAL_CONTACT_EMAIL}

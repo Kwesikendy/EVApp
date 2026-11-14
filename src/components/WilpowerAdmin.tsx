@@ -214,7 +214,7 @@ export function WilpowerAdmin() {
       setAdmin(data.admin);
       setPassword('');
     } catch {
-      setAuthError('Could not connect to the Willpower admin gateway.');
+      setAuthError('Could not connect to the Wilpower admin gateway.');
     } finally {
       setAuthBusy(false);
     }
@@ -276,7 +276,7 @@ export function WilpowerAdmin() {
     return (
       <div className="wa-loading">
         <div className="wa-loading-mark">W</div>
-        <span>Verifying Willpower Operations session...</span>
+        <span>Verifying Wilpower Operations session...</span>
       </div>
     );
   }
@@ -289,7 +289,7 @@ export function WilpowerAdmin() {
           <div className="wa-brand-lockup">
             <div className="wa-brand-mark">W</div>
             <div>
-              <strong>Willpower Operations</strong>
+              <strong>Wilpower Operations</strong>
               <span>Restricted CSMS & Network Control Plane</span>
             </div>
           </div>
@@ -369,7 +369,7 @@ export function WilpowerAdmin() {
           <div className="wa-brand-lockup">
             <div className="wa-brand-mark">W</div>
             <div>
-              <strong>Willpower Ops</strong>
+              <strong>Wilpower Ops</strong>
               <span>CSMS Control</span>
             </div>
           </div>

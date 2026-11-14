@@ -54,7 +54,7 @@ function routeInstruction(step: RouteStep) {
   const type = step.maneuver?.type || 'continue';
   const mod = step.maneuver?.modifier ? ` ${step.maneuver.modifier}` : '';
   if (type === 'depart') return `Start driving${road}`;
-  if (type === 'arrive') return 'Arrive at Willpower station';
+  if (type === 'arrive') return 'Arrive at Wilpower station';
   if (type === 'turn') return `Turn${mod}${road}`;
   if (type === 'roundabout') return `Enter roundabout${road}`;
   return `Continue${mod}${road}`;
@@ -220,7 +220,7 @@ export function NavigationView({ station, onClose }: NavigationViewProps) {
             <span className="wp-status-badge">IN-APP ROUTE</span>
           </div>
           <div className="wp-navigation-map-chip">
-            <span className="wp-status-dot wp-status-dot-green" /> Route preview stays inside Willpower
+            <span className="wp-status-dot wp-status-dot-green" /> Route preview stays inside Wilpower
           </div>
           {routeLoading && <div className="wp-navigation-map-state">Building the best route...</div>}
         </div>
