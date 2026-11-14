@@ -87,6 +87,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation, onNavigate
       style={{ flex: 1, backgroundColor: Theme.colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Centered subtle background logo watermark */}
+      <View pointerEvents="none" style={styles.bgWatermark}>
+        <XChargeMarkNative size={240} style={{ opacity: 0.06, backgroundColor: 'transparent' }} />
+      </View>
+
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -98,14 +103,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation, onNavigate
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Top Header & Status */}
-        <View style={styles.topBar}>
-          <View style={styles.badge}>
-            <View style={styles.statusDot} />
-            <Text style={styles.badgeText}>CHARGELINK GH · KUMASI</Text>
-          </View>
-        </View>
-
         {/* Brand Logo & Headline */}
         <View style={styles.brandContainer}>
           <View style={styles.logoMarkContainer}>
@@ -321,17 +318,27 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     marginBottom: 12,
   },
+  bgWatermark: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   heading: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Theme.colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subheading: {
-    fontSize: 13,
-    color: Theme.colors.textSecondary,
+    fontSize: 14,
+    color: '#CBD5E1',
     textAlign: 'center',
-    lineHeight: 19,
+    lineHeight: 20,
     paddingHorizontal: 12,
   },
   segmentedContainer: {

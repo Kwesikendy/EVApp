@@ -19,7 +19,6 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import * as NavigationBar from 'expo-navigation-bar';
 import {
   Plug,
@@ -2933,103 +2932,7 @@ function AppContent() {
   );
 }
 
-const SPLASH_VIDEO = require('./assets/splash-video.mp4');
-
-function SplashScreen({ onFinish }: { onFinish: () => void }) {
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  const [dotText, setDotText] = useState('');
-  const { width, height } = Dimensions.get('window');
-  const hasFinished = useRef(false);
-
-  const player = useVideoPlayer(SPLASH_VIDEO, (p) => {
-    p.loop = false;
-    p.muted = false;
-    p.play();
-  });
-
-  const finish = () => {
-    if (hasFinished.current) return;
-    hasFinished.current = true;
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => onFinish());
-  };
-
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) {}
-    }
-    StatusBar.setHidden(true, 'none');
-
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: 8000,
-      useNativeDriver: false,
-    }).start();
-
-    let dotCount = 0;
-    const dotInterval = setInterval(() => {
-      dotCount = (dotCount + 1) % 4;
-      setDotText('.'.repeat(dotCount));
-    }, 400);
-
-    const safetyTimer = setTimeout(finish, 8000);
-
-    const sub = player.addListener('playingChange', (event) => {
-      if (!event.isPlaying && hasFinished.current === false) {
-        setTimeout(finish, 300);
-      }
-    });
-
-    return () => {
-      clearInterval(dotInterval);
-      clearTimeout(safetyTimer);
-      sub.remove();
-    };
-  }, []);
-
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
-
-  return (
-    <Animated.View style={[ss.splashRoot, { opacity: fadeAnim, width, height }]}>
-      <StatusBar hidden={true} translucent={true} backgroundColor="#000000" />
-      <VideoView
-        player={player}
-        style={ss.splashVideo}
-        contentFit="cover"
-        nativeControls={false}
-      />
-      <View style={ss.splashOverlay}>
-        <View style={ss.splashBrand}>
-          <XChargeLogoNative width={210} height={60} showSubtitle={true} />
-        </View>
-
-        <View style={ss.loadingSection}>
-          <View style={ss.progressTrack}>
-            <Animated.View style={[ss.progressBar, { width: progressWidth }]} />
-          </View>
-          <View style={ss.loadingTextRow}>
-            <View style={ss.dot} />
-            <Text style={ss.loadingText}>Loading</Text>
-            <Text style={ss.loadingDots}>{dotText}</Text>
-          </View>
-        </View>
-
-                <Text style={ss.versionText}>Wilpower · v3.0</Text>
-      </View>
-    </Animated.View>
-  );
-}
-
 export default function App() {
-  const [isSplashDone, setIsSplashDone] = useState(false);
-
   useEffect(() => {
     if (Platform.OS === 'android') {
       try { NavigationBar.setVisibilityAsync('hidden').catch(() => {}); } catch (e) {}
@@ -3039,100 +2942,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {!isSplashDone ? (
-        <SplashScreen onFinish={() => setIsSplashDone(true)} />
-      ) : (
-        <AppContent />
-      )}
+      <AppContent />
     </SafeAreaProvider>
   );
 }
-
-const ss = StyleSheet.create({
-  splashRoot: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    backgroundColor: '#000',
-  },
-  splashVideo: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  splashOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 32,
-    paddingBottom: 56,
-    paddingTop: 80,
-    backgroundColor: 'rgba(2,8,23,0.72)',
-    alignItems: 'center',
-  },
-  splashBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 28,
-  },
-  splashBrandName: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#38bdf8',
-    letterSpacing: 1.5,
-  },
-  loadingSection: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressTrack: {
-    width: '100%',
-    height: 3,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#38bdf8',
-    borderRadius: 2,
-  },
-  loadingTextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#38bdf8',
-  },
-  loadingText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
-  },
-  loadingDots: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#38bdf8',
-    width: 20,
-  },
-  versionText: {
-    position: 'absolute',
-    bottom: 48,
-    fontSize: 11,
-    color: '#1e293b',
-    letterSpacing: 1,
-  },
-});
 
 const s = StyleSheet.create({
   root: {

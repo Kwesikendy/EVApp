@@ -31,7 +31,7 @@ export const XChargeLogoNative: React.FC<XChargeLogoProps> = ({ width, height, s
     hero: { w: 320, h: 96 },
   }[size];
   return (
-    <View style={[{ width: width ?? dims.w, height: height ?? dims.h, justifyContent: 'center' }, style]}>
+    <View style={[{ width: width ?? dims.w, height: height ?? dims.h, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }, style]}>
       <Image source={officialLogo} style={styles.logoImage} resizeMode="contain" />
     </View>
   );
@@ -45,10 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoImage: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    width: '100%',
+    height: '100%',
   },
 });
