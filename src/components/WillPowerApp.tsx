@@ -180,7 +180,7 @@ const defaultStation: Station = {
   pileNumber: '19046744073709551615',
   name: 'Greenwood Event Center Station 1',
   imageUrl: '/stations/station-a.jpg',
-  operator: 'Wilpower Charge Network',
+  operator: 'Willpower Charge Network',
   address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
   latitude: 6.6697479,
   longitude: -1.5995679,
@@ -538,7 +538,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   }
 
   function syncDraftFromDriver(source: DriverSession) {
-    setProfileName(source.displayName || 'Wilpower Driver');
+    setProfileName(source.displayName || 'Willpower Driver');
     setProfileEmail(source.email || '');
     setProfileCardId(source.ghanaCardId || '');
     setProfileAvatar(source.avatarUrl);
@@ -570,7 +570,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       const firstVehicle = Array.isArray(profile.registeredVehicles) ? profile.registeredVehicles[0] : undefined;
       saveDriver({
         phoneNumber: profile.phoneNumber || phoneNumber,
-        displayName: profile.displayName || nameInput.trim() || 'Wilpower Driver',
+        displayName: profile.displayName || nameInput.trim() || 'Willpower Driver',
         accountType: profile.accountType === 'fleet' ? 'fleet' : accountType,
         vehiclePlate: firstVehicle?.licensePlate || plateInput.trim() || 'GT-8842-26',
         email: profile.email || '',
@@ -744,7 +744,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           phoneNumber: normalized,
           code: otpInput.trim(),
           metadata: {
-            displayName: nameInput.trim() || 'Wilpower Driver',
+            displayName: nameInput.trim() || 'Willpower Driver',
             accountType: accountType === 'fleet' ? 'fleet' : 'personal',
           },
         }),
@@ -754,7 +754,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         if (otpInput.trim() === demoOtp || otpInput.trim() === '123456' || otpInput.trim() === '428190') {
           saveDriver({
             phoneNumber: normalized,
-            displayName: nameInput.trim() || 'Wilpower Driver',
+            displayName: nameInput.trim() || 'Willpower Driver',
             accountType,
             vehiclePlate: plateInput.trim() || 'GT-8842-26',
           });
@@ -766,7 +766,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
       saveDriver({
         phoneNumber: normalized,
-        displayName: data.user?.displayName || nameInput.trim() || 'Wilpower Driver',
+        displayName: data.user?.displayName || nameInput.trim() || 'Willpower Driver',
         accountType,
         vehiclePlate: plateInput.trim() || 'GT-8842-26',
         email: data.user?.email || '',
@@ -778,11 +778,11 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         registeredVehicles: data.user?.registeredVehicles || [],
       });
       await refreshPlatform(normalized);
-      notify('Wilpower driver cockpit unlocked.');
+      notify('Willpower driver cockpit unlocked.');
     } catch {
       saveDriver({
         phoneNumber: normalized,
-        displayName: nameInput.trim() || 'Wilpower Driver',
+        displayName: nameInput.trim() || 'Willpower Driver',
         accountType,
         vehiclePlate: plateInput.trim() || 'GT-8842-26',
       });
@@ -1073,7 +1073,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       setTopupOpen(false);
       setTopupReference(null);
       setTopupPrompt(null);
-      notify(`${formatGhs(amount)} credited to your Wilpower wallet.`);
+      notify(`${formatGhs(amount)} credited to your Willpower wallet.`);
     } catch {
       setWallet((current) => ({
         ...current,
@@ -1098,7 +1098,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       <div className="wp-auth">
         <aside className="wp-auth-aside">
           <div className="wp-auth-brand">
-            <img src={LOGO_REVERSE} alt="Wilpower" />
+            <img src={LOGO_REVERSE} alt="Willpower" />
           </div>
           <div className="wp-auth-aside-copy">
             <span className="wp-kicker">GHANA ELECTRIC MOBILITY NETWORK</span>
@@ -1117,12 +1117,12 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           {authStep === 'entry' ? (
             <form className="wp-auth-form" onSubmit={handleRequestOtp}>
               <div className="wp-auth-mobile-brand">
-                <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Wilpower" />
+                <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Willpower" />
               </div>
 
               <div className="wp-auth-heading">
                 <span className="wp-kicker">DRIVER ACCESS</span>
-                <h2>{authMode === 'signin' ? 'Sign in to Wilpower' : 'Create your driver pass'}</h2>
+                <h2>{authMode === 'signin' ? 'Sign in to Willpower' : 'Create your driver pass'}</h2>
                 <p>Use your Ghana mobile number to receive a six-digit Moolre SMS verification code.</p>
               </div>
 
@@ -1272,7 +1272,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               {authError && <div className="wp-alert wp-alert-error">{authError}</div>}
 
               <button className="wp-primary-button" type="submit" disabled={authLoading || otpInput.length < 4}>
-                <span>{authLoading ? 'Verifying...' : 'Unlock Wilpower'}</span>
+                <span>{authLoading ? 'Verifying...' : 'Unlock Willpower'}</span>
                 <ArrowUpRight size={17} />
               </button>
             </form>
@@ -1319,7 +1319,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       <aside className={`wp-sidebar ${mobileMenuOpen ? 'is-open' : ''}`}>
         <div className="wp-sidebar-top">
           <div className="wp-sidebar-brand">
-            <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Wilpower" />
+            <img src={theme === 'night' ? LOGO_REVERSE : LOGO_PRIMARY} alt="Willpower" />
           </div>
           <button type="button" className="wp-mobile-close" onClick={() => setMobileMenuOpen(false)}>
             <X size={18} />
@@ -1383,7 +1383,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           </button>
 
           <div className="wp-breadcrumb">
-            <span>Wilpower</span>
+            <span>Willpower</span>
             <i>/</i>
             <strong>{navItems.find((item) => item.id === view)?.label}</strong>
           </div>
@@ -1511,7 +1511,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
                 <div className="wp-hero-image">
                   <div className="wp-hero-image-grid" />
-                  <img src={HERO_PHOTO} alt="Wilpower charging concept" />
+                  <img src={HERO_PHOTO} alt="Willpower charging concept" />
                   <b>PILE ID · {selectedStation?.stationId || 'CL-KSI-001'}</b>
                   <span>WILPOWER · KUMASI CORRIDOR</span>
                 </div>
@@ -1615,7 +1615,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               <div className="wp-page-header">
                 <div>
                   <span className="wp-kicker">CHARGING NETWORK</span>
-                  <h1>Find a Wilpower hub.</h1>
+                  <h1>Find a Willpower hub.</h1>
                   <p>Select Outlet A (GB/T) or Outlet B (GB/T), reserve a connector ahead of arrival, or start an OCPP 1.6J session immediately.</p>
                 </div>
               </div>
@@ -1909,7 +1909,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <div className="wp-notice">
                       <ShieldCheck size={17} />
                       <span>
-                        OCPP 1.6J MeterValues.req sampled every 3 seconds. Unused escrow returns automatically to your Wilpower wallet upon StopTransaction.
+                        OCPP 1.6J MeterValues.req sampled every 3 seconds. Unused escrow returns automatically to your Willpower wallet upon StopTransaction.
                       </span>
                     </div>
                   </div>
@@ -2821,7 +2821,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
             <div className="wp-modal-heading">
               <div>
                 <span className="wp-kicker">GHANA CEDI TOP-UP</span>
-                <h2>Fund Wilpower Wallet</h2>
+                <h2>Fund Willpower Wallet</h2>
               </div>
               <button
                 type="button"

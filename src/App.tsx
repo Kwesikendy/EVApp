@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WillPowerApp } from './components/WillPowerApp';
 import { WillPowerAuth } from './components/WillPowerAuth';
 import { WilpowerAdmin } from './components/WilpowerAdmin';
+import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 
 function readStoredUser() {
   try {
@@ -13,6 +14,9 @@ function readStoredUser() {
 }
 
 export default function App() {
+  if (/(^|\/)privacy(?:-policy)?(?:\/|$)/.test(window.location.pathname)) {
+    return <PrivacyPolicyPage />;
+  }
   if (/(^|\/)payments\/paystack\/callback(?:\/|$)/.test(window.location.pathname)) {
     return <PaystackCallback />;
   }

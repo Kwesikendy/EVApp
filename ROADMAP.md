@@ -54,6 +54,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Implemented dedicated `[ REAL CHARGER | SIMULATOR ]` mode toggle (defaulting to `REAL CHARGER` with all EMIT/simulate buttons hidden), added 60-second hardware heartbeat watchdog marking charger `Faulted / Offline` upon disconnection, created real hardware proof log panel (`REAL HARDWARE LOG`), and embedded dynamic deployed WebSocket URLs with 1-tap copy buttons for on-site commissioning.
 - [x] Removed the mobile launch splash video (`expo-mobile/App.tsx`), fixed `XChargeLogoNative` bounding overflow (`expo-mobile/XChargeLogoNative.tsx`), centered the subtle auth background watermark logo, improved auth headline/subtitle contrast, and removed the `CHARGELINK GH · KUMASI` badge from `expo-mobile/screens/LoginScreen.tsx`.
 - [x] Fixed `.wp-toast` text contrast in `src/index.css` so bottom toast notifications remain crisp and legible across Night Drive, Mint Light, and Paper Light themes.
+- [x] Added public Google Play-compliant `/privacy` & `/privacy-policy` route (`src/components/PrivacyPolicyPage.tsx`, `src/App.tsx`) with Act 843 compliance and Account & Data Deletion instructions, and standardized visible app branding to **Willpower** across Web, PWA manifest, and Expo (`expo-mobile/app.json`).
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases
