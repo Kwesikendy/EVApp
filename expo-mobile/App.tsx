@@ -130,7 +130,7 @@ const DEFAULT_STATIONS: Station[] = [
     stationId: 'CL-KSI-001',
     pileNumber: '19046744073709551615',
     isOnline: true,
-    name: 'Wilpower · Greenwood Event Center Station A',
+    name: 'Wilpower · Greenwood Event Center Station 1',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -138,7 +138,7 @@ const DEFAULT_STATIONS: Station[] = [
     longitude: -1.5995679,
     connectors: [
       { id: 1, connectorId: 1, label: 'Outlet A', type: 'GB/T', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
-      { id: 2, connectorId: 2, label: 'Outlet B', type: 'CCS2', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
+      { id: 2, connectorId: 2, label: 'Outlet B', type: 'GB/T', maxPowerKw: 160, status: 'Available', tariffPerKwh: 4.50 },
     ],
     amenities: ['Event Center', 'Parking Bay', '24/7 Security', 'Opoku Bandoh Plaza'],
   },
@@ -147,7 +147,7 @@ const DEFAULT_STATIONS: Station[] = [
     stationId: 'CL-KSI-002',
     pileNumber: 'CL-KSI-002',
     isOnline: true,
-    name: 'Wilpower · Greenwood Event Center Station B',
+    name: 'Wilpower · Greenwood Event Center Station 2',
     address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
     distanceKm: 0.8,
     etaMins: 3,
@@ -392,7 +392,7 @@ function AppContent() {
     { id: string; time: string; action: string; summary: string }[]
   >([
     { id: '1', time: '10:45:12', action: 'BootNotification', summary: 'Accepted · MaxPower VCP160 (Pile 19046744073709551615)' },
-    { id: '2', time: '10:45:15', action: 'StatusNotification', summary: 'Outlet A (GB/T 160 kW) & Outlet B (CCS2 160 kW): Available' },
+    { id: '2', time: '10:45:15', action: 'StatusNotification', summary: 'Outlet A (GB/T 160 kW) & Outlet B (GB/T 160 kW): Available' },
   ]);
 
   // Wallet & MoMo state
@@ -559,7 +559,7 @@ function AppContent() {
         }
         if (sessionData.connectorLabel || sessionData.connectorId) {
           setSelectedConnectorId(sessionData.connectorId || 1);
-          setActiveConnectorType(`${sessionData.connectorLabel || (sessionData.connectorId === 2 ? 'Outlet B' : 'Outlet A')} · ${sessionData.connectorId === 2 ? 'CCS2' : 'GB/T'} 160 kW`);
+          setActiveConnectorType(`${sessionData.connectorLabel || (sessionData.connectorId === 2 ? 'Outlet B' : 'Outlet A')} · GB/T 160 kW`);
         }
         if (sessionData.accruedCost !== undefined) {
           setAccruedCost(sessionData.accruedCost);
@@ -1290,7 +1290,7 @@ function AppContent() {
               <View style={s.mapOverlayBottom}>
                 {selectedStation ? (
                   <View style={s.floatingStationCard}>
-                    {STATION_IMAGES[selectedStation.stationId] ? (
+                    {(CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]) ? (
                       <View
                         style={{
                           marginBottom: 10,
@@ -1302,7 +1302,7 @@ function AppContent() {
                         }}
                       >
                         <Image
-                          source={STATION_IMAGES[selectedStation.stationId]}
+                          source={CONNECTOR_IMAGES[`${selectedStation.stationId}:${selectedConnectorId}`] || STATION_IMAGES[selectedStation.stationId]}
                           style={{ width: '100%', height: 230, borderRadius: 12 }}
                           resizeMode="contain"
                         />
@@ -1476,7 +1476,7 @@ function AppContent() {
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
                   <Text style={s.smallSub}>0 kW</Text>
-                  <Text style={s.smallSub}>PEAK: 350 kW CCS2</Text>
+                  <Text style={s.smallSub}>PEAK: 160 kW GB/T</Text>
                 </View>
               </View>
             </View>

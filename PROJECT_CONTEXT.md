@@ -11,9 +11,10 @@
 **ChargeLink GH** (formerly XCHARGE) is Ghana's premier high-speed electric vehicle charging and fleet operating system, operating under the tagline **"Powering a Cleaner Tomorrow"**. It provides real-time OCPP telemetry, map navigation, Mobile Money split-wallets (MTN MoMo & Telecel Cash), dynamic pre-authorization escrow, and fleet vehicle management.
 
 - **Client / Operator:** ChargeLink GH
-- **First Station:** Greenwood Event Center, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti (GPS: 6.6697479, -1.5995679)
+- **First Station (Station 1):** Greenwood Event Center Station 1, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti (GPS: 6.6697479, -1.5995679)
+- **Second Station (Station 2):** Greenwood Event Center Station 2, Asokwa Newroad, Eastern Bypass, Kumasi, Ashanti (CL-KSI-002, 40 kW single-gun GB/T)
 - **Station Status:** Commissioned & Online (`CL-KSI-001` / Factory Pile ID `19046744073709551615`, OCPP 1.6 Edition 2 WebSocket Active)
-- **Hardware:** MaxPower VCP160 | OCPP 1.6J Edition 2 | 160kW | 2 charging guns (Outlet A: GB/T 160kW, Outlet B: CCS2 160kW) | Dynamic power sharing
+- **Hardware:** MaxPower VCP160 | OCPP 1.6J Edition 2 | 160kW | 2 charging guns (Outlet A: GB/T 160kW, Outlet B: GB/T 160kW) | Station 2: 40kW single-gun GB/T (CL-KSI-002) — all outlets currently GB/T | Dynamic power sharing
 - **Pricing:** GH₵ 4.50/kWh | Idle fee: GH₵ 0.50/min (after 5-min grace) | Max idle cap: GH₵ 10.00
 - **Payment:** MTN MoMo, Telecel Cash, Mastercard, Wallet top-up | Merchant: CHARGELINK GH LTD
 - **Primary Market:** Ghana (Kumasi, Ashanti Region — initial; expanding nationally).

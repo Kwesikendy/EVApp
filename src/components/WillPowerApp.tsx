@@ -178,7 +178,7 @@ const defaultStation: Station = {
   id: 'st-01',
   stationId: 'CL-KSI-001',
   pileNumber: '19046744073709551615',
-  name: 'Greenwood Event Center Station A',
+  name: 'Greenwood Event Center Station 1',
   imageUrl: '/stations/station-a.jpg',
   operator: 'Wilpower Charge Network',
   address: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
@@ -199,6 +199,7 @@ const defaultStation: Station = {
       id: 101,
       connectorId: 1,
       label: 'Outlet A',
+      imageUrl: '/stations/station1-outlet-a.jpg',
       type: 'GB/T',
       maxPowerKw: 160,
       currentPowerKw: 0,
@@ -210,7 +211,8 @@ const defaultStation: Station = {
       id: 102,
       connectorId: 2,
       label: 'Outlet B',
-      type: 'CCS2',
+      imageUrl: '/stations/station1-outlet-b.jpg',
+      type: 'GB/T',
       maxPowerKw: 160,
       currentPowerKw: 0,
       status: 'Available',
@@ -880,7 +882,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         return;
       }
       await refreshPlatform();
-      notify(`Reserved Outlet ${connectorId === 1 ? 'A (GB/T)' : 'B (CCS2)'} for 30 minutes (Reservation #${data.reservationId}).`);
+      notify(`Reserved Outlet ${connectorId === 1 ? 'A (GB/T)' : 'B (GB/T)'} for 30 minutes (Reservation #${data.reservationId}).`);
     } catch {
       notify('Could not dispatch OCPP 1.6J ReserveNow command.');
     }
@@ -1469,7 +1471,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
                   <h2>160 kW DC fast charging, built for Ghana.</h2>
                   <p>
-                    {selectedStation?.address || 'Greenwood Event Center, Kumasi'}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (CCS2) at {formatGhs(4.5)}/kWh.
+                    {selectedStation?.address || 'Greenwood Event Center, Kumasi'}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (GB/T) at {formatGhs(4.5)}/kWh.
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button
@@ -1487,7 +1489,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       onClick={() => startCharging(selectedStation, 2)}
                     >
                       <Zap size={16} />
-                      <span>Charge on Outlet B (CCS2)</span>
+                      <span>Charge on Outlet B (GB/T)</span>
                     </button>
                   </div>
 
@@ -1502,7 +1504,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     </div>
                     <div>
                       <strong>Outlet A + B</strong>
-                      <span>GB/T & CCS2 Ready</span>
+                      <span>Dual GB/T Ready</span>
                     </div>
                   </div>
                 </div>
@@ -1614,7 +1616,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 <div>
                   <span className="wp-kicker">CHARGING NETWORK</span>
                   <h1>Find a Wilpower hub.</h1>
-                  <p>Select Outlet A (GB/T) or Outlet B (CCS2), reserve a connector ahead of arrival, or start an OCPP 1.6J session immediately.</p>
+                  <p>Select Outlet A (GB/T) or Outlet B (GB/T), reserve a connector ahead of arrival, or start an OCPP 1.6J session immediately.</p>
                 </div>
               </div>
 
@@ -1630,7 +1632,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
 
                   <div className="wp-filter-row">
-                    {(['ALL', 'GB/T', 'CCS2'] as const).map((type) => (
+                    {(['ALL', 'GB/T'] as const).map((type) => (
                       <button
                         type="button"
                         key={type}
@@ -1798,7 +1800,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   <p>
                     {activeSession
                       ? `Streaming real-time MaxPower VCP160 MeterValues from ${activeSession.stationId} (${activeSession.connectorLabel || `Outlet ${activeSession.connectorId}`}).`
-                      : 'Select Outlet A (GB/T) or Outlet B (CCS2) on Greenwood Event Center to initiate a 160 kW DC fast charge.'}
+                      : 'Select Outlet A (GB/T) or Outlet B (GB/T) on Greenwood Event Center to initiate a 160 kW DC fast charge.'}
                   </p>
                 </div>
               </div>
@@ -1919,7 +1921,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
                   <h2>Ready when the cable is connected</h2>
                   <p>
-                    Greenwood Event Center ({selectedStation?.stationId || 'CL-KSI-001'}) is ONLINE on OCPP 1.6J. Choose Outlet A (GB/T 160 kW) or Outlet B (CCS2 160 kW) to begin charging immediately.
+                    Greenwood Event Center ({selectedStation?.stationId || 'CL-KSI-001'}) is ONLINE on OCPP 1.6J. Choose Outlet A (GB/T 160 kW) or Outlet B (GB/T 160 kW) to begin charging immediately.
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                     <button
@@ -1936,7 +1938,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       onClick={() => startCharging(selectedStation, 2)}
                     >
                       <Zap size={16} />
-                      <span>Start Outlet B (CCS2 160 kW)</span>
+                      <span>Start Outlet B (GB/T 160 kW)</span>
                     </button>
                   </div>
                 </div>
@@ -2159,7 +2161,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <Cpu size={16} />
                   </div>
                   <strong>160 kW</strong>
-                  <small>Outlet A (GB/T) & Outlet B (CCS2) · Dynamic Load Split</small>
+                  <small>Outlet A (GB/T) & Outlet B (GB/T) · Dynamic Load Split</small>
                 </div>
                 <div className="wp-metric">
                   <div>
@@ -2197,7 +2199,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       className={hmiTab === 'outletB' ? 'is-active' : ''}
                       onClick={() => setHmiTab('outletB')}
                     >
-                      Outlet B (CCS2 160 kW)
+                      Outlet B (GB/T 160 kW)
                     </button>
                     <button
                       type="button"

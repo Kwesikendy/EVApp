@@ -491,7 +491,7 @@ export function WilpowerAdmin() {
                     <Zap size={17} />
                   </div>
                   <strong>{availableConnectors} / {totalConnectors}</strong>
-                  <small>Outlet A (GB/T 160kW) & Outlet B (CCS2 160kW)</small>
+                  <small>Outlet A (GB/T 160kW) & Outlet B (GB/T 160kW)</small>
                 </article>
 
                 <article className="wa-metric wa-metric-amber">
@@ -567,7 +567,7 @@ export function WilpowerAdmin() {
                     <div className="wa-empty-state">
                       <CheckCircle2 size={24} />
                       <strong>Zero active hardware faults</strong>
-                      <span>Outlet A (GB/T) and Outlet B (CCS2) report NoError on OCPP 1.6J.</span>
+                      <span>Outlet A (GB/T) and Outlet B (GB/T) report NoError on OCPP 1.6J.</span>
                     </div>
                   )}
                 </div>

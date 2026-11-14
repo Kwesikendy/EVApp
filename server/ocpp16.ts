@@ -22,7 +22,7 @@ import type {
 export const MAXPOWER_VCP160_COMMISSIONING = {
   stationId: 'CL-KSI-001',
   internalId: 'st-01',
-  stationName: 'Greenwood Event Center Station A',
+  stationName: 'Greenwood Event Center Station 1',
   locationAddress: 'Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi',
   chargeBoxId: 'CL-KSI-001',
   factoryPileNumber: '19046744073709551615',
@@ -49,7 +49,7 @@ export const MAXPOWER_VCP160_COMMISSIONING = {
     {
       connectorId: 2,
       hmiTab: 'Outlet B',
-      type: 'CCS2' as const,
+      type: 'GB/T' as const,
       maxPowerKw: 160,
       tariffGhsPerKwh: 4.5,
     },
@@ -177,7 +177,7 @@ export function createDefaultOcpp16Config(): OcppConfigurationKey[] {
       key: 'NumberOfConnectors',
       readonly: true,
       value: '2',
-      description: 'Number of physical charging outlets (Outlet A: GB/T, Outlet B: CCS2)',
+      description: 'Number of physical charging outlets (Outlet A: GB/T, Outlet B: GB/T)',
     },
     {
       key: 'ResetRetries',
