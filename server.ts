@@ -171,8 +171,8 @@ const STATIONS: ChargingStation[] = [
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
-        tariffPerKwh: 4.50,
-        tariffGhsPerKwh: 4.50,
+        tariffPerKwh: 5.00,
+        tariffGhsPerKwh: 5.00,
         tariffCurrency: 'GHS',
       },
       {
@@ -185,8 +185,8 @@ const STATIONS: ChargingStation[] = [
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
-        tariffPerKwh: 4.50,
-        tariffGhsPerKwh: 4.50,
+        tariffPerKwh: 5.00,
+        tariffGhsPerKwh: 5.00,
         tariffCurrency: 'GHS',
       },
     ],
@@ -229,8 +229,8 @@ const STATIONS: ChargingStation[] = [
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
-        tariffPerKwh: 4.50,
-        tariffGhsPerKwh: 4.50,
+        tariffPerKwh: 5.00,
+        tariffGhsPerKwh: 5.00,
         tariffCurrency: 'GHS',
       },
     ],
@@ -490,7 +490,7 @@ const ocpp16Engine = new Ocpp16Engine({
       const deltaKwh = Math.max(0, (meterStopWh - finished.meterStartWh) / 1000);
       if (deltaKwh > 0) {
         finished.kwhDelivered = Number(deltaKwh.toFixed(3));
-        finished.accruedCost = Number((finished.kwhDelivered * (finished.tariffPerKwh || 4.5)).toFixed(2));
+        finished.accruedCost = Number((finished.kwhDelivered * (finished.tariffPerKwh || 5.00)).toFixed(2));
       }
       finished.meterStopWh = meterStopWh;
     }
@@ -558,12 +558,12 @@ setInterval(() => {
         ? Math.max(1, Math.round((remainingKwh / ACTIVE_SESSION.currentPowerKw) * 60))
         : 0;
 
-    // Accrued cost calculation — ChargeLink GH standard tariff: GH₵ 4.50/kWh
+    // Accrued cost calculation — ChargeLink GH standard tariff: GH₵ 5.00/kWh
     const currentStation = STATIONS.find((s) => s.stationId === ACTIVE_SESSION?.stationId);
     const connector = currentStation?.connectors.find(
       (c) => c.connectorId === ACTIVE_SESSION?.connectorId
     );
-    const rate = connector?.tariffPerKwh || ACTIVE_SESSION.tariffPerKwh || 4.50;
+    const rate = connector?.tariffPerKwh || ACTIVE_SESSION.tariffPerKwh || 5.00;
     ACTIVE_SESSION.tariffPerKwh = rate;
     ACTIVE_SESSION.accruedCost = +(ACTIVE_SESSION.kwhDelivered * rate).toFixed(2);
 
@@ -864,8 +864,8 @@ app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
           currentPowerKw: 0,
           status: (c.status || 'Available') as any,
           errorCode: 'NoError',
-          tariffPerKwh: Number(c.tariffPerKwh) || 4.50,
-          tariffGhsPerKwh: Number(c.tariffPerKwh) || 4.50,
+          tariffPerKwh: Number(c.tariffPerKwh) || 5.00,
+          tariffGhsPerKwh: Number(c.tariffPerKwh) || 5.00,
           tariffCurrency: c.tariffCurrency || 'GHS',
         }))
       : [
@@ -878,8 +878,8 @@ app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
             currentPowerKw: 0,
             status: 'Available',
             errorCode: 'NoError',
-            tariffPerKwh: 4.50,
-            tariffGhsPerKwh: 4.50,
+            tariffPerKwh: 5.00,
+            tariffGhsPerKwh: 5.00,
             tariffCurrency: 'GHS',
           },
           {
@@ -891,8 +891,8 @@ app.post('/api/stations', requireAdminRole('network_operator'), (req, res) => {
             currentPowerKw: 0,
             status: 'Available',
             errorCode: 'NoError',
-            tariffPerKwh: 4.50,
-            tariffGhsPerKwh: 4.50,
+            tariffPerKwh: 5.00,
+            tariffGhsPerKwh: 5.00,
             tariffCurrency: 'GHS',
           },
         ];

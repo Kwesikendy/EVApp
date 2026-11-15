@@ -47,7 +47,7 @@ const STATIONS = [
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
-        tariffPerKwh: 4.50,
+        tariffPerKwh: 5.00,
         tariffCurrency: 'GHS',
       },
       {
@@ -59,7 +59,7 @@ const STATIONS = [
         currentPowerKw: 0,
         status: 'Available',
         errorCode: 'NoError',
-        tariffPerKwh: 4.50,
+        tariffPerKwh: 5.00,
         tariffCurrency: 'GHS',
       },
     ],

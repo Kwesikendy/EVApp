@@ -51,7 +51,7 @@ const CHARGELINK_STATIONS: WebStation[] = [
     totalStalls: 2,
     distance: '—',
     eta: '—',
-    tariffPerKwh: 4.50,
+    tariffPerKwh: 5.00,
     lat: 6.6697479,
     lng: -1.5995679,
     isOnline: false,

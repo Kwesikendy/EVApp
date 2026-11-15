@@ -161,7 +161,7 @@ export const FleetScreen: React.FC<FleetScreenProps> = ({
           {/* Footer */}
           <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
             <span className="text-xs font-mono font-medium text-slate-300">
-              Fast Charging GH₵ 4.50/kWh
+              Fast Charging GH₵ 5.00/kWh
             </span>
 
             <div className="flex items-center gap-1.5">

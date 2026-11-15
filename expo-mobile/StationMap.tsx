@@ -61,7 +61,7 @@ export default function StationMap({
           totalConnectors: s.connectors.length,
           address: s.address,
           distanceKm: s.distanceKm,
-          tariff: s.connectors[0]?.tariffPerKwh || 4.50,
+          tariff: s.connectors[0]?.tariffPerKwh || 5.00,
           isOnline: (s as any).isOnline !== false,
           constructionStatus: (s as any).constructionStatus || null,
         };
@@ -355,7 +355,7 @@ export default function StationMap({
                 : \`<span class="station-popup-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)">Under Construction</span>\`
               }
               <span class="station-popup-badge">\${st.maxPower} kW</span>
-              <span class="station-popup-badge">GH₵ \${(st.tariff ?? 4.50).toFixed(2)}/kWh</span>
+              <span class="station-popup-badge">GH₵ \${(st.tariff ?? 5.00).toFixed(2)}/kWh</span>
             </div>
             \${st.isOnline
               ? \`<div class="station-popup-btn" onclick="handleChargeClick('\${st.id}')">⚡ Connect &amp; Charge</div>\`

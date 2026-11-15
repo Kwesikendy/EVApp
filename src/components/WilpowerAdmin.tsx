@@ -509,7 +509,7 @@ export function WilpowerAdmin() {
                     <Activity size={17} />
                   </div>
                   <strong>{formatGhs(overview?.sessions.currentCost ?? 0)}</strong>
-                  <small>Published rate: GH₵ 4.50 / kWh</small>
+                  <small>Published rate: GH₵ 5.00 / kWh</small>
                 </article>
               </div>
 

@@ -76,7 +76,7 @@ export const TERMS_OF_SERVICE: LegalSection[] = [
     badge: 'CURRENCY: GH₵ ONLY',
     content: [
       `All tariffs, wallet balances, pre-authorization security deposits, and idle parking penalties are strictly denominated in Ghana Cedis (GH₵ / GHS).`,
-      `Energy Tariff: Energy is metered and billed per kilowatt-hour (GH₵/kWh) as published in the app and on the terminal rate card prior to session start. Initial Greenwood Event Center baseline tariff is GH₵ 4.50 per kWh (subject to change with prior in-app notice).`,
+      `Energy Tariff: Energy is metered and billed per kilowatt-hour (GH₵/kWh) as published in the app and on the terminal rate card prior to session start. Initial Greenwood Event Center baseline tariff is GH₵ 5.00 per kWh (subject to change with prior in-app notice).`,
       `Pre-Authorization Escrow Hold: Upon tapping "Start Charging" or "Unlock Connector", the system locks a temporary pre-authorization hold (typically GH₵ 20.00 to GH₵ 25.00) from your available wallet balance. This hold guarantees session settlement.`,
       `Programmatic Difference Refund: When your session stops, the exact energy delivered is computed down to the pesewa (kWh dispensed × tariff). Any unspent portion of the escrow hold is automatically released and credited back to your available wallet balance immediately.`,
       `Non-Refundable Energy: Electrical energy that has been transferred into your vehicle's battery pack has been consumed and is strictly non-refundable.`

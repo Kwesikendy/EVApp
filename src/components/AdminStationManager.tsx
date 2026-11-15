@@ -37,7 +37,7 @@ export const AdminStationManager: React.FC<AdminStationManagerProps> = ({
   const [longitude, setLongitude] = useState('-1.5995679');
   const [connectorType, setConnectorType] = useState<ConnectorType>('CCS2');
   const [maxPowerKw, setMaxPowerKw] = useState('160');
-  const [tariffPerKwh, setTariffPerKwh] = useState('4.50');
+  const [tariffPerKwh, setTariffPerKwh] = useState('5.00');
   const [connectorCount, setConnectorCount] = useState('2');
   const [isSubmitting, setIsSubmitting] = useState(false);
 

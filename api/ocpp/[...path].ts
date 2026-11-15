@@ -26,8 +26,8 @@ const COMMISSIONING_GUIDE = {
   networkModeNote:
     'Choose Ethernet when using 4G card or network cable. Available network model: 1.WIFI, 2.Ethnet',
   outlets: [
-    { connectorId: 1, hmiTab: 'Outlet A', type: 'GB/T', maxPowerKw: 160, tariffGhsPerKwh: 4.5 },
-    { connectorId: 2, hmiTab: 'Outlet B', type: 'CCS2', maxPowerKw: 160, tariffGhsPerKwh: 4.5 },
+    { connectorId: 1, hmiTab: 'Outlet A', type: 'GB/T', maxPowerKw: 160, tariffGhsPerKwh: 5.00 },
+    { connectorId: 2, hmiTab: 'Outlet B', type: 'CCS2', maxPowerKw: 160, tariffGhsPerKwh: 5.00 },
   ],
   steps: [
     {
@@ -94,8 +94,8 @@ const STATION_2 = {
       currentPowerKw: 0,
       status: 'Available',
       errorCode: 'NoError',
-      tariffPerKwh: 4.5,
-      tariffGhsPerKwh: 4.5,
+      tariffPerKwh: 5.00,
+      tariffGhsPerKwh: 5.00,
       tariffCurrency: 'GHS',
     },
   ],
@@ -171,8 +171,8 @@ function createDefaultState() {
             currentPowerKw: 0,
             status: 'Available',
             errorCode: 'NoError',
-            tariffPerKwh: 4.50,
-            tariffGhsPerKwh: 4.50,
+            tariffPerKwh: 5.00,
+            tariffGhsPerKwh: 5.00,
             tariffCurrency: 'GHS',
           },
           {
@@ -185,8 +185,8 @@ function createDefaultState() {
             currentPowerKw: 0,
             status: 'Available',
             errorCode: 'NoError',
-            tariffPerKwh: 4.50,
-            tariffGhsPerKwh: 4.50,
+            tariffPerKwh: 5.00,
+            tariffGhsPerKwh: 5.00,
             tariffCurrency: 'GHS',
           },
         ],
@@ -220,7 +220,7 @@ function createDefaultState() {
       { key: 'NumberOfConnectors', readonly: true, value: '2', description: 'Physical outlets (Outlet A: GB/T, Outlet B: CCS2)' },
       { key: 'SupportedFeatureProfiles', readonly: true, value: 'Core,FirmwareManagement,LocalAuthListManagement,Reservation,SmartCharging,RemoteTrigger', description: 'OCPP 1.6 Edition 2 Feature Profiles' },
       { key: 'MaxPower.PileNumber', readonly: false, value: 'CL-KSI-001', description: 'MaxPower HMI Stake/Pile Number (CL-KSI-001 / 19046744073709551615)' },
-      { key: 'MaxPower.ElectricityPriceGhsPerKwh', readonly: false, value: '4.50', description: 'Current electricity price on charger HMI (GH₵ / kWh)' },
+      { key: 'MaxPower.ElectricityPriceGhsPerKwh', readonly: false, value: '5.00', description: 'Current electricity price on charger HMI (GH₵ / kWh)' },
       { key: 'MaxPower.NetworkMode', readonly: false, value: '2.Ethernet (4G/LAN)', description: 'Selected HMI Network Mode (1.WIFI or 2.Ethernet)' },
     ],
     logs: [
@@ -561,7 +561,7 @@ export default function handler(req: any, res: any) {
       meterStopWh: meterStartWh + 50,
       temperatureC: 34.5,
       accruedCost: 0.23,
-      tariffPerKwh: connector.tariffPerKwh || 4.5,
+      tariffPerKwh: connector.tariffPerKwh || 5.00,
       cardBalanceGhs: wallet.availableBalance,
       currency: 'GHS',
       preauthHoldAmount: isFleet ? 0 : preauthHoldAmount,

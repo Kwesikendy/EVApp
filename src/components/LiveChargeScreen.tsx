@@ -33,7 +33,7 @@ export const LiveChargeScreen: React.FC<LiveChargeScreenProps> = ({
   const currentSoc = session ? Math.min(100, Math.round(session.currentSocPercent || 68)) : 68;
   const chargingSpeedKw = session ? Math.round(session.currentPowerKw || 160) : 160;
   const energyKwh = session ? (session.kwhDelivered || 0).toFixed(2) : '34.00';
-  const costGhs = session ? (session.accruedCost !== undefined ? session.accruedCost.toFixed(2) : ((session.kwhDelivered || 0) * 4.50).toFixed(2)) : '153.00';
+  const costGhs = session ? (session.accruedCost !== undefined ? session.accruedCost.toFixed(2) : ((session.kwhDelivered || 0) * 5.00).toFixed(2)) : '153.00';
   const rangeAddedKm = Math.round(((session?.kwhDelivered !== undefined ? session.kwhDelivered : 34)) * 4.18);
   const voltage = session?.voltageV || 742;
   const currentAmps = session?.currentA || 248;

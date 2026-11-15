@@ -206,7 +206,7 @@ const defaultStation: Station = {
       currentPowerKw: 0,
       status: 'Available',
       errorCode: 'NoError',
-      tariffPerKwh: 4.5,
+      tariffPerKwh: 5.00,
     },
     {
       id: 102,
@@ -218,7 +218,7 @@ const defaultStation: Station = {
       currentPowerKw: 0,
       status: 'Available',
       errorCode: 'NoError',
-      tariffPerKwh: 4.5,
+      tariffPerKwh: 5.00,
     },
   ],
 };
@@ -1472,7 +1472,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   </div>
                   <h2>160 kW DC fast charging, built for Ghana.</h2>
                   <p>
-                    {selectedStation?.address || 'Greenwood Event Center, Kumasi'}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (GB/T) at {formatGhs(4.5)}/kWh.
+                    {selectedStation?.address || 'Greenwood Event Center, Kumasi'}. Dual-gun MaxPower VCP160 hardware commissioned with Outlet A (GB/T) and Outlet B (GB/T) at {formatGhs(5.0)}/kWh.
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button
@@ -1500,7 +1500,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                       <span>Shared DC Output</span>
                     </div>
                     <div>
-                      <strong>{formatGhs(4.5)}</strong>
+                      <strong>{formatGhs(5.0)}</strong>
                       <span>Energy Tariff / kWh</span>
                     </div>
                     <div>
@@ -1893,7 +1893,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     </div>
                     <div className="wp-detail-row">
                       <span>Current electricity price</span>
-                      <strong>{formatGhs(activeSession.tariffPerKwh || 4.5)} / kWh</strong>
+                      <strong>{formatGhs(activeSession.tariffPerKwh || 5.00)} / kWh</strong>
                     </div>
                     <div className="wp-detail-row">
                       <span>Pre-authorization escrow hold</span>
@@ -2169,7 +2169,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <span>PUBLISHED TARIFF</span>
                     <Zap size={16} />
                   </div>
-                  <strong>{formatGhs(selectedStation?.connectors?.[0]?.tariffPerKwh || 4.5)}</strong>
+                  <strong>{formatGhs(selectedStation?.connectors?.[0]?.tariffPerKwh || 5.00)}</strong>
                   <small>Per kWh · 5 min grace then {formatGhs(0.5)}/min</small>
                 </div>
               </div>
@@ -2506,7 +2506,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                           { key: 'MeterValueSampleInterval', value: '5', readonly: false },
                           { key: 'ConnectionTimeOut', value: '60', readonly: false },
                           { key: 'MaxPower.PileNumber', value: 'CL-KSI-001', readonly: false },
-                          { key: 'MaxPower.ElectricityPriceGhsPerKwh', value: '4.50', readonly: false },
+                          { key: 'MaxPower.ElectricityPriceGhsPerKwh', value: '5.00', readonly: false },
                           { key: 'MaxPower.NetworkMode', value: '2.Ethernet (4G/LAN)', readonly: false },
                         ])
                           .filter((k: any) => !k.readonly)
@@ -2661,7 +2661,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                           <div className="wp-tech-row">
                             <span className="wp-tech-label">Electricity Price</span>
                             <div className="wp-tech-value">
-                              <span>4.50 GHS / kWh</span>
+                              <span>5.00 GHS / kWh</span>
                             </div>
                           </div>
                           <div className="wp-tech-row">

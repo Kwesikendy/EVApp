@@ -44,14 +44,14 @@ export const MAXPOWER_VCP160_COMMISSIONING = {
       hmiTab: 'Outlet A',
       type: 'GB/T' as const,
       maxPowerKw: 160,
-      tariffGhsPerKwh: 4.5,
+      tariffGhsPerKwh: 5.00,
     },
     {
       connectorId: 2,
       hmiTab: 'Outlet B',
       type: 'GB/T' as const,
       maxPowerKw: 160,
-      tariffGhsPerKwh: 4.5,
+      tariffGhsPerKwh: 5.00,
     },
   ],
   steps: [
@@ -261,7 +261,7 @@ export function createDefaultOcpp16Config(): OcppConfigurationKey[] {
     {
       key: 'MaxPower.ElectricityPriceGhsPerKwh',
       readonly: false,
-      value: '4.50',
+      value: '5.00',
       description: 'Current electricity price displayed on charger HMI (GH₵ / kWh)',
     },
     {
@@ -913,7 +913,7 @@ export class Ocpp16Engine {
       case 'MeterValues': {
         const active = this.ctx.getActiveSession();
         if (active && Array.isArray(payload.meterValue)) {
-          const rate = active.tariffPerKwh || 4.5;
+          const rate = active.tariffPerKwh || 5.00;
           for (const mv of payload.meterValue) {
             const samples = Array.isArray(mv.sampledValue) ? mv.sampledValue : [];
             for (const sv of samples) {

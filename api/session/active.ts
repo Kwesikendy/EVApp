@@ -17,7 +17,7 @@ export default function handler(req: any, res: any) {
         const elapsedSec = Math.max(1, Math.floor((now - (s.startTime || now)) / 1000));
         const powerKw = Number(s.currentPowerKw || 120);
         const kwhDelivered = Number(Math.max(s.kwhDelivered || 0.05, (powerKw / 3600) * elapsedSec).toFixed(3));
-        const rate = Number(s.tariffPerKwh || 4.5);
+        const rate = Number(s.tariffPerKwh || 5.00);
         const accruedCost = Number((kwhDelivered * rate).toFixed(2));
         const voltageV = Number((401.2 + Math.sin(elapsedSec / 2) * 1.8).toFixed(1));
         const currentA = Number(((powerKw * 1000) / voltageV).toFixed(1));
