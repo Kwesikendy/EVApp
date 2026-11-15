@@ -85,6 +85,15 @@ function WilpowerShell() {
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
         pullToRefreshEnabled={true}
+        contentInsetAdjustmentBehavior="never"
+        injectedJavaScriptBeforeContentLoaded={`
+          (function() {
+            var style = document.createElement('style');
+            style.innerHTML = ':root { --sat: 0px !important; --sab: 0px !important; }';
+            document.documentElement.appendChild(style);
+          })();
+          true;
+        `}
         startInLoadingState={true}
         mixedContentMode="compatibility"
         thirdPartyCookiesEnabled={true}

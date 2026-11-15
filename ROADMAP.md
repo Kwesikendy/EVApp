@@ -59,6 +59,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Unified `expo-mobile/App.tsx` as a native safe-area + GPS + hardware-back WebView shell pointing to `https://ev-app-livid.vercel.app` so Expo Go, the Android `.apk`, the Play Store `.aab`, and the iPhone/Web PWA share the exact same Wilpower editorial UI and features.
 - [x] Replaced old cyan `X` app icon, adaptive icon, and splash assets in `expo-mobile/assets/` with `WillPower_App_Icon_V3.png` on `#07110B` and removed deprecated `SafeAreaView` warning in `expo-mobile/App.tsx`.
 - [x] Updated Moolre SMS VAS key (`vasid: 16515`) and sender ID (`Wilpower`) in `api/auth/send-otp.ts` and `server/auth.ts`.
+- [x] Replaced `Sparkles` Overview tab icon with `LayoutGrid` in `src/components/WillPowerApp.tsx` and eliminated double safe-area bottom navbar padding in `expo-mobile/App.tsx` (`--sab: 0px` inside WebView) so the `.apk` bottom navbar matches the PWA height identically.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

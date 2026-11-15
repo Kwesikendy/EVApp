@@ -19,6 +19,7 @@ import {
   Gauge,
   KeyRound,
   Layers,
+  LayoutGrid,
   LocateFixed,
   Lock,
   LogOut,
@@ -1283,7 +1284,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   }
 
   const navItems: Array<{ id: View; label: string; icon: React.ComponentType<{ size?: number }> }> = [
-    { id: 'home', label: 'Overview', icon: Sparkles },
+    { id: 'home', label: 'Overview', icon: LayoutGrid },
     { id: 'discover', label: 'Find Charger', icon: Compass },
     { id: 'charging', label: 'Charging', icon: BatteryCharging },
     { id: 'wallet', label: 'MoMo Wallet', icon: Wallet },
