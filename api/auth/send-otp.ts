@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6OTUzMywiZXhwIjoxOTU2NTI3OTk5fQ.8RMieWehZ8nkSU207eAynRMQDV5H9g08Y6LBkbzrPI0';
-const PRODUCTION_MOOLRE_SENDER_ID = 'WillPower';
+const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6MTY1MTUsImV4cCI6MTk1NjUyNzk5OX0.NBdSLQz1QSw8_Tt1LDPp6YJmJd0gjHcLsN0xPxCeGnA';
+const PRODUCTION_MOOLRE_SENDER_ID = 'Wilpower';
 
 function normalizeGhanaPhoneNumber(rawPhone: string): string {
   const digits = (rawPhone || '').replace(/\D/g, '');
@@ -121,7 +121,7 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({
           success: true,
           liveSms: true,
-          message: `Verification SMS sent via WillPower to ${normalized}`,
+          message: `Verification SMS sent via Wilpower to ${normalized}`,
         });
       }
 
