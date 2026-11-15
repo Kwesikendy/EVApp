@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 // ============================================================================
 // BACKEND CONFIGURATION FOR UNIVERSAL INTERNET & APK CONNECTIVITY
 // ============================================================================
-export const CLOUD_BACKEND_URL = 'https://ev-app-ochre.vercel.app';
+export const CLOUD_BACKEND_URL = 'https://ev-app-livid.vercel.app';
 
 export let BACKEND_URL = CLOUD_BACKEND_URL;
 
