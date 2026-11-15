@@ -57,6 +57,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Added public Google Play-compliant `/privacy` & `/privacy-policy` route (`src/components/PrivacyPolicyPage.tsx`, `src/App.tsx`) with Act 843 compliance and Account & Data Deletion instructions, and standardized visible app branding to **Wilpower** across Web, PWA manifest, and Expo (`expo-mobile/app.json`).
 - [x] Fixed mobile HUD header clipping, Charge HUD `LIVE CSMS TARIFF` badge overflow, `WILPOWER PASS` wallet branding, `160 kW Fast` map filter, and `StationMap.tsx` pin power calculation & coordinate offset so both `160 kW` and `40 kW` pins appear clearly.
 - [x] Unified `expo-mobile/App.tsx` as a native safe-area + GPS + hardware-back WebView shell pointing to `https://ev-app-ochre.vercel.app` so Expo Go, the Android `.apk`, the Play Store `.aab`, and the iPhone/Web PWA share the exact same Wilpower editorial UI and features.
+- [x] Replaced old cyan `X` app icon, adaptive icon, and splash assets in `expo-mobile/assets/` with `WillPower_App_Icon_V3.png` on `#07110B` and removed deprecated `SafeAreaView` warning in `expo-mobile/App.tsx`.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

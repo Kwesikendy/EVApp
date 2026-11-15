@@ -4,7 +4,6 @@ import {
   BackHandler,
   Linking,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -75,7 +74,7 @@ function WilpowerShell() {
   };
 
   return (
-    <SafeAreaView style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <NativeWebView
         ref={webViewRef}
         source={{ uri: APP_URL }}
@@ -131,7 +130,7 @@ function WilpowerShell() {
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

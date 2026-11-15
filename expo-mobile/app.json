@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0D1710"
+      "backgroundColor": "#07110B"
     },
     "platforms": [
       "ios",
@@ -20,7 +20,7 @@
       "package": "com.kwesii.xchargemobileapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0D1710"
+        "backgroundColor": "#07110B"
       },
       "navigationBar": {
         "visible": "sticky-immersive",
