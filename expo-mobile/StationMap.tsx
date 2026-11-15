@@ -45,22 +45,27 @@ export default function StationMap({
   // Generate HTML for OpenStreetMap with Leaflet
   const htmlContent = useMemo(() => {
     const stationsJson = JSON.stringify(
-      stations.map((s) => ({
-        id: s.id,
-        stationId: s.stationId,
-        name: s.name,
-        lat: s.latitude,
-        lng: s.longitude,
-        maxPower: Math.max(...s.connectors.map((c) => c.maxPowerKw), 50),
-        hasAvailable: s.connectors.some((c) => c.status === 'Available'),
-        availableCount: s.connectors.filter((c) => c.status === 'Available').length,
-        totalConnectors: s.connectors.length,
-        address: s.address,
-        distanceKm: s.distanceKm,
-        tariff: s.connectors[0]?.tariffPerKwh || 4.50,
-        isOnline: (s as any).isOnline !== false,
-        constructionStatus: (s as any).constructionStatus || null,
-      }))
+      stations.map((s, idx) => {
+        const sameCoordIndex = stations
+          .slice(0, idx)
+          .filter((prev) => Math.abs(prev.latitude - s.latitude) < 0.0001 && Math.abs(prev.longitude - s.longitude) < 0.0001).length;
+        return {
+          id: s.id,
+          stationId: s.stationId,
+          name: s.name,
+          lat: s.latitude,
+          lng: s.longitude + sameCoordIndex * 0.00022,
+          maxPower: s.connectors?.length ? Math.max(...s.connectors.map((c) => c.maxPowerKw)) : 160,
+          hasAvailable: s.connectors.some((c) => c.status === 'Available'),
+          availableCount: s.connectors.filter((c) => c.status === 'Available').length,
+          totalConnectors: s.connectors.length,
+          address: s.address,
+          distanceKm: s.distanceKm,
+          tariff: s.connectors[0]?.tariffPerKwh || 4.50,
+          isOnline: (s as any).isOnline !== false,
+          constructionStatus: (s as any).constructionStatus || null,
+        };
+      })
     );
 
     const selectedId = selectedStation ? selectedStation.id : '';

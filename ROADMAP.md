@@ -55,6 +55,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Removed the mobile launch splash video (`expo-mobile/App.tsx`), fixed `XChargeLogoNative` bounding overflow (`expo-mobile/XChargeLogoNative.tsx`), centered the subtle auth background watermark logo, improved auth headline/subtitle contrast, and removed the `CHARGELINK GH · KUMASI` badge from `expo-mobile/screens/LoginScreen.tsx`.
 - [x] Fixed `.wp-toast` text contrast in `src/index.css` so bottom toast notifications remain crisp and legible across Night Drive, Mint Light, and Paper Light themes.
 - [x] Added public Google Play-compliant `/privacy` & `/privacy-policy` route (`src/components/PrivacyPolicyPage.tsx`, `src/App.tsx`) with Act 843 compliance and Account & Data Deletion instructions, and standardized visible app branding to **Wilpower** across Web, PWA manifest, and Expo (`expo-mobile/app.json`).
+- [x] Fixed mobile HUD header clipping, Charge HUD `LIVE CSMS TARIFF` badge overflow, `WILPOWER PASS` wallet branding, `160 kW Fast` map filter, and `StationMap.tsx` pin power calculation & coordinate offset so both `160 kW` and `40 kW` pins appear clearly.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

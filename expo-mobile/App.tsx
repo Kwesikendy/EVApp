@@ -927,7 +927,7 @@ function AppContent() {
 
   const filteredStations = stations.filter((st) => {
     if (mapFilter === 'ultra') {
-      return st.connectors.some((c) => c.maxPowerKw >= 200);
+      return st.connectors.some((c) => c.maxPowerKw >= 160);
     }
     if (mapFilter === 'available') {
       return st.connectors.some((c) => c.status === 'Available');
@@ -1054,13 +1054,13 @@ function AppContent() {
 
       {/* Global High-Tech Header */}
       <View style={[s.header, { paddingTop: Math.max(insets.top, 12) }]}>
-        <View style={s.headerLeft}>
+        <View style={[s.headerLeft, { flex: 1, minWidth: 0, marginRight: 8 }]}>
           <View style={s.brandLogoBadge}>
             <XChargeMarkNative size={22} />
           </View>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <XChargeLogoNative width={112} height={32} showSubtitle={false} />
+              <XChargeLogoNative width={88} height={26} showSubtitle={false} />
               <TouchableOpacity
                 style={[s.backendStatusPill, isBackendOnline ? s.backendOnline : s.backendOffline]}
                 onPress={() => setShowSettingsModal(true)}
@@ -1073,12 +1073,12 @@ function AppContent() {
               </TouchableOpacity>
             </View>
             <Text style={s.headerSub}>
-              {isFleetMode ? 'Fleet: APEX LOGISTICS GH' : 'Driver Pass · Accra Hub'}
+              {isFleetMode ? 'Fleet: APEX LOGISTICS GH' : 'Driver Pass · Kumasi Hub'}
             </Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <TouchableOpacity
             onPress={() => setIsFleetMode(!isFleetMode)}
             style={[s.modeToggleBadge, isFleetMode ? s.badgeFleet : s.badgePersonal]}
@@ -1119,7 +1119,7 @@ function AppContent() {
                   onPress={() => setMapFilter('all')}
                 >
                   <Text style={[s.filterChipText, mapFilter === 'all' && s.filterChipTextActive]}>
-                    All Superhubs ({stations.length})
+                    All Stations ({stations.length})
                   </Text>
                 </TouchableOpacity>
 
@@ -1129,7 +1129,7 @@ function AppContent() {
                 >
                   <Gauge size={11} color={mapFilter === 'ultra' ? '#38bdf8' : '#94a3b8'} style={{ marginRight: 4 }} />
                   <Text style={[s.filterChipText, mapFilter === 'ultra' && s.filterChipTextActive]}>
-                    200+ kW Ultra
+                    160 kW Fast
                   </Text>
                 </TouchableOpacity>
 
@@ -1451,7 +1451,7 @@ function AppContent() {
                   </View>
                   <Text style={s.socPercentageText}>{batterySoc}%</Text>
                   <Text style={s.socStateLabel}>
-                    {isCharging ? '350 kW ULTRA-FAST CHARGE' : 'CONNECTED · STANDBY'}
+                    {isCharging ? '160 kW DC FAST CHARGE' : 'CONNECTED · STANDBY'}
                   </Text>
                   <Text style={s.socTargetText}>
                     Target SoC: {targetSoc}% · ~{Math.max(1, Math.round((targetSoc - batterySoc) * 0.7))} mins left
@@ -1521,12 +1521,12 @@ function AppContent() {
 
             {/* REAL-TIME BILLING & ESCROW METER */}
             <View style={s.realtimeBillingCard}>
-              <View style={s.billingCardHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <View style={[s.billingCardHeader, { gap: 8 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
                   <Coins size={15} color="#38bdf8" />
-                  <Text style={s.billingCardTitle}>REAL-TIME BILLING & ESCROW METER</Text>
+                  <Text style={[s.billingCardTitle, { flexShrink: 1 }]} numberOfLines={1}>BILLING & ESCROW</Text>
                 </View>
-                <View style={s.billingLiveTag}>
+                <View style={[s.billingLiveTag, { flexShrink: 0 }]}>
                   <View style={s.billingLiveDot} />
                   <Text style={s.billingLiveTagText}>LIVE CSMS TARIFF</Text>
                 </View>
@@ -1883,7 +1883,7 @@ function AppContent() {
             <View style={s.walletVirtualCard}>
               <View style={s.cardTopRow}>
                 <View>
-                  <Text style={s.virtualCardBrand}>CHARGELINK PASS</Text>
+                  <Text style={s.virtualCardBrand}>WILPOWER PASS</Text>
                   <Text style={s.virtualCardType}>Commercial Driver EV Smart Card</Text>
                 </View>
                 <View style={s.cardChipIcon}>
