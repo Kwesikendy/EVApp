@@ -67,6 +67,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Updated `package.json` `build` script to bundle `server.ts` directly into a self-contained ESM `server.js` (no external `./dist/server.cjs` dependency) and added `entryDir` (`process.argv[1]`) + multi-path `dist/` detection in `server.ts` for Hostinger `hbuilds`.
 - [x] Removed `dist/` from `.gitignore` and committed built `dist/` assets so Hostinger `hbuilds` includes `dist/index.html` and `dist/assets/*` in the `nodejs/` runtime folder.
 - [x] Removed remaining mock/fallback data from `server/auth.ts` (`'123456'` OTP bypass, `GH₵ 100` welcome credit, random `GX XXXX - 24` BYD vehicles, and `Driver <last4>` phone-number names) and normalized `Driver XXXX` display names to `Wilpower Driver` in `WillPowerApp.tsx`.
+- [x] Enforced strict production-only signup & login (`server/auth.ts`, `api/auth/send-otp.ts`, `WillPowerApp.tsx`): removed all offline/demo OTP fallbacks (`428190`/`123456`/`devCode`), persisted signup `displayName` & `vehiclePlate` to `data/users.json` without overwriting on subsequent logins, and prevented `getUserWallet` from falling back to another user's wallet.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

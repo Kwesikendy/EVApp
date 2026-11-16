@@ -209,25 +209,21 @@ async function sendOtp(phoneNumber) {
       }
       console.warn(`[Moolre SMS Gateway Notice]:`, data);
       return {
-        success: true,
-        message: `OTP generated (${data?.message || "Gateway notice"}). Use code ${code} or 123456.`,
-        code: data?.code || "AIN11",
-        devCode: code
+        success: false,
+        error: data?.message || "SMS delivery failed. Please try again.",
+        code: data?.code || "SMS_ERROR"
       };
     } catch (err) {
       console.error("[Moolre SMS Gateway Error]", err);
       return {
-        success: true,
-        message: `OTP generated (Moolre SMS gateway network note: ${err.message})`,
-        devCode: code
+        success: false,
+        error: `SMS gateway unavailable: ${err.message}`
       };
     }
   }
-  console.log(`[XCharge Auth Sandbox] OTP for ${normalized} is: ${code}`);
   return {
-    success: true,
-    message: `Verification code generated for ${normalized}. (Moolre sandbox active)`,
-    devCode: code
+    success: false,
+    error: "SMS gateway is not configured."
   };
 }
 function verifyOtp(phoneNumber, inputCode, metadata) {
@@ -301,9 +297,25 @@ function verifyOtp(phoneNumber, inputCode, metadata) {
     };
     USERS_DB.set(normalized, user);
     saveUsersToDisk();
-  } else if (metadata && (metadata.displayName || metadata.email || metadata.selectedEv)) {
-    if (metadata.displayName) user.displayName = metadata.displayName;
+  } else if (metadata && (metadata.displayName || metadata.email || metadata.vehiclePlate)) {
+    if (metadata.displayName && metadata.displayName !== "Wilpower Driver") {
+      user.displayName = metadata.displayName;
+    }
     if (metadata.email) user.email = metadata.email;
+    if (metadata.vehiclePlate && (!user.registeredVehicles || user.registeredVehicles.length === 0)) {
+      user.registeredVehicles = [
+        {
+          id: `veh-${Date.now().toString(36)}`,
+          make: "EV",
+          model: "Driver Vehicle",
+          year: (/* @__PURE__ */ new Date()).getFullYear(),
+          batteryCapacityKwh: 60.5,
+          connectorType: "GB/T",
+          licensePlate: metadata.vehiclePlate,
+          isDefault: true
+        }
+      ];
+    }
     user.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
     USERS_DB.set(normalized, user);
     saveUsersToDisk();
@@ -328,10 +340,18 @@ function updateUserProfile(phoneNumber, updates) {
   return updated;
 }
 function getUserWallet(phoneNumber) {
-  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : "+233248901204";
-  let user = USERS_DB.get(norm);
+  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : "";
+  const user = norm ? USERS_DB.get(norm) : void 0;
   if (!user) {
-    user = USERS_DB.get("+233248901204") || Array.from(USERS_DB.values())[0];
+    return {
+      userId: norm ? `usr-gh-${norm.replace(/\D/g, "")}` : "guest",
+      currency: "GHS",
+      availableBalance: 0,
+      heldBalance: 0,
+      momoProvider: "MTN",
+      phoneNumber: norm,
+      transactions: []
+    };
   }
   const defaultProvider = user.defaultPaymentMethod === "TELECEL_CASH" ? "TELECEL" : user.defaultPaymentMethod === "MASTERCARD" ? "CARD" : "MTN";
   return {

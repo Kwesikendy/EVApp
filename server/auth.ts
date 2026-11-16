@@ -294,27 +294,22 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
       // Moolre error reporting (e.g. AIN11 Authentication Error, ASMS06 bundle exhausted)
       console.warn(`[Moolre SMS Gateway Notice]:`, data);
       return {
-        success: true,
-        message: `OTP generated (${data?.message || 'Gateway notice'}). Use code ${code} or 123456.`,
-        code: data?.code || 'AIN11',
-        devCode: code,
+        success: false,
+        error: data?.message || 'SMS delivery failed. Please try again.',
+        code: data?.code || 'SMS_ERROR',
       };
     } catch (err: any) {
       console.error('[Moolre SMS Gateway Error]', err);
       return {
-        success: true,
-        message: `OTP generated (Moolre SMS gateway network note: ${err.message})`,
-        devCode: code,
+        success: false,
+        error: `SMS gateway unavailable: ${err.message}`,
       };
     }
   }
 
-  // Developer sandbox mode (No Moolre key configured yet)
-  console.log(`[XCharge Auth Sandbox] OTP for ${normalized} is: ${code}`);
   return {
-    success: true,
-    message: `Verification code generated for ${normalized}. (Moolre sandbox active)`,
-    devCode: code,
+    success: false,
+    error: 'SMS gateway is not configured.',
   };
 }
 
@@ -424,9 +419,25 @@ export function verifyOtp(
     };
     USERS_DB.set(normalized, user);
     saveUsersToDisk();
-  } else if (metadata && (metadata.displayName || metadata.email || metadata.selectedEv)) {
-    if (metadata.displayName) user.displayName = metadata.displayName;
+  } else if (metadata && (metadata.displayName || metadata.email || metadata.vehiclePlate)) {
+    if (metadata.displayName && metadata.displayName !== 'Wilpower Driver') {
+      user.displayName = metadata.displayName;
+    }
     if (metadata.email) user.email = metadata.email;
+    if (metadata.vehiclePlate && (!user.registeredVehicles || user.registeredVehicles.length === 0)) {
+      user.registeredVehicles = [
+        {
+          id: `veh-${Date.now().toString(36)}`,
+          make: 'EV',
+          model: 'Driver Vehicle',
+          year: new Date().getFullYear(),
+          batteryCapacityKwh: 60.5,
+          connectorType: 'GB/T',
+          licensePlate: metadata.vehiclePlate,
+          isDefault: true,
+        },
+      ];
+    }
     user.updatedAt = new Date().toISOString();
     USERS_DB.set(normalized, user);
     saveUsersToDisk();
@@ -467,10 +478,18 @@ export function getUserWallet(phoneNumber?: string): {
   phoneNumber: string;
   transactions: WalletTransaction[];
 } {
-  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : '+233248901204';
-  let user = USERS_DB.get(norm);
+  const norm = phoneNumber ? normalizeGhanaPhoneNumber(phoneNumber) : '';
+  const user = norm ? USERS_DB.get(norm) : undefined;
   if (!user) {
-    user = USERS_DB.get('+233248901204') || Array.from(USERS_DB.values())[0];
+    return {
+      userId: norm ? `usr-gh-${norm.replace(/\D/g, '')}` : 'guest',
+      currency: 'GHS',
+      availableBalance: 0,
+      heldBalance: 0,
+      momoProvider: 'MTN',
+      phoneNumber: norm,
+      transactions: [],
+    };
   }
 
   const defaultProvider = user.defaultPaymentMethod === 'TELECEL_CASH'

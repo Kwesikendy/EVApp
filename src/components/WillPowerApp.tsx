@@ -688,23 +688,15 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        if (data.devCode) setDemoOtp(data.devCode);
-        if (data.devCode) setOtpInput(data.devCode);
-        setAuthStep('otp');
-        notify(data.message || 'Verification notice: check your SMS.');
+        setAuthError(data.error || data.message || 'Could not send verification SMS. Please check your number and retry.');
         return;
       }
-      const fallbackCode = data.devCode || data.demoCode || '';
-      setDemoOtp(fallbackCode);
-      if (fallbackCode) setOtpInput(String(fallbackCode));
-      else setOtpInput('');
-      setAuthStep('otp');
-      notify(`Verification code ready for ${formatLocalPhone(normalized)}`);
-    } catch {
       setDemoOtp(null);
-      setOtpInput('428190');
+      setOtpInput('');
       setAuthStep('otp');
-      notify('Gateway offline fallback active. Use code 428190.');
+      notify(`Verification SMS sent to ${formatLocalPhone(normalized)}`);
+    } catch {
+      setAuthError('Unable to reach verification server. Please check your connection and try again.');
     } finally {
       setAuthLoading(false);
     }
@@ -724,23 +716,15 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           phoneNumber: normalized,
           code: otpInput.trim(),
           metadata: {
-            displayName: nameInput.trim() || 'Wilpower Driver',
+            displayName: authMode === 'signup' ? nameInput.trim() || undefined : undefined,
+            vehiclePlate: authMode === 'signup' ? plateInput.trim() || undefined : undefined,
             accountType: accountType === 'fleet' ? 'fleet' : 'personal',
           },
         }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        if (demoOtp && otpInput.trim() === demoOtp) {
-          saveDriver({
-            phoneNumber: normalized,
-            displayName: nameInput.trim() || 'Wilpower Driver',
-            accountType,
-            vehiclePlate: plateInput.trim() || 'No plate',
-          });
-          return;
-        }
-        setAuthError(data.error || 'Invalid verification code.');
+        setAuthError(data.error || 'Invalid verification code. Please check your SMS and try again.');
         return;
       }
 
@@ -748,7 +732,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         phoneNumber: normalized,
         displayName: data.user?.displayName || nameInput.trim() || 'Wilpower Driver',
         accountType,
-        vehiclePlate: plateInput.trim() || 'No plate',
+        vehiclePlate: data.user?.registeredVehicles?.[0]?.licensePlate || plateInput.trim() || 'No plate',
         email: data.user?.email || '',
         avatarUrl: data.user?.avatarUrl,
         ghanaCardId: data.user?.ghanaCardId,
@@ -760,12 +744,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       await refreshPlatform(normalized);
       notify('Wilpower driver cockpit unlocked.');
     } catch {
-      saveDriver({
-        phoneNumber: normalized,
-        displayName: nameInput.trim() || 'Wilpower Driver',
-        accountType,
-        vehiclePlate: plateInput.trim() || 'No plate',
-      });
+      setAuthError('Verification failed. Please check your connection and try again.');
     } finally {
       setAuthLoading(false);
     }

@@ -59,7 +59,7 @@ export default async function handler(req: any, res: any) {
 
     const rawPhone = body.phoneNumber || body.phone;
     if (!rawPhone) {
-      return res.status(200).json({ success: true, message: 'Default demo phone code generated', devCode: '123456' });
+      return res.status(400).json({ success: false, error: 'Phone number is required.' });
     }
 
     const normalized = normalizeGhanaPhoneNumber(rawPhone);
@@ -125,25 +125,21 @@ export default async function handler(req: any, res: any) {
         });
       }
 
-      // If bundle insufficient or other Moolre error (e.g. AIN11 Authentication Error, ASMS06 bundle exhausted)
       console.warn(`[Moolre SMS Gateway Notice]:`, data);
-      return res.status(200).json({
-        success: true,
-        message: `OTP generated (${data?.message || 'Gateway notice'}). Use code ${code} or 123456.`,
-        notice: data?.message || `Moolre notice: ${data?.code || 'AIN11'}`,
-        code: data?.code || 'AIN11',
-        devCode: code,
+      return res.status(502).json({
+        success: false,
+        error: data?.message || 'SMS delivery failed. Please try again.',
+        code: data?.code || 'SMS_ERROR',
       });
     } catch (err: any) {
       console.error('[Moolre SMS Gateway Fetch Error]:', err.message);
-      return res.status(200).json({
-        success: true,
-        message: `OTP generated (Moolre SMS network note: ${err.message})`,
-        devCode: code,
+      return res.status(502).json({
+        success: false,
+        error: `SMS gateway unavailable: ${err.message}`,
       });
     }
   } catch (err: any) {
     console.error('[API send-otp error]:', err);
-    return res.status(200).json({ success: true, message: 'OTP fallback generated', devCode: '123456' });
+    return res.status(500).json({ success: false, error: err.message || 'Internal SMS dispatch error' });
   }
 }
