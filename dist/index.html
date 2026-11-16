@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Wilpower - Power Every Journey</title>
+    <link rel="icon" type="image/svg+xml" href="/willpower/WillPower_App_Icon_V3.svg" />
+    <link rel="apple-touch-icon" href="/willpower/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0D1710" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Wilpower" />
+    <meta name="application-name" content="Wilpower" />
+    <meta name="description" content="Wilpower - a simpler way to find, understand and pay for EV charging in Ghana." />
+    <meta property="og:title" content="Wilpower - Power Every Journey" />
+    <meta property="og:description" content="Find a charging point, follow your session and keep moving with confidence." />
+    <meta property="og:image" content="/willpower/Photo_Concept_Only.jpg" />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      html, body { margin: 0; min-height: 100%; background: #07110B; }
+      #pwa-launch-screen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 35%, rgba(189,242,46,.12), transparent 26rem), #07110B; color: #F8FBF4; font-family: Inter, system-ui, sans-serif; cursor: pointer; }
+      #pwa-launch-screen::before { content: ''; position: absolute; inset: 0; opacity: .36; background-image: radial-gradient(rgba(218,255,185,.35) .75px, transparent .75px); background-size: 21px 21px; mask-image: linear-gradient(to bottom, black, transparent 84%); }
+      #pwa-launch-screen::after { content: ''; position: absolute; width: 21rem; height: 21rem; border: 1px solid rgba(189,242,46,.18); border-radius: 50%; box-shadow: 0 0 0 42px rgba(189,242,46,.04), 0 0 0 84px rgba(189,242,46,.025); }
+      #pwa-launch-screen .launch-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 17px; text-align: center; }
+      #pwa-launch-screen img { width: 126px; height: 126px; border-radius: 28px; box-shadow: 0 20px 45px rgba(0,0,0,.35); animation: launch-float 4s ease-in-out infinite; }
+      #pwa-launch-screen h1 { margin: 0; font-size: 29px; letter-spacing: -1.5px; }
+      #pwa-launch-screen p { margin: -8px 0 0; color: #B7C8B7; font-size: 12px; }
+      #pwa-launch-screen .launch-status { display: flex; align-items: center; gap: 8px; color: #BDF22E; font-size: 11px; }
+      #pwa-launch-screen .launch-status i { width: 12px; height: 12px; border: 2px solid rgba(189,242,46,.25); border-top-color: #BDF22E; border-radius: 50%; animation: launch-spin .7s linear infinite; }
+      @keyframes launch-spin { to { transform: rotate(360deg); } } @keyframes launch-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DHcvHPZp.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BnTVQlhZ.css">
+  </head>
+  <body>
+    <div id="root">
+      <div id="pwa-launch-screen" onclick="this.remove()">
+        <div class="launch-inner">
+          <img src="/willpower/WillPower_App_Icon_V3.svg" alt="Wilpower" />
+          <h1>Wil<span style="font-weight: 500">power</span></h1>
+          <p>Power Every Journey.</p>
+          <span class="launch-status"><i></i> Starting Wilpower...</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "Wilpower",
+  "short_name": "Wilpower",
+  "description": "Find a charging point, follow your session and power every journey in Ghana.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0D1710",
+  "theme_color": "#BDF22E",
+  "categories": ["transportation", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/willpower/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/willpower/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/willpower/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/willpower/icon-192.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 340" width="100%" height="100%">
+  <!-- Yellow background rounded card -->
+  <rect x="15" y="15" width="220" height="230" rx="20" fill="#FFC400" />
+  <rect x="250" y="15" width="235" height="230" rx="20" fill="#FFC400" />
+
+  <!-- Left side: MTN blue oval -->
+  <ellipse cx="125" cy="130" rx="92" ry="54" fill="#004F71" />
+  <!-- MTN text in yellow -->
+  <text x="125" y="148" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-style="italic" font-size="52" fill="#FFC400" text-anchor="middle" letter-spacing="2">MTN</text>
+  <!-- Red dot under T -->
+  <rect x="122" y="153" width="12" height="7" fill="#E2001A" />
+
+  <!-- Right side: Phone with MoMo Cash -->
+  <g transform="translate(260, 20)">
+    <!-- Tilted phone -->
+    <rect x="75" y="60" width="85" height="150" rx="16" fill="#000000" />
+    <rect x="80" y="65" width="75" height="140" rx="12" fill="#FFFFFF" />
+
+    <!-- Speaker slit -->
+    <rect x="105" y="73" width="25" height="4" rx="2" fill="#000000" />
+
+    <!-- Keypad grid -->
+    <g fill="#000000">
+      <rect x="90" y="145" width="14" height="10" rx="2" />
+      <rect x="110" y="145" width="14" height="10" rx="2" />
+      <rect x="130" y="145" width="14" height="10" rx="2" />
+      
+      <rect x="90" y="160" width="14" height="10" rx="2" />
+      <rect x="110" y="160" width="14" height="10" rx="2" />
+      <rect x="130" y="160" width="14" height="10" rx="2" />
+
+      <rect x="90" y="175" width="14" height="10" rx="2" />
+      <rect x="110" y="175" width="14" height="10" rx="2" />
+      <rect x="130" y="175" width="14" height="10" rx="2" />
+    </g>
+
+    <!-- Cash note flying out of phone -->
+    <path d="M 40 30 L 115 5 L 145 90 L 68 115 Z" fill="#008BB4" />
+    <!-- White inner cash border -->
+    <path d="M 48 35 L 110 14 L 138 84 L 72 105 Z" fill="none" stroke="#FFFFFF" stroke-width="2" />
+    <!-- GHc text on bill -->
+    <text x="92" y="65" transform="rotate(-18 92 65)" font-family="sans-serif" font-weight="900" font-size="24" fill="#FFFFFF" text-anchor="middle">GH₵</text>
+    <!-- Folded Red corner -->
+    <polygon points="115,5 145,90 120,70" fill="#E2001A" />
+  </g>
+
+  <!-- Bottom Brand Text: MTN MoMo -->
+  <text x="250" y="310" font-family="'Century Gothic', 'Tw Cen MT', Arial, sans-serif" font-weight="900" font-size="46" fill="#004F71" text-anchor="middle" letter-spacing="1">MTN MoMo</text>
+</svg>

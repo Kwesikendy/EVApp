@@ -65,6 +65,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Removed all remaining demo/test data (`data/users.json` seeded user, `'123456'`/`'428190'` OTP bypass in `api/auth/verify-otp.ts`, instant demo button, `Kofi Mensah`/`GT-8842-26` defaults in `WillPowerApp.tsx`) for full production deployment.
 - [x] Added root `server.js` ESM-to-CJS shim loading `dist/server.cjs` (`NODE_ENV=production` default) for Hostinger Express entry-file compatibility.
 - [x] Updated `package.json` `build` script to bundle `server.ts` directly into a self-contained ESM `server.js` (no external `./dist/server.cjs` dependency) and added `entryDir` (`process.argv[1]`) + multi-path `dist/` detection in `server.ts` for Hostinger `hbuilds`.
+- [x] Removed `dist/` from `.gitignore` and committed built `dist/` assets so Hostinger `hbuilds` includes `dist/index.html` and `dist/assets/*` in the `nodejs/` runtime folder.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

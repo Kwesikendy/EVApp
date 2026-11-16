@@ -1,0 +1,91 @@
+// Wilpower cache v10 includes OCPP 1.6 Edition 2 Hardware Ingress & Commissioning.
+const CACHE_NAME = 'wilpower-pwa-v10';
+
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/willpower/WillPower_App_Icon_V3.png',
+  '/willpower/WillPower_Logo_Reverse_V3.svg',
+  '/willpower/Photo_Concept_Only.jpg',
+  '/ocpp-commissioning-guide.jpeg'
+];
+
+// 1. Install Event - Pre-cache core shell
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[Wilpower SW] Pre-caching offline app shell');
+      return cache.addAll(STATIC_ASSETS);
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// 2. Activate Event - Evict all old caches and claim clients
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            console.log('[Wilpower SW] Evicting old cache:', name);
+            return caches.delete(name);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// 3. Fetch Event - Stale-while-revalidate for static assets, network-first for APIs
+self.addEventListener('fetch', (event) => {
+  // Ignore non-HTTP/HTTPS requests (such as chrome-extension://, moz-extension://, etc.)
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+
+  // Bypass cache for backend API requests, video streaming, and WebSocket connections
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.endsWith('.mp4') ||
+    url.pathname.includes('/ocpp/') ||
+    event.request.method !== 'GET'
+  ) {
+    return;
+  }
+
+  // HTML navigation requests: Network-first, fall back to cached index.html
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone).catch(() => {})).catch(() => {});
+          return response;
+        })
+        .catch(() => {
+          return caches.match('/index.html') || caches.match('/');
+        })
+    );
+    return;
+  }
+
+  // Static assets (CSS, JS, Fonts, Images): Stale-While-Revalidate
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone).catch(() => {})).catch(() => {});
+          }
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
+    })
+  );
+});

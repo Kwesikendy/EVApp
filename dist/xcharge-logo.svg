@@ -1,0 +1,44 @@
+<svg viewBox="0 0 460 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#4ade80" />
+      <stop offset="100%" stopColor="#16a34a" />
+    </linearGradient>
+    <linearGradient id="cGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#22c55e" />
+      <stop offset="100%" stopColor="#15803d" />
+    </linearGradient>
+  </defs>
+
+  <!-- C-shaped arc -->
+  <path
+    d="M 80 16 A 44 44 0 1 0 80 104 L 80 88 A 28 28 0 1 1 80 32 Z"
+    fill="url(#cGrad)"
+  />
+
+  <!-- EV plug body -->
+  <rect x="72" y="50" width="28" height="18" rx="5" fill="url(#leafGrad)" />
+  <rect x="100" y="55" width="10" height="3" rx="1.5" fill="url(#leafGrad)" />
+  <rect x="100" y="60" width="10" height="3" rx="1.5" fill="url(#leafGrad)" />
+  <!-- Lightning bolt on plug -->
+  <path d="M83 54 L80 60 L84 60 L81 67 L87 59 L83 59 Z" fill="#ffffff" />
+
+  <!-- Leaf swoosh -->
+  <path
+    d="M 52 80 Q 68 68 92 74 Q 76 84 58 88 Z"
+    fill="url(#leafGrad)"
+    opacity="0.9"
+  />
+
+  <!-- Brand Text: ChargeLink -->
+  <text x="128" y="60" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-weight="800" font-size="34" letter-spacing="1">
+    <tspan fill="#22c55e">Charge</tspan><tspan fill="#ffffff">Link</tspan>
+  </text>
+  <!-- GH badge -->
+  <text x="360" y="60" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="34" fill="#4ade80" letter-spacing="1">GH</text>
+
+  <!-- Subtitle -->
+  <text x="130" y="82" font-family="'Inter', monospace" font-size="11" font-weight="500" fill="#4b7c5a" letter-spacing="4">
+    POWERING A CLEANER TOMORROW
+  </text>
+</svg>
