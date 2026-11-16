@@ -716,8 +716,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
           phoneNumber: normalized,
           code: otpInput.trim(),
           metadata: {
-            displayName: authMode === 'signup' ? nameInput.trim() || undefined : undefined,
-            vehiclePlate: authMode === 'signup' ? plateInput.trim() || undefined : undefined,
+            displayName: authMode === 'register' ? nameInput.trim() || undefined : undefined,
+            vehiclePlate: authMode === 'register' ? plateInput.trim() || undefined : undefined,
             accountType: accountType === 'fleet' ? 'fleet' : 'personal',
           },
         }),
