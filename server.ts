@@ -1891,7 +1891,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    const entryDir = process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : process.cwd();
     const candidateDistPaths = [
+      path.join(entryDir, 'dist'),
+      path.resolve(entryDir, '..', 'dist'),
+      path.resolve(entryDir, '..', 'public_html'),
+      path.resolve(entryDir, '..', 'public'),
       path.join(process.cwd(), 'dist'),
       path.resolve(process.cwd(), '..', 'dist'),
     ];
