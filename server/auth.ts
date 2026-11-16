@@ -117,40 +117,6 @@ function getOtpFromStorage(normalized: string): OtpRecord | undefined {
 
 function loadUsersFromDisk(): Map<string, UserProfile> {
   const map = new Map<string, UserProfile>();
-  const defaultDriver: UserProfile = {
-    id: 'usr-gh-001',
-    phoneNumber: '+233248901204',
-    displayName: 'Kofi Mensah',
-    email: 'kofi.mensah@chargelink.com.gh',
-    walletBalance: 245.50,
-    heldEscrow: 0.00,
-    defaultPaymentMethod: 'MTN_MOMO',
-    registeredVehicles: [
-      {
-        id: 'veh-01',
-        make: 'BYD',
-        model: 'Atto 3 EV',
-        year: 2024,
-        batteryCapacityKwh: 60.5,
-        connectorType: 'CCS2',
-        licensePlate: 'GW 4821 - 24',
-        isDefault: true,
-      },
-      {
-        id: 'veh-02',
-        make: 'Tesla',
-        model: 'Model Y Long Range',
-        year: 2023,
-        batteryCapacityKwh: 75.0,
-        connectorType: 'CCS2',
-        licensePlate: 'ER 1904 - 23',
-        isDefault: false,
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  map.set(defaultDriver.phoneNumber, defaultDriver);
 
   try {
     const fileToRead = fs.existsSync(USERS_FILE)

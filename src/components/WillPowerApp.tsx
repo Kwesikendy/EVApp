@@ -337,7 +337,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
   const [authMode, setAuthMode] = useState<'signin' | 'register'>('signin');
   const [authStep, setAuthStep] = useState<AuthStep>('entry');
-  const [phoneInput, setPhoneInput] = useState('024 890 1204');
+  const [phoneInput, setPhoneInput] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [plateInput, setPlateInput] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('personal');
@@ -349,7 +349,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupAmount, setTopupAmount] = useState('50');
   const [topupChannel, setTopupChannel] = useState<MomoChannel>('MTN');
-  const [topupPhone, setTopupPhone] = useState('024 890 1204');
+  const [topupPhone, setTopupPhone] = useState('');
   const [topupPin, setTopupPin] = useState('1234');
   const [topupReference, setTopupReference] = useState<string | null>(null);
   const [topupPrompt, setTopupPrompt] = useState<string | null>(null);

@@ -96,40 +96,6 @@ function getOtpFromStorage(normalized) {
 }
 function loadUsersFromDisk() {
   const map = /* @__PURE__ */ new Map();
-  const defaultDriver = {
-    id: "usr-gh-001",
-    phoneNumber: "+233248901204",
-    displayName: "Kofi Mensah",
-    email: "kofi.mensah@chargelink.com.gh",
-    walletBalance: 245.5,
-    heldEscrow: 0,
-    defaultPaymentMethod: "MTN_MOMO",
-    registeredVehicles: [
-      {
-        id: "veh-01",
-        make: "BYD",
-        model: "Atto 3 EV",
-        year: 2024,
-        batteryCapacityKwh: 60.5,
-        connectorType: "CCS2",
-        licensePlate: "GW 4821 - 24",
-        isDefault: true
-      },
-      {
-        id: "veh-02",
-        make: "Tesla",
-        model: "Model Y Long Range",
-        year: 2023,
-        batteryCapacityKwh: 75,
-        connectorType: "CCS2",
-        licensePlate: "ER 1904 - 23",
-        isDefault: false
-      }
-    ],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-    updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-  };
-  map.set(defaultDriver.phoneNumber, defaultDriver);
   try {
     const fileToRead = import_fs.default.existsSync(USERS_FILE) ? USERS_FILE : import_fs.default.existsSync(SEED_FILE) ? SEED_FILE : null;
     if (fileToRead) {
