@@ -1879,7 +1879,11 @@ async function startServer() {
   // Attach native OCPP 1.6J WebSocket server before Vite HMR so /ocpp/1.6/:chargeBoxId upgrades cleanly
   attachOcpp16WebSocketServer(httpServer, ocpp16Engine);
 
-  if (process.env.NODE_ENV !== 'production') {
+  const isBundledProd =
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.argv[1] && /(?:^|[\\/])server\.(?:js|cjs)$/.test(process.argv[1]));
+
+  if (!isBundledProd) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: { server: httpServer } },
@@ -1887,7 +1891,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const candidateDistPaths = [
+      path.join(process.cwd(), 'dist'),
+      path.resolve(process.cwd(), '..', 'dist'),
+    ];
+    const distPath =
+      candidateDistPaths.find((p) => fs.existsSync(path.join(p, 'index.html'))) || candidateDistPaths[0];
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));

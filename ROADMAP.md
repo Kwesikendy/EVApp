@@ -64,6 +64,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Displayed driver name instead of phone number in sidebar footer & wallet card, removed seeded/test wallet data (`defaultWallet` & `api/wallet/index.ts` fallbacks), connected `api/wallet/index.ts` to real-time Paystack transaction sync, and improved mobile OCPP Step 5 wrapping.
 - [x] Removed all remaining demo/test data (`data/users.json` seeded user, `'123456'`/`'428190'` OTP bypass in `api/auth/verify-otp.ts`, instant demo button, `Kofi Mensah`/`GT-8842-26` defaults in `WillPowerApp.tsx`) for full production deployment.
 - [x] Added root `server.js` ESM-to-CJS shim loading `dist/server.cjs` (`NODE_ENV=production` default) for Hostinger Express entry-file compatibility.
+- [x] Updated `package.json` `build` script to bundle `server.ts` directly into a self-contained ESM `server.js` (no external `./dist/server.cjs` dependency) and added multi-path `dist/` detection in `server.ts` for Hostinger `hbuilds`.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases
