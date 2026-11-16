@@ -68,6 +68,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Removed `dist/` from `.gitignore` and committed built `dist/` assets so Hostinger `hbuilds` includes `dist/index.html` and `dist/assets/*` in the `nodejs/` runtime folder.
 - [x] Removed remaining mock/fallback data from `server/auth.ts` (`'123456'` OTP bypass, `GH₵ 100` welcome credit, random `GX XXXX - 24` BYD vehicles, and `Driver <last4>` phone-number names) and normalized `Driver XXXX` display names to `Wilpower Driver` in `WillPowerApp.tsx`.
 - [x] Enforced strict production-only signup & login (`server/auth.ts`, `api/auth/send-otp.ts`, `WillPowerApp.tsx`): removed all offline/demo OTP fallbacks (`428190`/`123456`/`devCode`), persisted signup `displayName` & `vehiclePlate` to `data/users.json` without overwriting on subsequent logins, and prevented `getUserWallet` from falling back to another user's wallet.
+- [x] Removed internal OCPP engineering tab (5-Step HMI Commissioning Guide, password `1`, JSON-over-WebSocket packet stream, Simulator Mode) from the public driver app (`WillPowerApp.tsx`, keeping all commissioning/OCPP tools in `/admin`) and updated `.wp-mobile-nav` to 4 clean driver tabs (`Overview`, `Find`, `Charging`, `MoMo`).
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases
