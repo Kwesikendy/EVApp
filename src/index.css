@@ -886,8 +886,10 @@ html[data-wp-theme='light'] .wp-navigation-message strong { color: var(--wp-ink)
 
 .wp-tech-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 13px;
@@ -904,11 +906,14 @@ html[data-wp-theme='light'] .wp-navigation-message strong { color: var(--wp-ink)
 
 .wp-tech-value {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   color: #00f0ff;
   font-family: monospace;
   font-size: 13px;
+  word-break: break-all;
+  max-width: 100%;
 }
 
 .wp-tech-copy-btn {

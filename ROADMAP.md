@@ -61,6 +61,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Updated Moolre SMS VAS key (`vasid: 16515`) and sender ID (`Wilpower`) in `api/auth/send-otp.ts` and `server/auth.ts`.
 - [x] Replaced `Sparkles` Overview tab icon with `LayoutGrid` in `src/components/WillPowerApp.tsx` and eliminated double safe-area bottom navbar padding in `expo-mobile/App.tsx` (`--sab: 0px` inside WebView) so the `.apk` bottom navbar matches the PWA height identically.
 - [x] Updated charging tariff from `GH₵ 4.50/kWh` to `GH₵ 5.00/kWh` across backend (`server.ts`, `server/ocpp16.ts`, `api/*`), legal terms, web UI, admin, and mobile config.
+- [x] Displayed driver name instead of phone number in sidebar footer & wallet card, removed seeded/test wallet data (`defaultWallet` & `api/wallet/index.ts` fallbacks), connected `api/wallet/index.ts` to real-time Paystack transaction sync, and improved mobile OCPP Step 5 wrapping.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

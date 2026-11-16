@@ -224,31 +224,10 @@ const defaultStation: Station = {
 };
 
 const defaultWallet: WalletState = {
-  availableBalance: 145.5,
+  availableBalance: 0,
   heldBalance: 0,
   phoneNumber: '+233248901204',
-  transactions: [
-    {
-      id: 'tx-welcome-01',
-      timestamp: new Date(Date.now() - 86_400_000).toISOString(),
-      amount: 100,
-      type: 'TOPUP',
-      status: 'SUCCESS',
-      provider: 'MOMO',
-      reference: 'WP-MOMO-894120',
-      description: 'MTN MoMo wallet top-up',
-    },
-    {
-      id: 'tx-charge-02',
-      timestamp: new Date(Date.now() - 42_000_000).toISOString(),
-      amount: 31.5,
-      type: 'CHARGE_SETTLEMENT',
-      status: 'SUCCESS',
-      provider: 'MOMO',
-      reference: 'WP-CHG-503912',
-      description: '7.0 kWh session settlement',
-    },
-  ],
+  transactions: [],
 };
 
 function formatGhs(amount: number): string {
@@ -1024,25 +1003,9 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         return;
       }
 
-      // If Paystack is unconfigured locally, fall back to simulated MoMo prompt
-      if (topupChannel !== 'CARD') {
-        const res = await fetch('/api/wallet/momo-initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, provider: topupChannel, phone }),
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setTopupReference(data.transactionId);
-          setTopupPrompt(data.ussdPrompt);
-          return;
-        }
-      }
-
-      notify(paystackData?.error || 'Could not initialize payment checkout.');
+      notify(paystackData?.error || 'Could not initialize Paystack checkout.');
     } catch {
-      setTopupReference(`WP-SIM-${Date.now()}`);
-      setTopupPrompt(`Approve ${formatGhs(amount)} to CHARGELINK GH LTD with your 4-digit MoMo PIN.`);
+      notify('Could not reach payment server. Check your internet connection and try again.');
     } finally {
       setTopupBusy(false);
     }
@@ -1364,7 +1327,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               )}
               <span>
                 <strong>{driver?.displayName || 'Driver'}</strong>
-                <small>{formatLocalPhone(driver?.phoneNumber || '+233248901204')} · {driver?.vehiclePlate || 'GT-8842-26'}</small>
+                <small>{driver?.vehicleName || 'Wilpower Driver'} · {driver?.vehiclePlate || 'EV Pass'}</small>
               </span>
             </button>
             <button type="button" onClick={openProfileModal} title="Driver settings">
@@ -1981,7 +1944,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
                   <div className="wp-credit-footer">
                     <span>Escrow hold: {formatGhs(wallet.heldBalance)}</span>
-                    <span>{formatLocalPhone(driver.phoneNumber)}</span>
+                    <span>{driver?.displayName || 'Wilpower Driver'}</span>
                   </div>
                 </div>
 
