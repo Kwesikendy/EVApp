@@ -282,24 +282,27 @@ export interface WillPowerAppProps {
 function normalizeDriverSession(raw: any): DriverSession {
   if (!raw) {
     return {
-      phoneNumber: '+233248901204',
+      phoneNumber: '',
       displayName: 'Wilpower Driver',
       accountType: 'personal',
-      vehiclePlate: 'GT-8842-26',
+      vehiclePlate: '',
     };
   }
-  const plate =
+  const rawPlate =
     raw.vehiclePlate ||
     raw.licensePlate ||
     raw.plate ||
     raw.registeredVehicles?.[0]?.licensePlate ||
     raw.registeredVehicles?.[0]?.plate ||
     '';
-  const name = raw.displayName || raw.name || 'Wilpower Driver';
+  const isMockPlate = /^(GX \d{4} - 24|GW 4821 - 24|GT-8842-26)$/.test(String(rawPlate).trim());
+  const plate = isMockPlate ? '' : rawPlate;
+  const rawName = raw.displayName || raw.name || 'Wilpower Driver';
+  const name = /^Driver \d{4}$/.test(String(rawName).trim()) ? 'Wilpower Driver' : rawName;
   const accountType = (raw.accountType || 'personal') as AccountType;
   return {
     ...raw,
-    phoneNumber: raw.phoneNumber || '+233248901204',
+    phoneNumber: raw.phoneNumber || '',
     displayName: name,
     accountType: accountType,
     vehiclePlate: plate,

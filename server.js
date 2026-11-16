@@ -70,6 +70,14 @@ function loadUsersFromDisk() {
       if (Array.isArray(records)) {
         for (const user of records) {
           if (user && user.phoneNumber) {
+            if (/^Driver \d{4}$/.test(user.displayName || "")) {
+              user.displayName = "Wilpower Driver";
+            }
+            if (Array.isArray(user.registeredVehicles)) {
+              user.registeredVehicles = user.registeredVehicles.filter(
+                (v) => !/^(GX \d{4} - 24|GW 4821 - 24)$/.test(String(v?.licensePlate || "").trim())
+              );
+            }
             map.set(normalizeGhanaPhoneNumber(user.phoneNumber), user);
           }
         }
