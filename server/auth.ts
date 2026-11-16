@@ -323,6 +323,7 @@ export interface VerifyOtpMetadata {
   email?: string;
   selectedEv?: string;
   selectedGateway?: string;
+  vehiclePlate?: string;
 }
 
 /**
@@ -337,12 +338,8 @@ export function verifyOtp(
   const trimmedCode = (inputCode || '').trim();
   const record = getOtpFromStorage(normalized);
 
-  // Check 1: Developer test bypass code '123456'
-  const isDevBypass = trimmedCode === '123456';
-
-  // Check 2: Deterministic OTP verification across sliding time windows
+  // Check 1: Deterministic OTP verification across sliding time windows
   // (current 5 min, previous 5 min, previous 10 min, previous 15 min, next 5 min for clock skew)
-  // This allows verification across stateless serverless lambdas with 100% reliability
   const codeNow = getDeterministicOtp(normalized, 0);
   const codePrev = getDeterministicOtp(normalized, -1);
   const codePrev2 = getDeterministicOtp(normalized, -2);
@@ -355,10 +352,10 @@ export function verifyOtp(
     trimmedCode === codePrev3 ||
     trimmedCode === codeNext;
 
-  // Check 3: In-memory or disk record match
+  // Check 2: In-memory or disk record match
   const isRecordMatch = record && record.code === trimmedCode && Date.now() <= record.expiresAt;
 
-  if (!isDevBypass && !isDeterministicMatch && !isRecordMatch) {
+  if (!isDeterministicMatch && !isRecordMatch) {
     if (record) {
       record.attempts = (record.attempts || 0) + 1;
       if (record.attempts >= 5) {
@@ -403,23 +400,25 @@ export function verifyOtp(
     user = {
       id: `usr-gh-${Date.now().toString(36)}`,
       phoneNumber: normalized,
-      displayName: metadata?.displayName || `Driver ${normalized.slice(-4)}`,
-      email: metadata?.email || `${normalized.replace(/\D/g, '')}@chargelink.com.gh`,
-      walletBalance: 100.00, // Welcome promotional credit
+      displayName: metadata?.displayName || 'Wilpower Driver',
+      email: metadata?.email || '',
+      walletBalance: 0.00,
       heldEscrow: 0.00,
       defaultPaymentMethod: defaultPayment,
-      registeredVehicles: [
-        {
-          id: `veh-${Date.now().toString(36)}`,
-          make,
-          model,
-          year: 2024,
-          batteryCapacityKwh,
-          connectorType,
-          licensePlate: `GX ${Math.floor(1000 + Math.random() * 9000)} - 24`,
-          isDefault: true,
-        }
-      ],
+      registeredVehicles: metadata?.vehiclePlate
+        ? [
+            {
+              id: `veh-${Date.now().toString(36)}`,
+              make,
+              model,
+              year: new Date().getFullYear(),
+              batteryCapacityKwh,
+              connectorType: 'GB/T',
+              licensePlate: metadata.vehiclePlate,
+              isDefault: true,
+            },
+          ]
+        : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -508,23 +507,12 @@ export function creditUserWallet(
     user = {
       id: `usr-gh-${Date.now().toString(36)}`,
       phoneNumber: norm,
-      displayName: `Driver ${norm.slice(-4)}`,
-      email: `${norm.replace(/\D/g, '')}@chargelink.com.gh`,
+      displayName: 'Wilpower Driver',
+      email: '',
       walletBalance: 0,
       heldEscrow: 0,
       defaultPaymentMethod: provider === 'CARD' ? 'MASTERCARD' : 'MTN_MOMO',
-      registeredVehicles: [
-        {
-          id: `veh-${Date.now().toString(36)}`,
-          make: 'BYD',
-          model: 'Atto 3',
-          year: 2024,
-          batteryCapacityKwh: 60.5,
-          connectorType: 'CCS2',
-          licensePlate: `GX ${Math.floor(1000 + Math.random() * 9000)} - 24`,
-          isDefault: true,
-        },
-      ],
+      registeredVehicles: [],
       transactions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

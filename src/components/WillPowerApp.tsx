@@ -1308,7 +1308,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 <div className="wp-avatar">{((driver?.displayName || 'DR').slice(0, 2)).toUpperCase()}</div>
               )}
               <span>
-                <strong>{driver?.displayName || 'Driver'}</strong>
+                <strong>{driver?.displayName && !/^Driver \d{4}$/.test(driver.displayName) ? driver.displayName : 'Wilpower Driver'}</strong>
                 <small>{driver?.accountType === 'fleet' ? 'Fleet Driver' : 'Personal Driver'} · {driver?.vehiclePlate || 'EV Pass'}</small>
               </span>
             </button>
