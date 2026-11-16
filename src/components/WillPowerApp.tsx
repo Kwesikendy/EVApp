@@ -1327,7 +1327,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               )}
               <span>
                 <strong>{driver?.displayName || 'Driver'}</strong>
-                <small>{driver?.vehicleName || 'Wilpower Driver'} · {driver?.vehiclePlate || 'EV Pass'}</small>
+                <small>{driver?.accountType === 'fleet' ? 'Fleet Driver' : 'Personal Driver'} · {driver?.vehiclePlate || 'EV Pass'}</small>
               </span>
             </button>
             <button type="button" onClick={openProfileModal} title="Driver settings">
