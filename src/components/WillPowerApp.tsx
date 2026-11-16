@@ -283,7 +283,7 @@ function normalizeDriverSession(raw: any): DriverSession {
   if (!raw) {
     return {
       phoneNumber: '+233248901204',
-      displayName: 'Kofi Mensah',
+      displayName: 'Wilpower Driver',
       accountType: 'personal',
       vehiclePlate: 'GT-8842-26',
     };
@@ -294,8 +294,8 @@ function normalizeDriverSession(raw: any): DriverSession {
     raw.plate ||
     raw.registeredVehicles?.[0]?.licensePlate ||
     raw.registeredVehicles?.[0]?.plate ||
-    'GT-8842-26';
-  const name = raw.displayName || raw.name || 'Kofi Mensah';
+    '';
+  const name = raw.displayName || raw.name || 'Wilpower Driver';
   const accountType = (raw.accountType || 'personal') as AccountType;
   return {
     ...raw,
@@ -338,8 +338,8 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
   const [authMode, setAuthMode] = useState<'signin' | 'register'>('signin');
   const [authStep, setAuthStep] = useState<AuthStep>('entry');
   const [phoneInput, setPhoneInput] = useState('024 890 1204');
-  const [nameInput, setNameInput] = useState('Kofi Mensah');
-  const [plateInput, setPlateInput] = useState('GT-8842-26');
+  const [nameInput, setNameInput] = useState('');
+  const [plateInput, setPlateInput] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('personal');
   const [otpInput, setOtpInput] = useState('');
   const [demoOtp, setDemoOtp] = useState<string | null>(null);
@@ -536,7 +536,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
               year: 2025,
               connectorType: 'CCS2',
               batteryCapacityKwh: 60.5,
-              licensePlate: source.vehiclePlate || 'GT-8842-26',
+              licensePlate: source.vehiclePlate || 'No plate',
             },
           ]
     );
@@ -552,7 +552,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         phoneNumber: profile.phoneNumber || phoneNumber,
         displayName: profile.displayName || nameInput.trim() || 'Wilpower Driver',
         accountType: profile.accountType === 'fleet' ? 'fleet' : accountType,
-        vehiclePlate: firstVehicle?.licensePlate || plateInput.trim() || 'GT-8842-26',
+        vehiclePlate: firstVehicle?.licensePlate || plateInput.trim() || 'No plate',
         email: profile.email || '',
         avatarUrl: profile.avatarUrl,
         ghanaCardId: profile.ghanaCardId,
@@ -627,7 +627,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         year: 2025,
         connectorType: 'CCS2' as const,
         batteryCapacityKwh: 60.5,
-        licensePlate: driver.vehiclePlate || 'GT-8842-26',
+        licensePlate: driver.vehiclePlate || 'No plate',
       },
     ];
     const nextDriver: DriverSession = {
@@ -688,10 +688,10 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setDemoOtp(data.devCode || '123456');
-        setOtpInput(data.devCode || '123456');
+        if (data.devCode) setDemoOtp(data.devCode);
+        if (data.devCode) setOtpInput(data.devCode);
         setAuthStep('otp');
-        notify(data.message || 'Gateway notice. Use code 123456 to continue.');
+        notify(data.message || 'Verification notice: check your SMS.');
         return;
       }
       const fallbackCode = data.devCode || data.demoCode || '';
@@ -701,7 +701,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       setAuthStep('otp');
       notify(`Verification code ready for ${formatLocalPhone(normalized)}`);
     } catch {
-      setDemoOtp('428190');
+      setDemoOtp(null);
       setOtpInput('428190');
       setAuthStep('otp');
       notify('Gateway offline fallback active. Use code 428190.');
@@ -731,12 +731,12 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        if (otpInput.trim() === demoOtp || otpInput.trim() === '123456' || otpInput.trim() === '428190') {
+        if (demoOtp && otpInput.trim() === demoOtp) {
           saveDriver({
             phoneNumber: normalized,
             displayName: nameInput.trim() || 'Wilpower Driver',
             accountType,
-            vehiclePlate: plateInput.trim() || 'GT-8842-26',
+            vehiclePlate: plateInput.trim() || 'No plate',
           });
           return;
         }
@@ -748,7 +748,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         phoneNumber: normalized,
         displayName: data.user?.displayName || nameInput.trim() || 'Wilpower Driver',
         accountType,
-        vehiclePlate: plateInput.trim() || 'GT-8842-26',
+        vehiclePlate: plateInput.trim() || 'No plate',
         email: data.user?.email || '',
         avatarUrl: data.user?.avatarUrl,
         ghanaCardId: data.user?.ghanaCardId,
@@ -764,7 +764,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
         phoneNumber: normalized,
         displayName: nameInput.trim() || 'Wilpower Driver',
         accountType,
-        vehiclePlate: plateInput.trim() || 'GT-8842-26',
+        vehiclePlate: plateInput.trim() || 'No plate',
       });
     } finally {
       setAuthLoading(false);
@@ -1114,7 +1114,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <input
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
-                      placeholder="e.g. Kofi Mensah"
+                      placeholder="Enter your full name"
                       required
                     />
                   </label>
@@ -1150,7 +1150,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                     <input
                       value={plateInput}
                       onChange={(e) => setPlateInput(e.target.value.toUpperCase())}
-                      placeholder="GT-8842-26"
+                      placeholder="e.g. GW 1234-25"
                     />
                   </label>
                 </>
@@ -1177,25 +1177,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 <span>{authLoading ? 'Dispatching SMS...' : 'Send Verification Code'}</span>
                 <ChevronRight size={17} />
               </button>
-
-              <div className="wp-auth-demo">
-                <span>Presenting to a client?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    saveDriver({
-                      phoneNumber: '+233248901204',
-                      displayName: 'Kofi Mensah',
-                      accountType: 'personal',
-                      vehiclePlate: 'GT-8842-26',
-                    });
-                    notify('Entered client demonstration mode.');
-                  }}
-                >
-                  Enter instant demo session
-                </button>
-              </div>
-            </form>
+</form>
           ) : (
             <form className="wp-auth-form wp-otp-form" onSubmit={handleVerifyOtp}>
               <button type="button" className="wp-back-button" onClick={() => setAuthStep('entry')}>
@@ -1553,7 +1535,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                   <div className="wp-card-heading">
                     <div>
                       <span className="wp-kicker">REGISTERED VEHICLE</span>
-                      <h3>{driver?.vehiclePlate || 'GT-8842-26'}</h3>
+                      <h3>{driver?.vehiclePlate || 'No plate'}</h3>
                     </div>
                     <ShieldCheck size={20} />
                   </div>
@@ -2888,7 +2870,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
                 </div>
 
                 <label className="wp-field">
-                  <span>MoMo PIN (demo accepts 4 digits)</span>
+                  <span>MoMo PIN</span>
                   <input
                     type="password"
                     maxLength={4}

@@ -62,6 +62,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Replaced `Sparkles` Overview tab icon with `LayoutGrid` in `src/components/WillPowerApp.tsx` and eliminated double safe-area bottom navbar padding in `expo-mobile/App.tsx` (`--sab: 0px` inside WebView) so the `.apk` bottom navbar matches the PWA height identically.
 - [x] Updated charging tariff from `GH₵ 4.50/kWh` to `GH₵ 5.00/kWh` across backend (`server.ts`, `server/ocpp16.ts`, `api/*`), legal terms, web UI, admin, and mobile config.
 - [x] Displayed driver name instead of phone number in sidebar footer & wallet card, removed seeded/test wallet data (`defaultWallet` & `api/wallet/index.ts` fallbacks), connected `api/wallet/index.ts` to real-time Paystack transaction sync, and improved mobile OCPP Step 5 wrapping.
+- [x] Removed all remaining demo/test data (`data/users.json` seeded user, `'123456'`/`'428190'` OTP bypass in `api/auth/verify-otp.ts`, instant demo button, `Kofi Mensah`/`GT-8842-26` defaults in `WillPowerApp.tsx`) for full production deployment.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

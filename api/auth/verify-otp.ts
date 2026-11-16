@@ -65,9 +65,6 @@ export default async function handler(req: any, res: any) {
     const normalized = normalizeGhanaPhoneNumber(phoneNumber);
     const trimmedCode = String(code).trim();
 
-    // Universal test bypass code '123456' or '428190'
-    const isDevBypass = trimmedCode === '123456' || trimmedCode === '428190';
-
     // Stateless deterministic verification across 5 sliding windows
     const isDeterministic =
       trimmedCode === getDeterministicOtp(normalized, 0) ||
@@ -76,30 +73,32 @@ export default async function handler(req: any, res: any) {
       trimmedCode === getDeterministicOtp(normalized, -3) ||
       trimmedCode === getDeterministicOtp(normalized, 1);
 
-    if (!isDevBypass && !isDeterministic) {
+    if (!isDeterministic) {
       return res.status(400).json({ success: false, error: 'Invalid verification code. Please check and retry.' });
     }
 
     const userProfile = {
       id: `usr-gh-${normalized.slice(-4)}-${Date.now().toString(36)}`,
       phoneNumber: normalized,
-      displayName: metadata?.displayName || (normalized === '+233248901204' ? 'Kofi Mensah' : 'EV Driver'),
-      email: metadata?.email || (normalized === '+233248901204' ? 'kofi.mensah@chargelink.com.gh' : 'driver@chargelink.com.gh'),
-      walletBalance: 245.50,
+      displayName: metadata?.displayName || 'Wilpower Driver',
+      email: metadata?.email || '',
+      walletBalance: 0.00,
       heldEscrow: 0.00,
       defaultPaymentMethod: 'MTN_MOMO',
-      registeredVehicles: [
-        {
-          id: 'veh-01',
-          make: metadata?.selectedEv === 'tesla' ? 'Tesla' : 'BYD',
-          model: metadata?.selectedEv === 'tesla' ? 'Model Y Long Range' : 'Atto 3 EV',
-          year: 2024,
-          batteryCapacityKwh: metadata?.selectedEv === 'tesla' ? 75.0 : 60.5,
-          connectorType: 'CCS2',
-          licensePlate: 'GW 4821 - 24',
-          isDefault: true,
-        },
-      ],
+      registeredVehicles: metadata?.vehiclePlate
+        ? [
+            {
+              id: 'veh-01',
+              make: metadata?.selectedEv === 'tesla' ? 'Tesla' : 'EV',
+              model: metadata?.selectedEv === 'tesla' ? 'Model Y' : 'Driver Vehicle',
+              year: new Date().getFullYear(),
+              batteryCapacityKwh: metadata?.selectedEv === 'tesla' ? 75.0 : 60.5,
+              connectorType: 'GB/T',
+              licensePlate: metadata.vehiclePlate,
+              isDefault: true,
+            },
+          ]
+        : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
