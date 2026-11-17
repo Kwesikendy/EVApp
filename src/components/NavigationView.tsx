@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, ArrowRight, LocateFixed, X } from 'lucide-react';
 
 interface NavigationStation {
@@ -117,8 +118,17 @@ export function NavigationView({ station, onClose }: NavigationViewProps) {
       .addTo(map)
       .bindTooltip(station.name, { direction: 'top', offset: [0, -16] });
     mapRef.current = map;
-    window.setTimeout(() => map.invalidateSize(), 80);
+    const t1 = window.setTimeout(() => map.invalidateSize(), 80);
+    const t2 = window.setTimeout(() => map.invalidateSize(), 350);
+    const observer =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => map.invalidateSize())
+        : null;
+    if (observer && mapContainerRef.current) observer.observe(mapContainerRef.current);
     return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      observer?.disconnect();
       map.remove();
       mapRef.current = null;
       originMarkerRef.current = null;
