@@ -70,6 +70,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Enforced strict production-only signup & login (`server/auth.ts`, `api/auth/send-otp.ts`, `WillPowerApp.tsx`): removed all offline/demo OTP fallbacks (`428190`/`123456`/`devCode`), persisted signup `displayName` & `vehiclePlate` to `data/users.json` without overwriting on subsequent logins, and prevented `getUserWallet` from falling back to another user's wallet.
 - [x] Removed internal OCPP engineering tab (5-Step HMI Commissioning Guide, password `1`, JSON-over-WebSocket packet stream, Simulator Mode) from the public driver app (`WillPowerApp.tsx`, keeping all commissioning/OCPP tools in `/admin`) and updated `.wp-mobile-nav` to 4 clean driver tabs (`Overview`, `Find`, `Charging`, `MoMo`).
 - [x] Retouched and tightly cropped Greenwood Event Center station & outlet photos (`station-a.jpg`, `station1-outlet-a.jpg`, `station1-outlet-b.jpg`, `station2-40kw.jpg`) across `public/stations/`, `dist/stations/`, and `expo-mobile/assets/stations/` so only the charging units and cables are framed cleanly without background clutter.
+- [x] Removed `guestMode`, `Try the demo profile`, `Explore the network first`, `devCode`/`123456` fallbacks, and legacy demo session auto-login from `src/App.tsx` and `src/components/WillPowerAuth.tsx` so all users must authenticate via live Moolre SMS OTP before accessing the platform.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

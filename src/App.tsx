@@ -7,7 +7,12 @@ import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 function readStoredUser() {
   try {
     const saved = localStorage.getItem('wilpower_user_session') || localStorage.getItem('willpower_user_session') || localStorage.getItem('chargelink_user_session') || localStorage.getItem('xcharge_user_session');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (!parsed || !parsed.phoneNumber || String(parsed.id || '').startsWith('usr-demo-') || parsed.id === 'usr-gh-001') {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -182,11 +187,9 @@ function PaystackCallback() {
 
 function DriverApp() {
   const [currentUser, setCurrentUser] = useState<any>(() => readStoredUser());
-  const [guestMode, setGuestMode] = useState(false);
 
   const handleVerified = (user: any) => {
     setCurrentUser(user);
-    setGuestMode(false);
     try {
       localStorage.setItem('wilpower_user_session', JSON.stringify(user));
       localStorage.setItem('willpower_user_session', JSON.stringify(user));
@@ -203,11 +206,10 @@ function DriverApp() {
       localStorage.removeItem('xcharge_user_session');
     } catch {}
     setCurrentUser(null);
-    setGuestMode(false);
   };
 
-  if (!currentUser && !guestMode) {
-    return <WillPowerAuth onVerified={handleVerified} onGuestExplore={() => setGuestMode(true)} />;
+  if (!currentUser) {
+    return <WillPowerAuth onVerified={handleVerified} />;
   }
 
   return (

@@ -14,7 +14,6 @@ import {
 
 interface WillPowerAuthProps {
   onVerified: (user: any) => void;
-  onGuestExplore: () => void;
 }
 
 type AuthMode = 'login' | 'signup' | 'otp';
@@ -34,7 +33,7 @@ function normalizePhone(value: string) {
   return value.trim();
 }
 
-export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGuestExplore }) => {
+export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [phone, setPhone] = useState('');
   const [fullName, setFullName] = useState('');
@@ -42,18 +41,16 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
   const [vehicle, setVehicle] = useState('byd');
   const [payment, setPayment] = useState('momo');
   const [code, setCode] = useState('');
-  const [devCode, setDevCode] = useState<string | undefined>();
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const selectedVehicle = VEHICLES.find((item) => item.id === vehicle) || VEHICLES[0];
   const normalizedPhone = normalizePhone(phone);
 
-  const requestOtp = async (demo = false) => {
+  const requestOtp = async () => {
     setError('');
     setNotice('');
-    if (!demo && !normalizedPhone) {
+    if (!normalizedPhone) {
       setError('Enter a Ghana mobile number to continue.');
       return;
     }
@@ -66,18 +63,19 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: demo ? '+233248901204' : normalizedPhone }),
+        body: JSON.stringify({ phoneNumber: normalizedPhone }),
       });
       const data = await response.json().catch(() => ({}));
-      setDevCode(data.devCode || data.code || '123456');
-      if (data.notice || data.message) setNotice(data.notice || data.message);
+      if (!response.ok || !data.success) {
+        setError(data.error || data.message || 'Could not send verification SMS. Please retry.');
+        return;
+      }
+      if (data.message) setNotice(data.message);
+      setMode('otp');
     } catch {
-      setDevCode('123456');
-      setNotice('Gateway notice: Use passcode 123456 to continue.');
+      setError('Unable to reach the SMS gateway. Check your connection and try again.');
     } finally {
       setLoading(false);
-      setPhone(demo ? '024 890 1204' : phone);
-      setMode('otp');
     }
   };
 
@@ -94,9 +92,9 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phoneNumber: normalizedPhone || '+233248901204',
+          phoneNumber: normalizedPhone,
           code: submitted,
-          metadata: mode === 'otp' && fullName
+          metadata: fullName.trim()
             ? {
                 displayName: fullName.trim(),
                 email: email.trim(),
@@ -109,28 +107,6 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
       const data = await response.json().catch(() => ({}));
       if (response.ok && data.success && data.user) {
         onVerified(data.user);
-        return;
-      }
-      if (submitted === '123456' || submitted === '428190' || (devCode && submitted === devCode)) {
-        onVerified({
-          id: 'usr-demo-' + Date.now().toString(36),
-          phoneNumber: normalizedPhone || '+233248901204',
-          displayName: fullName.trim() || 'Kofi Mensah',
-          email: email.trim() || 'driver@wilpower.energy',
-          walletBalance: 100,
-          heldEscrow: 0,
-          defaultPaymentMethod: 'MTN_MOMO',
-          registeredVehicles: [
-            {
-              id: 'veh-demo',
-              make: selectedVehicle.name.split(' ')[0],
-              model: selectedVehicle.name.split(' ').slice(1).join(' '),
-              batteryCapacityKwh: selectedVehicle.id === 'hyundai' ? 77.4 : selectedVehicle.id === 'tesla' ? 75 : 60.5,
-              connectorType: 'CCS2',
-              isDefault: true,
-            },
-          ],
-        });
         return;
       }
       setError(data.error || 'That code was not accepted. Request a new code and try again.');
@@ -260,12 +236,6 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
               <span>{mode === 'signup' ? 'Create profile' : 'Continue securely'}</span>
               {!loading && <ArrowRight size={17} aria-hidden="true" />}
             </button>
-
-            <div className="wp-auth-demo">
-              <button onClick={() => requestOtp(true)}>Try the demo profile <ArrowRight size={14} aria-hidden="true" /></button>
-              <span>Use the live experience without a real charger.</span>
-            </div>
-            <button className="wp-guest-button" onClick={onGuestExplore}>Explore the network first</button>
           </div>
         ) : (
           <div className="wp-auth-form wp-otp-form">
@@ -274,14 +244,8 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified, onGues
               <span className="wp-kicker">SECURE ACCESS</span>
               <div className="wp-otp-icon"><KeyRound size={22} aria-hidden="true" /></div>
               <h2>Check your messages.</h2>
-              <p>Enter the six-digit code sent to <strong>{normalizedPhone || '+233 24 890 1204'}</strong>.</p>
+              <p>Enter the six-digit code sent to <strong>{normalizedPhone}</strong>.</p>
             </div>
-            {devCode && (
-              <div className="wp-demo-code" role="status">
-                <span>Demo code ready</span>
-                <button onClick={() => { setCode(devCode); void verify(devCode); }}>{devCode} · Use code</button>
-              </div>
-            )}
             <label className="wp-field">
               <span>Verification code</span>
               <input
