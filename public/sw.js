@@ -1,5 +1,5 @@
 // Wilpower cache v10 includes OCPP 1.6 Edition 2 Hardware Ingress & Commissioning.
-const CACHE_NAME = 'wilpower-pwa-v11';
+const CACHE_NAME = 'wilpower-pwa-v12';
 
 const STATIC_ASSETS = [
   '/',
