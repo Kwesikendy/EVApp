@@ -53,11 +53,14 @@ export interface UserProfile {
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import crypto from 'crypto';
 
 const SEED_FILE = path.join(process.cwd(), 'data', 'users.json');
 const DATA_DIR = process.env.VERCEL
   ? path.join('/tmp', 'xcharge-data')
+  : process.cwd().includes('hbuilds')
+  ? path.join(os.homedir(), '.wilpower-data')
   : path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const OTP_FILE = path.join(DATA_DIR, 'otps.json');

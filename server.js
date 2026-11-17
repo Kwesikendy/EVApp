@@ -10,10 +10,11 @@ import fs3 from "fs";
 // server/auth.ts
 import fs from "fs";
 import path from "path";
+import os from "os";
 import crypto from "crypto";
 var OTP_STORE = /* @__PURE__ */ new Map();
 var SEED_FILE = path.join(process.cwd(), "data", "users.json");
-var DATA_DIR = process.env.VERCEL ? path.join("/tmp", "xcharge-data") : path.join(process.cwd(), "data");
+var DATA_DIR = process.env.VERCEL ? path.join("/tmp", "xcharge-data") : process.cwd().includes("hbuilds") ? path.join(os.homedir(), ".wilpower-data") : path.join(process.cwd(), "data");
 var USERS_FILE = path.join(DATA_DIR, "users.json");
 var OTP_FILE = path.join(DATA_DIR, "otps.json");
 function getDeterministicOtp(phone, windowOffset = 0) {
@@ -2310,7 +2311,7 @@ var STATIONS = [
     chargeBoxId: "CL-KSI-001",
     pileNumber: "19046744073709551615",
     name: "Greenwood Event Center Station 1",
-    imageUrl: "/stations/.jpg?v=2",
+    imageUrl: "/stations/station-a.jpg?v=2",
     operator: "ChargeLink GH",
     address: "Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi",
     latitude: 6.6697479,
@@ -2338,7 +2339,7 @@ var STATIONS = [
         id: 101,
         connectorId: 1,
         label: "Outlet A",
-        imageUrl: "/stations/.jpg?v=2",
+        imageUrl: "/stations/station1-outlet-a.jpg?v=2",
         type: "GB/T",
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -2352,7 +2353,7 @@ var STATIONS = [
         id: 102,
         connectorId: 2,
         label: "Outlet B",
-        imageUrl: "/stations/.jpg?v=2",
+        imageUrl: "/stations/station1-outlet-b.jpg?v=2",
         type: "GB/T",
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -2370,7 +2371,7 @@ var STATIONS = [
     chargeBoxId: "CL-KSI-002",
     pileNumber: "CL-KSI-002",
     name: "Greenwood Event Center Station 2",
-    imageUrl: "/stations/.jpg?v=2",
+    imageUrl: "/stations/station2-40kw.jpg?v=2",
     operator: "ChargeLink GH",
     address: "Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi",
     latitude: 6.6697479,

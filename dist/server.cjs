@@ -44,10 +44,11 @@ var import_fs3 = __toESM(require("fs"), 1);
 // server/auth.ts
 var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
+var import_os = __toESM(require("os"), 1);
 var import_crypto = __toESM(require("crypto"), 1);
 var OTP_STORE = /* @__PURE__ */ new Map();
 var SEED_FILE = import_path.default.join(process.cwd(), "data", "users.json");
-var DATA_DIR = process.env.VERCEL ? import_path.default.join("/tmp", "xcharge-data") : import_path.default.join(process.cwd(), "data");
+var DATA_DIR = process.env.VERCEL ? import_path.default.join("/tmp", "xcharge-data") : process.cwd().includes("hbuilds") ? import_path.default.join(import_os.default.homedir(), ".wilpower-data") : import_path.default.join(process.cwd(), "data");
 var USERS_FILE = import_path.default.join(DATA_DIR, "users.json");
 var OTP_FILE = import_path.default.join(DATA_DIR, "otps.json");
 function getDeterministicOtp(phone, windowOffset = 0) {
@@ -2344,7 +2345,7 @@ var STATIONS = [
     chargeBoxId: "CL-KSI-001",
     pileNumber: "19046744073709551615",
     name: "Greenwood Event Center Station 1",
-    imageUrl: "/stations/.jpg?v=2",
+    imageUrl: "/stations/station-a.jpg?v=2",
     operator: "ChargeLink GH",
     address: "Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi",
     latitude: 6.6697479,
@@ -2372,7 +2373,7 @@ var STATIONS = [
         id: 101,
         connectorId: 1,
         label: "Outlet A",
-        imageUrl: "/stations/.jpg?v=2",
+        imageUrl: "/stations/station1-outlet-a.jpg?v=2",
         type: "GB/T",
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -2386,7 +2387,7 @@ var STATIONS = [
         id: 102,
         connectorId: 2,
         label: "Outlet B",
-        imageUrl: "/stations/.jpg?v=2",
+        imageUrl: "/stations/station1-outlet-b.jpg?v=2",
         type: "GB/T",
         maxPowerKw: 160,
         currentPowerKw: 0,
@@ -2404,7 +2405,7 @@ var STATIONS = [
     chargeBoxId: "CL-KSI-002",
     pileNumber: "CL-KSI-002",
     name: "Greenwood Event Center Station 2",
-    imageUrl: "/stations/.jpg?v=2",
+    imageUrl: "/stations/station2-40kw.jpg?v=2",
     operator: "ChargeLink GH",
     address: "Opoku Bandoh Plaza, Asokwa Newroad, Eastern Bypass, Kumasi",
     latitude: 6.6697479,
