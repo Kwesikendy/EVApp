@@ -2937,7 +2937,7 @@ app.put("/api/admin/stations/:stationId/tariff", requireAdminRole("super_admin",
     (c) => connectorId === void 0 || c.connectorId === connectorId ? { ...c, tariffPerKwh: rounded, tariffGhsPerKwh: rounded } : c
   );
   try {
-    ocpp16Engine.changeConfigurationKey(station.stationId, "MaxPower.ElectricityPriceGhsPerKwh", rounded.toFixed(2));
+    ocpp16Engine.changeConfigurationKey("MaxPower.ElectricityPriceGhsPerKwh", rounded.toFixed(2));
   } catch {
   }
   res.json({ success: true, station, tariffPerKwh: rounded });
