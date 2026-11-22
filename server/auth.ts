@@ -35,6 +35,7 @@ export interface UserProfile {
   smsReceiptsEnabled?: boolean;
   walletBalance: number;
   heldEscrow: number;
+  customTariffPerKwh?: number;
   defaultPaymentMethod: 'MTN_MOMO' | 'TELECEL_CASH' | 'MASTERCARD';
   registeredVehicles: {
     id: string;
@@ -426,6 +427,12 @@ export function verifyOtp(
 export function getUserProfile(phoneNumber: string): UserProfile | undefined {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   return USERS_DB.get(normalized);
+}
+
+export function getAllUsers(): UserProfile[] {
+  return Array.from(USERS_DB.values()).sort(
+    (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+  );
 }
 
 export function updateUserProfile(phoneNumber: string, updates: Partial<UserProfile>): UserProfile | null {

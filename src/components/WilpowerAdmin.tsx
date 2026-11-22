@@ -22,12 +22,18 @@ import {
   ShieldCheck,
   Terminal,
   Unlock,
+  Users,
+  Search,
+  Coins,
   Wrench,
   X,
   Zap,
 } from 'lucide-react';
 
-type AdminView = 'dashboard' | 'stations' | 'sessions' | 'diagnostics' | 'security';
+type AdminView = 'dashboard' | 'stations' | 'customers' | 'sessions' | 'diagnostics' | 'security';
+
+interface CustomerTransaction { id: string; timestamp: string; amount: number; type: string; status: string; provider: string; reference: string; description: string; }
+interface CustomerAccount { id: string; phoneNumber: string; displayName: string; email?: string; walletBalance: number; heldEscrow: number; customTariffPerKwh?: number; chargingCount: number; totalSpentGhs: number; registeredVehicles: Array<{ id: string; make: string; model: string; licensePlate: string; connectorType: string }>; transactions: CustomerTransaction[]; createdAt: string; updatedAt: string; }
 
 interface AdminIdentity {
   id: string;
@@ -104,6 +110,12 @@ export function WilpowerAdmin() {
   const [logs, setLogs] = useState<OcppLog[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [customers, setCustomers] = useState<CustomerAccount[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [selectedCustomerPhone, setSelectedCustomerPhone] = useState<string | null>(null);
+  const [customerTariffInput, setCustomerTariffInput] = useState('');
+  const [stationTariffDrafts, setStationTariffDrafts] = useState<Record<string, string>>({});
+  const [tariffBusy, setTariffBusy] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -139,17 +151,34 @@ export function WilpowerAdmin() {
     if (!admin) return;
     setRefreshing(true);
     try {
-      const [overviewRes, stationsRes, logsRes] = await Promise.all([
+      const [overviewRes, stationsRes, logsRes, customersRes] = await Promise.all([
         fetch('/api/admin/overview', { credentials: 'include' }),
         fetch('/api/admin/stations', { credentials: 'include' }),
         fetch('/api/admin/ocpp/logs', { credentials: 'include' }),
+        fetch('/api/admin/customers', { credentials: 'include' }),
       ]);
       if (overviewRes.status === 401) {
         setAdmin(null);
         return;
       }
       if (overviewRes.ok) setOverview(await overviewRes.json());
-      if (stationsRes.ok) setStations(await stationsRes.json());
+      if (stationsRes.ok) {
+        const nextStations: Station[] = await stationsRes.json();
+        setStations(nextStations);
+        setStationTariffDrafts((prev) => {
+          const next = { ...prev };
+          for (const st of nextStations) {
+            if (next[st.stationId] === undefined) {
+              next[st.stationId] = String((st.connectors?.[0]?.tariffPerKwh ?? 5.0).toFixed(2));
+            }
+          }
+          return next;
+        });
+      }
+      if (customersRes.ok) {
+        const nextCustomers: CustomerAccount[] = await customersRes.json();
+        setCustomers(Array.isArray(nextCustomers) ? nextCustomers : []);
+      }
       if (logsRes.ok) {
         const nextLogs = await logsRes.json();
         setLogs(Array.isArray(nextLogs) ? nextLogs.slice(0, 20) : []);
@@ -261,10 +290,72 @@ export function WilpowerAdmin() {
     }
   }
 
+  async function updateStationTariff(stationId: string) {
+    const val = parseFloat(stationTariffDrafts[stationId] || '');
+    if (!Number.isFinite(val) || val <= 0 || val > 100) {
+      setNotice('Enter a valid price between GH₵ 0.01 and GH₵ 100.00 per kWh.');
+      return;
+    }
+    setTariffBusy(true);
+    try {
+      const res = await fetch(`/api/admin/stations/${encodeURIComponent(stationId)}/tariff`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tariffPerKwh: val }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setNotice(data.error || 'Could not update station tariff.'); return; }
+      setNotice(`${stationId} tariff updated to ${formatGhs(val)}/kWh.`);
+      await refreshOperations();
+    } catch {
+      setNotice('Network error updating station tariff.');
+    } finally {
+      setTariffBusy(false);
+    }
+  }
+
+  async function updateCustomerTariff(phone: string, customRate: number | null) {
+    setTariffBusy(true);
+    try {
+      const res = await fetch(`/api/admin/customers/${encodeURIComponent(phone)}/tariff`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ customTariffPerKwh: customRate }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setNotice(data.error || 'Could not update customer rate.'); return; }
+      setNotice(customRate === null ? `Reset ${phone} to station default rate.` : `Set ${phone} custom rate to ${formatGhs(customRate)}/kWh.`);
+      await refreshOperations();
+    } catch {
+      setNotice('Network error updating customer rate.');
+    } finally {
+      setTariffBusy(false);
+    }
+  }
+
+  const filteredCustomers = useMemo(() => {
+    const q = customerSearch.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter((c) =>
+      (c.displayName || '').toLowerCase().includes(q) ||
+      (c.phoneNumber || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.registeredVehicles || []).some((v) => (v.licensePlate || '').toLowerCase().includes(q))
+    );
+  }, [customers, customerSearch]);
+
+  const selectedCustomer = useMemo(() => {
+    if (!customers.length) return null;
+    return customers.find((c) => c.phoneNumber === selectedCustomerPhone) || filteredCustomers[0] || customers[0];
+  }, [customers, filteredCustomers, selectedCustomerPhone]);
+
   const navItems = useMemo(
     () => [
       { id: 'dashboard' as const, label: 'Dashboard', sub: 'Network overview', icon: LayoutDashboard },
-      { id: 'stations' as const, label: 'Stations', sub: 'Commissioning & guns', icon: Building2 },
+      { id: 'stations' as const, label: 'Stations', sub: 'Commissioning & pricing', icon: Building2 },
+      { id: 'customers' as const, label: 'Customers', sub: 'Accounts, history & rates', icon: Users },
       { id: 'sessions' as const, label: 'Sessions', sub: 'Live energy ledger', icon: BatteryCharging },
       { id: 'diagnostics' as const, label: 'OCPP 1.6J CSMS', sub: 'Commands & frames', icon: Cpu },
       { id: 'security' as const, label: 'Security', sub: 'Credentials & access', icon: KeyRound },
@@ -618,6 +709,26 @@ export function WilpowerAdmin() {
                         {station.connectors.map((c) => `${c.label || `Gun ${c.connectorId}`} (${c.type}): ${c.status}`).join(' · ')}
                       </span>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <input
+                            type="number"
+                            step="0.10"
+                            min="0.10"
+                            value={stationTariffDrafts[station.stationId] ?? ''}
+                            onChange={(e) => setStationTariffDrafts((prev) => ({ ...prev, [station.stationId]: e.target.value }))}
+                            style={{ width: 78, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 12 }}
+                            aria-label="Tariff GH₵ per kWh"
+                          />
+                          <button
+                            type="button"
+                            className="wa-row-action"
+                            disabled={tariffBusy}
+                            onClick={() => updateStationTariff(station.stationId)}
+                          >
+                            <Coins size={13} />
+                            <span>Set GH₵/kWh</span>
+                          </button>
+                        </div>
                         <button
                           type="button"
                           className="wa-row-action"
@@ -702,6 +813,200 @@ export function WilpowerAdmin() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {view === 'customers' && (
+            <section className="wa-section">
+              <div className="wa-page-heading">
+                <div>
+                  <span className="wa-eyebrow">DRIVER ACCOUNTS &amp; PRICING</span>
+                  <h1>Customer Accounts &amp; History.</h1>
+                  <p>View registered drivers, inspect wallet balances and charging history, and set customer-specific GH₵/kWh pricing.</p>
+                </div>
+                <div className="wa-page-status">
+                  <span>{customers.length} Registered {customers.length === 1 ? 'Account' : 'Accounts'}</span>
+                </div>
+              </div>
+
+              <div className="wa-panel" style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+                  <Search size={16} />
+                  <input
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    placeholder="Search customers by name, phone (+233...), email, or vehicle plate..."
+                    style={{ flex: 1, background: 'transparent', border: 0, outline: 0, color: '#fff', fontSize: 13 }}
+                  />
+                </div>
+              </div>
+
+              <div className="wa-dashboard-grid">
+                <div className="wa-panel">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">ACCOUNTS ({filteredCustomers.length})</span>
+                      <h3>Registered Drivers</h3>
+                    </div>
+                    <Users size={17} />
+                  </div>
+
+                  {filteredCustomers.length === 0 ? (
+                    <div className="wa-empty-state">
+                      <Users size={22} />
+                      <strong>No customer accounts found</strong>
+                      <span>New signups appear here automatically once drivers verify via OTP.</span>
+                    </div>
+                  ) : (
+                    <div className="wa-station-list">
+                      {filteredCustomers.map((c) => {
+                        const isSelected = selectedCustomer?.phoneNumber === c.phoneNumber;
+                        return (
+                          <button
+                            key={c.phoneNumber}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCustomerPhone(c.phoneNumber);
+                              setCustomerTariffInput(c.customTariffPerKwh !== undefined ? String(c.customTariffPerKwh) : '');
+                            }}
+                            className="wa-station-row"
+                            style={{
+                              width: '100%',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              border: isSelected ? '1px solid rgba(189,242,46,0.55)' : undefined,
+                              background: isSelected ? 'rgba(189,242,46,0.08)' : undefined,
+                            }}
+                          >
+                            <div className="wa-station-meta">
+                              <strong>{c.displayName || 'Wilpower Driver'}</strong>
+                              <span>{c.phoneNumber}{c.email ? ` · ${c.email}` : ''}</span>
+                              <small>
+                                Wallet: {formatGhs(c.walletBalance)} · {c.chargingCount} charging {c.chargingCount === 1 ? 'session' : 'sessions'}
+                                {c.customTariffPerKwh !== undefined ? ` · Custom rate: ${formatGhs(c.customTariffPerKwh)}/kWh` : ' · Standard rate'}
+                              </small>
+                            </div>
+                            <ChevronRight size={15} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="wa-panel">
+                  <div className="wa-panel-heading">
+                    <div>
+                      <span className="wa-eyebrow">ACCOUNT DETAIL &amp; CHARGING HISTORY</span>
+                      <h3>{selectedCustomer ? selectedCustomer.displayName : 'Select a Customer'}</h3>
+                    </div>
+                    <Coins size={17} />
+                  </div>
+
+                  {!selectedCustomer ? (
+                    <div className="wa-empty-state">
+                      <Users size={22} />
+                      <strong>No customer selected</strong>
+                      <span>Select a customer on the left to inspect charging history and modify pricing.</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Wallet Balance</small>
+                          <strong style={{ fontSize: 18, color: '#bdf22e' }}>{formatGhs(selectedCustomer.walletBalance)}</strong>
+                        </div>
+                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Charging Spend</small>
+                          <strong style={{ fontSize: 18 }}>{formatGhs(selectedCustomer.totalSpentGhs)}</strong>
+                        </div>
+                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Customer Rate</small>
+                          <strong style={{ fontSize: 16 }}>
+                            {selectedCustomer.customTariffPerKwh !== undefined ? `${formatGhs(selectedCustomer.customTariffPerKwh)}/kWh` : 'Station Default'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <small style={{ color: '#94a3b8', display: 'block', marginBottom: 6 }}>
+                          Phone: {selectedCustomer.phoneNumber} {selectedCustomer.email ? `· Email: ${selectedCustomer.email}` : ''}
+                        </small>
+                        <small style={{ color: '#94a3b8', display: 'block' }}>
+                          Vehicles: {selectedCustomer.registeredVehicles?.length ? selectedCustomer.registeredVehicles.map((v) => `${v.make} ${v.model} (${v.licensePlate})`).join(', ') : 'None registered'}
+                        </small>
+                      </div>
+
+                      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(189,242,46,0.05)', border: '1px solid rgba(189,242,46,0.22)' }}>
+                        <strong style={{ display: 'block', fontSize: 13, marginBottom: 8 }}>Price Modification for {selectedCustomer.displayName}</strong>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            step="0.10"
+                            min="0.10"
+                            placeholder="e.g. 4.50"
+                            value={customerTariffInput}
+                            onChange={(e) => setCustomerTariffInput(e.target.value)}
+                            style={{ width: 120, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.25)', color: '#fff', fontSize: 13 }}
+                          />
+                          <button
+                            type="button"
+                            className="wa-row-action"
+                            disabled={tariffBusy}
+                            onClick={() => {
+                              const parsed = parseFloat(customerTariffInput);
+                              if (!Number.isFinite(parsed) || parsed <= 0) {
+                                setNotice('Enter a valid GH₵/kWh price (e.g. 4.50).');
+                                return;
+                              }
+                              updateCustomerTariff(selectedCustomer.phoneNumber, parsed);
+                            }}
+                          >
+                            <span>Save Custom Rate</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="wa-row-action"
+                            disabled={tariffBusy}
+                            onClick={() => {
+                              setCustomerTariffInput('');
+                              updateCustomerTariff(selectedCustomer.phoneNumber, null);
+                            }}
+                          >
+                            <span>Reset to Default</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <strong style={{ display: 'block', fontSize: 13, marginBottom: 8 }}>Charging &amp; Transaction History ({selectedCustomer.transactions?.length || 0})</strong>
+                        {!selectedCustomer.transactions?.length ? (
+                          <div className="wa-empty-state">
+                            <span>No charging sessions or wallet transactions recorded yet for this customer.</span>
+                          </div>
+                        ) : (
+                          <div className="wa-station-list" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                            {selectedCustomer.transactions.map((tx) => (
+                              <div className="wa-station-row" key={tx.id}>
+                                <div className="wa-station-meta">
+                                  <strong>{tx.description || tx.type}</strong>
+                                  <span>{tx.reference} · {new Date(tx.timestamp).toLocaleString()}</span>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <strong style={{ color: tx.type === 'TOPUP' ? '#bdf22e' : '#fff' }}>
+                                    {tx.type === 'TOPUP' ? '+' : ''}{formatGhs(tx.amount)}
+                                  </strong>
+                                  <small style={{ display: 'block', color: '#94a3b8' }}>{tx.status}</small>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>

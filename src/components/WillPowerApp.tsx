@@ -512,6 +512,7 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
 
   function saveDriver(nextDriver: DriverSession) {
     setDriver(nextDriver);
+    onUpdateUser?.(nextDriver);
     setTopupPhone(formatLocalPhone(nextDriver.phoneNumber));
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(nextDriver));
@@ -551,18 +552,31 @@ export function WillPowerApp({ user, onSignOut, onUpdateUser }: WillPowerAppProp
       if (!res.ok) return;
       const profile = await res.json();
       const firstVehicle = Array.isArray(profile.registeredVehicles) ? profile.registeredVehicles[0] : undefined;
+      const incomingName =
+        profile.displayName && !['EV Driver', 'Wilpower Driver'].includes(profile.displayName)
+          ? profile.displayName
+          : '';
+      const existingName =
+        driver?.displayName && !['EV Driver', 'Wilpower Driver'].includes(driver.displayName)
+          ? driver.displayName
+          : '';
+      const incomingEmail =
+        profile.email && profile.email !== 'driver@chargelink.com.gh' ? profile.email : '';
       saveDriver({
-        phoneNumber: profile.phoneNumber || phoneNumber,
-        displayName: profile.displayName || nameInput.trim() || 'Wilpower Driver',
-        accountType: profile.accountType === 'fleet' ? 'fleet' : accountType,
-        vehiclePlate: firstVehicle?.licensePlate || plateInput.trim() || 'No plate',
-        email: profile.email || '',
-        avatarUrl: profile.avatarUrl,
-        ghanaCardId: profile.ghanaCardId,
-        targetChargeLimit: profile.targetChargeLimit || 85,
+        phoneNumber: profile.phoneNumber || driver?.phoneNumber || phoneNumber,
+        displayName: incomingName || existingName || nameInput.trim() || 'Wilpower Driver',
+        accountType: profile.accountType === 'fleet' ? 'fleet' : (driver?.accountType || accountType),
+        vehiclePlate: firstVehicle?.licensePlate || driver?.vehiclePlate || plateInput.trim() || 'No plate',
+        email: incomingEmail || driver?.email || '',
+        avatarUrl: profile.avatarUrl || driver?.avatarUrl,
+        ghanaCardId: profile.ghanaCardId || driver?.ghanaCardId,
+        targetChargeLimit: profile.targetChargeLimit || driver?.targetChargeLimit || 85,
         smsReceiptsEnabled: profile.smsReceiptsEnabled !== false,
-        defaultPaymentMethod: profile.defaultPaymentMethod || 'MTN_MOMO',
-        registeredVehicles: profile.registeredVehicles || [],
+        defaultPaymentMethod: profile.defaultPaymentMethod || driver?.defaultPaymentMethod || 'MTN_MOMO',
+        registeredVehicles:
+          Array.isArray(profile.registeredVehicles) && profile.registeredVehicles.length > 0
+            ? profile.registeredVehicles
+            : (driver?.registeredVehicles || []),
       });
     } catch {
       // Local session remains usable if profile endpoint is temporarily unreachable.

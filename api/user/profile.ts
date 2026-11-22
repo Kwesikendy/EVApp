@@ -39,15 +39,12 @@ function defaultUser(phoneNumber: string): UserRecord {
   return {
     id: `usr-gh-${phoneNumber.slice(-4)}`,
     phoneNumber,
-    displayName: phoneNumber === '+233248901204' ? 'Kofi Mensah' : 'EV Driver',
-    email: phoneNumber === '+233248901204' ? 'kofi.mensah@chargelink.com.gh' : 'driver@chargelink.com.gh',
-    walletBalance: 100,
+    displayName: 'Wilpower Driver',
+    email: '',
+    walletBalance: 0,
     heldEscrow: 0,
     defaultPaymentMethod: 'MTN_MOMO',
-    registeredVehicles: [{
-      id: 'veh-01', make: 'BYD', model: 'Atto 3 EV', year: 2024,
-      batteryCapacityKwh: 60.5, connectorType: 'CCS2', licensePlate: 'GW 4821 - 24', isDefault: true,
-    }],
+    registeredVehicles: [],
     createdAt: now,
     updatedAt: now,
   };
@@ -114,9 +111,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'GET') {
     if (!user) {
-      user = defaultUser(phoneNumber);
-      users.set(phoneNumber, user);
-      saveUsersToDisk(users);
+      return res.status(404).json({ error: 'User profile not found' });
     }
     return res.status(200).json(user);
   }

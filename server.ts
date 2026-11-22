@@ -17,6 +17,7 @@ import {
   sendOtp,
   verifyOtp,
   getUserProfile,
+  getAllUsers,
   updateUserProfile,
   normalizeGhanaPhoneNumber,
   getUserWallet,
@@ -760,6 +761,64 @@ app.get('/api/admin/overview', requireAdmin, (req, res) => {
 
 app.get('/api/admin/stations', requireAdmin, (_req, res) => {
   res.json(STATIONS);
+});
+
+app.put('/api/admin/stations/:stationId/tariff', requireAdminRole('super_admin', 'network_operator'), (req, res) => {
+  const rawId = decodeURIComponent(req.params.stationId || '');
+  const nextTariff = Number(req.body?.tariffPerKwh);
+  const connectorId = req.body?.connectorId !== undefined ? Number(req.body.connectorId) : undefined;
+  if (!Number.isFinite(nextTariff) || nextTariff <= 0 || nextTariff > 100) {
+    res.status(400).json({ error: 'Enter a valid tariff in GH₵/kWh (between 0.01 and 100).' });
+    return;
+  }
+  const station = STATIONS.find((st) => st.id === rawId || st.stationId === rawId);
+  if (!station) {
+    res.status(404).json({ error: 'Station not found.' });
+    return;
+  }
+  const rounded = Number(nextTariff.toFixed(2));
+  station.connectors = station.connectors.map((c) =>
+    connectorId === undefined || c.connectorId === connectorId
+      ? { ...c, tariffPerKwh: rounded, tariffGhsPerKwh: rounded }
+      : c
+  );
+  try {
+    ocpp16Engine.changeConfigurationKey(station.stationId, 'MaxPower.ElectricityPriceGhsPerKwh', rounded.toFixed(2));
+  } catch {}
+  res.json({ success: true, station, tariffPerKwh: rounded });
+});
+
+app.get('/api/admin/customers', requireAdmin, (_req, res) => {
+  const customers = getAllUsers().map((u) => {
+    const txs = Array.isArray(u.transactions) ? u.transactions : [];
+    const chargingTxs = txs.filter((t) => t.type === 'CHARGE_SETTLEMENT');
+    const totalSpentGhs = chargingTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    return {
+      ...u,
+      chargingCount: chargingTxs.length,
+      totalSpentGhs: Number(totalSpentGhs.toFixed(2)),
+      transactions: txs,
+    };
+  });
+  res.json(customers);
+});
+
+app.put('/api/admin/customers/:phone/tariff', requireAdminRole('super_admin', 'network_operator'), (req, res) => {
+  const phone = decodeURIComponent(req.params.phone || '');
+  const rawRate = req.body?.customTariffPerKwh;
+  const parsed = rawRate === null || rawRate === '' || rawRate === undefined ? undefined : Number(rawRate);
+  if (parsed !== undefined && (!Number.isFinite(parsed) || parsed <= 0 || parsed > 100)) {
+    res.status(400).json({ error: 'Custom tariff must be between 0.01 and 100 GH₵/kWh, or cleared.' });
+    return;
+  }
+  const updated = updateUserProfile(phone, {
+    customTariffPerKwh: parsed !== undefined ? Number(parsed.toFixed(2)) : undefined,
+  });
+  if (!updated) {
+    res.status(404).json({ error: 'Customer account not found.' });
+    return;
+  }
+  res.json({ success: true, customer: updated });
 });
 
 app.get('/api/admin/ocpp/logs', requireAdmin, (_req, res) => {
