@@ -43,6 +43,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Standardized the customer-facing spelling to `Wilpower` and removed solid backgrounds from the full primary and reverse wordmarks. Launcher icons retain their background for reliable device masking.
 - [x] Corrected the visible wordmark casing to `Wilpower`, removed customer-facing concept labels, and retained the source photography only as a temporary launch asset.
 - [x] Updated the Expo brand assets, mobile theme tokens, app identity, and visible onboarding/session copy.
+- [x] Redesigned the `/admin` Operations Portal (`src/components/WilpowerAdmin.tsx` & `.wa-*` in `src/index.css`) to match the central Wilpower Night Drive aesthetic with tactile minimalist skeuomorphism (raised specular panels, recessed input/stat wells, bevelled lime/dark buttons, stacked CitrineOS Bridge indicator, 3-column customer stat bar, and full mobile responsiveness).
 - [x] Reworked the web/PWA visual system into the Wilpower Night Drive direction: dark editorial layout, frosted glass surfaces, lime signal accents, dot-grid texture, animated map geometry, hover lift, page transitions, modal motion, and hamburger-only mobile navigation.
 - [x] Added persistent Night Drive, Mint Light, and Paper Light web/PWA themes with light-theme wordmark switching and mobile-responsive controls.
 - [x] Refined mobile card sizing, action widths, detail-row wrapping, theme access, safe-area spacing, and viewport-safe modals.

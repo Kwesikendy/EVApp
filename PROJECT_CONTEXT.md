@@ -42,7 +42,8 @@
 - **Execution:** `tsx server.ts` running on `http://0.0.0.0:5173`.
 - **Telephony & SMS Gateway:** Official **Moolre Ghana Messaging Gateway** (`https://api.moolre.com/open/sms/send`).
 - **Payment Switch:** Ghana Mobile Money Switch ([`server/momo.ts`](file:///d:/xcharge-ev-platform/server/momo.ts)) supporting MTN MoMo (`*170#`), Telecel Cash (`*110#`), Mastercard 3D Secure, and telco webhook confirmation.
-- **Local Persistence Store:** Atomic JSON multi-user file store in [`data/users.json`](file:///d:/xcharge-ev-platform/data/users.json) for 100% resilient data survival across server restarts.
+- **Local Persistence Store:** Atomic JSON multi-user file store in [`data/users.json`](file:///d:/xcharge-ev-platform/data/users.json) (and Hostinger persistent `~/.wilpower-data`) for 100% resilient data survival across server restarts.
+- **Operations Portal (`/admin`):** Tactile minimalist Night Drive dashboard in [`src/components/WilpowerAdmin.tsx`](file:///d:/xcharge-ev-platform/src/components/WilpowerAdmin.tsx) with Customer Accounts & Charging History, per-customer and per-station `GH₵/kWh` tariff management, OCPP 1.6J CSMS controls, and recessed/bevelled soft-UI controls.
 - **Cloud Database:** Google Cloud Firestore ready (provisioned via [`firebase-applet-config.json`](file:///d:/xcharge-ev-platform/firebase-applet-config.json)).
 
 ---

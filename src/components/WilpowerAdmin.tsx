@@ -704,20 +704,20 @@ export function WilpowerAdmin() {
                       <span className="wa-connector-count">
                         {station.connectors.map((c) => `${c.label || `Gun ${c.connectorId}`} (${c.type}): ${c.status}`).join(' · ')}
                       </span>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className="wa-station-actions">
+                        <div className="wa-tariff-inline">
                           <input
                             type="number"
                             step="0.10"
                             min="0.10"
                             value={stationTariffDrafts[station.stationId] ?? ''}
                             onChange={(e) => setStationTariffDrafts((prev) => ({ ...prev, [station.stationId]: e.target.value }))}
-                            style={{ width: 78, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 12 }}
+                            className="wa-input wa-input-sm"
                             aria-label="Tariff GH₵ per kWh"
                           />
                           <button
                             type="button"
-                            className="wa-row-action"
+                            className="wa-btn-primary wa-btn-sm"
                             disabled={tariffBusy}
                             onClick={() => updateStationTariff(station.stationId)}
                           >
@@ -727,7 +727,7 @@ export function WilpowerAdmin() {
                         </div>
                         <button
                           type="button"
-                          className="wa-row-action"
+                          className="wa-btn-secondary wa-btn-sm"
                           onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 1 })}
                         >
                           <Unlock size={13} />
@@ -735,7 +735,7 @@ export function WilpowerAdmin() {
                         </button>
                         <button
                           type="button"
-                          className="wa-row-action"
+                          className="wa-btn-secondary wa-btn-sm"
                           onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 2 })}
                         >
                           <Unlock size={13} />
@@ -743,7 +743,7 @@ export function WilpowerAdmin() {
                         </button>
                         <button
                           type="button"
-                          className="wa-row-action"
+                          className="wa-btn-secondary wa-btn-sm"
                           onClick={() => dispatchAdminOcppCommand('Reset', { type: 'Soft' })}
                         >
                           <RefreshCw size={13} />
@@ -827,26 +827,23 @@ export function WilpowerAdmin() {
                 </div>
               </div>
 
-              <div className="wa-panel" style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
-                  <Search size={16} />
-                  <input
-                    value={customerSearch}
-                    onChange={(e) => setCustomerSearch(e.target.value)}
-                    placeholder="Search customers by name, phone (+233...), email, or vehicle plate..."
-                    style={{ flex: 1, background: 'transparent', border: 0, outline: 0, color: '#fff', fontSize: 13 }}
-                  />
-                </div>
+              <div className="wa-search-well">
+                <Search size={16} />
+                <input
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  placeholder="Search customers by name, phone (+233...), email, or vehicle plate..."
+                />
               </div>
 
-              <div className="wa-dashboard-grid">
+              <div className="wa-customers-grid">
                 <div className="wa-panel">
                   <div className="wa-panel-heading">
                     <div>
                       <span className="wa-eyebrow">ACCOUNTS ({filteredCustomers.length})</span>
                       <h3>Registered Drivers</h3>
                     </div>
-                    <Users size={17} />
+                    <Users size={18} />
                   </div>
 
                   {filteredCustomers.length === 0 ? (
@@ -867,8 +864,7 @@ export function WilpowerAdmin() {
                               setSelectedCustomerPhone(c.phoneNumber);
                               setCustomerTariffInput(c.customTariffPerKwh !== undefined ? String(c.customTariffPerKwh) : '');
                             }}
-                            className={`wa-customer-card ${isSelected ? "is-selected" : ""}`}
-                            
+                            className={`wa-customer-card ${isSelected ? 'is-selected' : ''}`}
                           >
                             <div className="wa-customer-meta">
                               <strong>{c.displayName || 'Wilpower Driver'}</strong>
@@ -878,7 +874,7 @@ export function WilpowerAdmin() {
                                 {c.customTariffPerKwh !== undefined ? ` · Custom rate: ${formatGhs(c.customTariffPerKwh)}/kWh` : ' · Standard rate'}
                               </small>
                             </div>
-                            <ChevronRight size={15} />
+                            <ChevronRight size={16} />
                           </button>
                         );
                       })}
@@ -892,7 +888,7 @@ export function WilpowerAdmin() {
                       <span className="wa-eyebrow">ACCOUNT DETAIL &amp; CHARGING HISTORY</span>
                       <h3>{selectedCustomer ? selectedCustomer.displayName : 'Select a Customer'}</h3>
                     </div>
-                    <Coins size={17} />
+                    <Coins size={18} />
                   </div>
 
                   {!selectedCustomer ? (
@@ -902,36 +898,51 @@ export function WilpowerAdmin() {
                       <span>Select a customer on the left to inspect charging history and modify pricing.</span>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Wallet Balance</small>
-                          <strong style={{ fontSize: 18, color: '#bdf22e' }}>{formatGhs(selectedCustomer.walletBalance)}</strong>
+                    <div className="wa-customer-detail">
+                      <div className="wa-customer-stats">
+                        <div className="wa-stat-tile">
+                          <small>Wallet Balance</small>
+                          <strong className="is-accent">{formatGhs(selectedCustomer.walletBalance)}</strong>
                         </div>
-                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Charging Spend</small>
-                          <strong style={{ fontSize: 18 }}>{formatGhs(selectedCustomer.totalSpentGhs)}</strong>
+                        <div className="wa-stat-tile">
+                          <small>Charging Spend</small>
+                          <strong>{formatGhs(selectedCustomer.totalSpentGhs)}</strong>
                         </div>
-                        <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <small style={{ color: '#94a3b8', display: 'block', fontSize: 11 }}>Customer Rate</small>
-                          <strong style={{ fontSize: 16 }}>
+                        <div className="wa-stat-tile">
+                          <small>Customer Rate</small>
+                          <strong>
                             {selectedCustomer.customTariffPerKwh !== undefined ? `${formatGhs(selectedCustomer.customTariffPerKwh)}/kWh` : 'Station Default'}
                           </strong>
                         </div>
                       </div>
 
-                      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <small style={{ color: '#94a3b8', display: 'block', marginBottom: 6 }}>
-                          Phone: {selectedCustomer.phoneNumber} {selectedCustomer.email ? `· Email: ${selectedCustomer.email}` : ''}
-                        </small>
-                        <small style={{ color: '#94a3b8', display: 'block' }}>
-                          Vehicles: {selectedCustomer.registeredVehicles?.length ? selectedCustomer.registeredVehicles.map((v) => `${v.make} ${v.model} (${v.licensePlate})`).join(', ') : 'None registered'}
-                        </small>
+                      <div className="wa-info-well">
+                        <div className="wa-info-row">
+                          <span>Phone</span>
+                          <strong>{selectedCustomer.phoneNumber}</strong>
+                        </div>
+                        {selectedCustomer.email && (
+                          <div className="wa-info-row">
+                            <span>Email</span>
+                            <strong>{selectedCustomer.email}</strong>
+                          </div>
+                        )}
+                        <div className="wa-info-row">
+                          <span>Vehicles</span>
+                          <strong>
+                            {selectedCustomer.registeredVehicles?.length
+                              ? selectedCustomer.registeredVehicles.map((v) => `${v.make} ${v.model} (${v.licensePlate})`).join(', ')
+                              : 'None registered'}
+                          </strong>
+                        </div>
                       </div>
 
-                      <div style={{ padding: 12, borderRadius: 12, background: 'rgba(189,242,46,0.05)', border: '1px solid rgba(189,242,46,0.22)' }}>
-                        <strong style={{ display: 'block', fontSize: 13, marginBottom: 8 }}>Price Modification for {selectedCustomer.displayName}</strong>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                      <div className="wa-rate-box">
+                        <div className="wa-rate-header">
+                          <strong>Price Modification for {selectedCustomer.displayName}</strong>
+                          <span>Override the GH₵/kWh rate applied to this driver&apos;s sessions.</span>
+                        </div>
+                        <div className="wa-rate-controls">
                           <input
                             type="number"
                             step="0.10"
@@ -939,11 +950,11 @@ export function WilpowerAdmin() {
                             placeholder="e.g. 4.50"
                             value={customerTariffInput}
                             onChange={(e) => setCustomerTariffInput(e.target.value)}
-                            style={{ width: 120, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.25)', color: '#fff', fontSize: 13 }}
+                            className="wa-input"
                           />
                           <button
                             type="button"
-                            className="wa-row-action"
+                            className="wa-btn-primary"
                             disabled={tariffBusy}
                             onClick={() => {
                               const parsed = parseFloat(customerTariffInput);
@@ -958,7 +969,7 @@ export function WilpowerAdmin() {
                           </button>
                           <button
                             type="button"
-                            className="wa-row-action"
+                            className="wa-btn-secondary"
                             disabled={tariffBusy}
                             onClick={() => {
                               setCustomerTariffInput('');
@@ -970,25 +981,28 @@ export function WilpowerAdmin() {
                         </div>
                       </div>
 
-                      <div>
-                        <strong style={{ display: 'block', fontSize: 13, marginBottom: 8 }}>Charging &amp; Transaction History ({selectedCustomer.transactions?.length || 0})</strong>
+                      <div className="wa-tx-section">
+                        <div className="wa-tx-heading">
+                          <strong>Charging &amp; Transaction History</strong>
+                          <span>{selectedCustomer.transactions?.length || 0} records</span>
+                        </div>
                         {!selectedCustomer.transactions?.length ? (
-                          <div className="wa-empty-state">
+                          <div className="wa-empty-state is-compact">
                             <span>No charging sessions or wallet transactions recorded yet for this customer.</span>
                           </div>
                         ) : (
-                          <div className="wa-station-list" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                          <div className="wa-tx-list">
                             {selectedCustomer.transactions.map((tx) => (
-                              <div className="wa-customer-card" key={tx.id}>
+                              <div className="wa-tx-row" key={tx.id}>
                                 <div className="wa-customer-meta">
                                   <strong>{tx.description || tx.type}</strong>
                                   <span>{tx.reference} · {new Date(tx.timestamp).toLocaleString()}</span>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                  <strong style={{ color: tx.type === 'TOPUP' ? '#bdf22e' : '#fff' }}>
+                                <div className="wa-tx-amount">
+                                  <strong className={tx.type === 'TOPUP' ? 'is-accent' : ''}>
                                     {tx.type === 'TOPUP' ? '+' : ''}{formatGhs(tx.amount)}
                                   </strong>
-                                  <small style={{ display: 'block', color: '#94a3b8' }}>{tx.status}</small>
+                                  <small>{tx.status}</small>
                                 </div>
                               </div>
                             ))}
