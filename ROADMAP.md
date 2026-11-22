@@ -73,6 +73,7 @@ Status: Web and native presentation layer implemented and connected to existing 
 - [x] Removed `guestMode`, `Try the demo profile`, `Explore the network first`, `devCode`/`123456` fallbacks, and legacy demo session auto-login from `src/App.tsx` and `src/components/WillPowerAuth.tsx` so all users must authenticate via live Moolre SMS OTP before accessing the platform.
 - [x] Imported `leaflet/dist/leaflet.css` and added `ResizeObserver` + delayed `invalidateSize()` in `src/components/NavigationView.tsx` so the in-app navigation map renders a full seamless tile grid instead of stacked single tiles.
 - [x] Fixed `api/user/profile.ts` and `WillPowerApp.tsx` (`hydrateDriverFromProfile`) so real user names and emails from signup/login are never overwritten by `EV Driver` or `driver@chargelink.com.gh`, and added **Customers**, **Charging History**, and **Station & Per-Customer Tariff Modification** to `WilpowerAdmin.tsx` & `server.ts`.
+- [x] Polished `/admin` UI (`WilpowerAdmin.tsx`, `src/index.css`): solid `#07110b` mobile sidebar, removed `RBAC · SUPER ADMIN` badge, replaced plain `W` mark with `WillPower_App_Icon_V3.png`, styled `.wa-customer-list` / `.wa-customer-card` / `.wa-table-actions`, and stacked station rows cleanly on mobile.
 - [ ] Replace concept photography with licensed or commissioned Ghanaian photography before public launch.
 
 ## Detailed Roadmap Phases

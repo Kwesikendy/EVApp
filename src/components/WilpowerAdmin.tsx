@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Copy,
-  Cpu,
+  SlidersHorizontal,
   KeyRound,
   LayoutDashboard,
   Lock,
@@ -356,8 +356,8 @@ export function WilpowerAdmin() {
       { id: 'dashboard' as const, label: 'Dashboard', sub: 'Network overview', icon: LayoutDashboard },
       { id: 'stations' as const, label: 'Stations', sub: 'Commissioning & pricing', icon: Building2 },
       { id: 'customers' as const, label: 'Customers', sub: 'Accounts, history & rates', icon: Users },
-      { id: 'sessions' as const, label: 'Sessions', sub: 'Live energy ledger', icon: BatteryCharging },
-      { id: 'diagnostics' as const, label: 'OCPP 1.6J CSMS', sub: 'Commands & frames', icon: Cpu },
+      { id: 'sessions' as const, label: 'Sessions', sub: 'Live energy ledger', icon: Zap },
+      { id: 'diagnostics' as const, label: 'OCPP 1.6J CSMS', sub: 'Commands & frames', icon: SlidersHorizontal },
       { id: 'security' as const, label: 'Security', sub: 'Credentials & access', icon: KeyRound },
     ],
     []
@@ -378,7 +378,7 @@ export function WilpowerAdmin() {
         <div className="wa-auth-orbit" />
         <main className="wa-auth-panel">
           <div className="wa-brand-lockup">
-            <div className="wa-brand-mark">W</div>
+            <img src="/willpower/WillPower_App_Icon_V3.png" alt="Wilpower" className="wa-brand-mark" style={{ objectFit: 'cover' }} />
             <div>
               <strong>Wilpower Operations</strong>
               <span>Restricted CSMS & Network Control Plane</span>
@@ -458,7 +458,7 @@ export function WilpowerAdmin() {
       <aside className={`wa-sidebar ${mobileMenuOpen ? 'is-open' : ''}`}>
         <div className="wa-sidebar-top">
           <div className="wa-brand-lockup">
-            <div className="wa-brand-mark">W</div>
+            <img src="/willpower/WillPower_App_Icon_V3.png" alt="Wilpower" className="wa-brand-mark" style={{ objectFit: 'cover' }} />
             <div>
               <strong>Wilpower Ops</strong>
               <span>CSMS Control</span>
@@ -469,10 +469,6 @@ export function WilpowerAdmin() {
           </button>
         </div>
 
-        <div className="wa-admin-badge">
-          <ShieldCheck size={14} />
-          <span>RBAC · {admin.role.replace('_', ' ').toUpperCase()}</span>
-        </div>
 
         <nav className="wa-nav" aria-label="Operations navigation">
           {navItems.map((item) => {
@@ -860,7 +856,7 @@ export function WilpowerAdmin() {
                       <span>New signups appear here automatically once drivers verify via OTP.</span>
                     </div>
                   ) : (
-                    <div className="wa-station-list">
+                    <div className="wa-customer-list">
                       {filteredCustomers.map((c) => {
                         const isSelected = selectedCustomer?.phoneNumber === c.phoneNumber;
                         return (
@@ -871,16 +867,10 @@ export function WilpowerAdmin() {
                               setSelectedCustomerPhone(c.phoneNumber);
                               setCustomerTariffInput(c.customTariffPerKwh !== undefined ? String(c.customTariffPerKwh) : '');
                             }}
-                            className="wa-station-row"
-                            style={{
-                              width: '100%',
-                              textAlign: 'left',
-                              cursor: 'pointer',
-                              border: isSelected ? '1px solid rgba(189,242,46,0.55)' : undefined,
-                              background: isSelected ? 'rgba(189,242,46,0.08)' : undefined,
-                            }}
+                            className={`wa-customer-card ${isSelected ? "is-selected" : ""}`}
+                            
                           >
-                            <div className="wa-station-meta">
+                            <div className="wa-customer-meta">
                               <strong>{c.displayName || 'Wilpower Driver'}</strong>
                               <span>{c.phoneNumber}{c.email ? ` · ${c.email}` : ''}</span>
                               <small>
@@ -989,8 +979,8 @@ export function WilpowerAdmin() {
                         ) : (
                           <div className="wa-station-list" style={{ maxHeight: 280, overflowY: 'auto' }}>
                             {selectedCustomer.transactions.map((tx) => (
-                              <div className="wa-station-row" key={tx.id}>
-                                <div className="wa-station-meta">
+                              <div className="wa-customer-card" key={tx.id}>
+                                <div className="wa-customer-meta">
                                   <strong>{tx.description || tx.type}</strong>
                                   <span>{tx.reference} · {new Date(tx.timestamp).toLocaleString()}</span>
                                 </div>
