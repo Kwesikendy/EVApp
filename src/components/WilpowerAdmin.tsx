@@ -702,7 +702,11 @@ export function WilpowerAdmin() {
                         {station.isOnline ? 'Online (1.6J)' : 'Offline'}
                       </span>
                       <span className="wa-connector-count">
-                        {station.connectors.map((c) => `${c.label || `Gun ${c.connectorId}`} (${c.type}): ${c.status}`).join(' · ')}
+                        {station.connectors.length === 1
+                          ? `${station.connectors[0].maxPowerKw}kW ${station.connectors[0].type}: ${station.connectors[0].status}`
+                          : station.connectors
+                              .map((c) => `${c.label || `Gun ${c.connectorId}`} (${c.maxPowerKw}kW ${c.type}): ${c.status}`)
+                              .join(' · ')}
                       </span>
                       <div className="wa-station-actions">
                         <div className="wa-tariff-inline">
@@ -725,22 +729,31 @@ export function WilpowerAdmin() {
                             <span>Set GH₵/kWh</span>
                           </button>
                         </div>
-                        <button
-                          type="button"
-                          className="wa-btn-secondary wa-btn-sm"
-                          onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 1 })}
-                        >
-                          <Unlock size={13} />
-                          <span>Unlock A</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="wa-btn-secondary wa-btn-sm"
-                          onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: 2 })}
-                        >
-                          <Unlock size={13} />
-                          <span>Unlock B</span>
-                        </button>
+                        {station.connectors.length === 1 ? (
+                          <button
+                            type="button"
+                            className="wa-btn-secondary wa-btn-sm"
+                            onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: station.connectors[0].connectorId })}
+                          >
+                            <Unlock size={13} />
+                            <span>Unlock Gun</span>
+                          </button>
+                        ) : (
+                          station.connectors.map((c) => {
+                            const shortLabel = c.label ? c.label.replace(/^Outlet\s+/i, '') : String(c.connectorId);
+                            return (
+                              <button
+                                key={c.connectorId}
+                                type="button"
+                                className="wa-btn-secondary wa-btn-sm"
+                                onClick={() => dispatchAdminOcppCommand('UnlockConnector', { connectorId: c.connectorId })}
+                              >
+                                <Unlock size={13} />
+                                <span>Unlock {shortLabel}</span>
+                              </button>
+                            );
+                          })
+                        )}
                         <button
                           type="button"
                           className="wa-btn-secondary wa-btn-sm"
