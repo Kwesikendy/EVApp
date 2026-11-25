@@ -1881,6 +1881,27 @@ app.post('/api/auth/verify-otp', (req, res) => {
   }
 });
 
+app.post('/api/user/delete-request', (req, res) => {
+  const rawPhone = typeof req.body?.phoneNumber === 'string' ? req.body.phoneNumber.trim() : '';
+  if (!rawPhone) {
+    return res.status(400).json({ success: false, error: 'Registered phone number is required.' });
+  }
+  const normalizedPhone = normalizeGhanaPhoneNumber(rawPhone);
+  const reference = `DEL-${Date.now().toString(36).toUpperCase()}`;
+  console.log('[Account Deletion Request]', {
+    reference,
+    phoneNumber: normalizedPhone,
+    email: typeof req.body?.email === 'string' ? req.body.email.trim().slice(0, 160) : undefined,
+    reason: typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 500) : undefined,
+    requestedAt: new Date().toISOString(),
+  });
+  return res.json({
+    success: true,
+    reference,
+    message: 'Your Wilpower account deletion request has been logged and will be processed within 7 business days.',
+  });
+});
+
 app.get('/api/user/profile', (req, res) => {
   const phone = (req.query.phoneNumber as string) || '+233248901204';
   const profile = getUserProfile(phone);

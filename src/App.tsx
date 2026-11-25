@@ -3,6 +3,7 @@ import { WillPowerApp } from './components/WillPowerApp';
 import { WillPowerAuth } from './components/WillPowerAuth';
 import { WilpowerAdmin } from './components/WilpowerAdmin';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
+import { DeleteAccountPage } from './components/DeleteAccountPage';
 
 function readStoredUser() {
   try {
@@ -21,6 +22,9 @@ function readStoredUser() {
 export default function App() {
   if (/(^|\/)privacy(?:-policy)?(?:\/|$)/.test(window.location.pathname)) {
     return <PrivacyPolicyPage />;
+  }
+  if (/(^|\/)delete-account(?:\/|$)/.test(window.location.pathname)) {
+    return <DeleteAccountPage />;
   }
   if (/(^|\/)payments\/paystack\/callback(?:\/|$)/.test(window.location.pathname)) {
     return <PaystackCallback />;
