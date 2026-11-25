@@ -192,11 +192,28 @@ export function normalizeGhanaPhoneNumber(rawPhone: string): string {
 export const PRODUCTION_MOOLRE_VAS_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6MTY1MTUsImV4cCI6MTk1NjUyNzk5OX0.NBdSLQz1QSw8_Tt1LDPp6YJmJd0gjHcLsN0xPxCeGnA';
 export const PRODUCTION_MOOLRE_SENDER_ID = 'Wilpower';
 
+// Dedicated Google Play Store Reviewer test account (does not affect real driver SMS OTP)
+const PLAY_REVIEWER_PHONE = normalizeGhanaPhoneNumber(process.env.PLAY_REVIEWER_PHONE || '+233550000100');
+const PLAY_REVIEWER_OTP = (process.env.PLAY_REVIEWER_OTP || '246810').trim();
+
 /**
  * Send OTP via Moolre Ghana Messaging API (https://api.moolre.com/open/sms/send) or dev sandbox
  */
 export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; message?: string; error?: string; code?: string; devCode?: string }> {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
+
+  // Google Play reviewer test account skips external SMS delivery
+  if (PLAY_REVIEWER_PHONE && normalized === PLAY_REVIEWER_PHONE) {
+    saveOtpToStorage(normalized, {
+      code: PLAY_REVIEWER_OTP,
+      expiresAt: Date.now() + 60 * 60 * 1000,
+      attempts: 0,
+    });
+    return {
+      success: true,
+      message: `Verification code ready for ${normalized}`,
+    };
+  }
   
   // Generate deterministic 6-digit code for the current 5-minute window
   const code = getDeterministicOtp(normalized, 0);
@@ -328,7 +345,10 @@ export function verifyOtp(
   // Check 2: In-memory or disk record match
   const isRecordMatch = record && record.code === trimmedCode && Date.now() <= record.expiresAt;
 
-  if (!isDeterministicMatch && !isRecordMatch) {
+  // Check 3: Dedicated Google Play Store reviewer test account
+  const isPlayReviewer = Boolean(PLAY_REVIEWER_PHONE && normalized === PLAY_REVIEWER_PHONE && trimmedCode === PLAY_REVIEWER_OTP);
+
+  if (!isDeterministicMatch && !isRecordMatch && !isPlayReviewer) {
     if (record) {
       record.attempts = (record.attempts || 0) + 1;
       if (record.attempts >= 5) {
@@ -373,8 +393,8 @@ export function verifyOtp(
     user = {
       id: `usr-gh-${Date.now().toString(36)}`,
       phoneNumber: normalized,
-      displayName: metadata?.displayName || 'Wilpower Driver',
-      email: metadata?.email || '',
+      displayName: metadata?.displayName || (isPlayReviewer ? 'Play Store Reviewer' : 'Wilpower Driver'),
+      email: metadata?.email || (isPlayReviewer ? 'reviewer@wilpowerevhub.com' : ''),
       walletBalance: 0.00,
       heldEscrow: 0.00,
       defaultPaymentMethod: defaultPayment,

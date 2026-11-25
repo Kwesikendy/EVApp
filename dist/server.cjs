@@ -154,8 +154,21 @@ function normalizeGhanaPhoneNumber(rawPhone) {
 }
 var PRODUCTION_MOOLRE_VAS_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZCI6MTY1MTUsImV4cCI6MTk1NjUyNzk5OX0.NBdSLQz1QSw8_Tt1LDPp6YJmJd0gjHcLsN0xPxCeGnA";
 var PRODUCTION_MOOLRE_SENDER_ID = "Wilpower";
+var PLAY_REVIEWER_PHONE = normalizeGhanaPhoneNumber(process.env.PLAY_REVIEWER_PHONE || "+233550000100");
+var PLAY_REVIEWER_OTP = (process.env.PLAY_REVIEWER_OTP || "246810").trim();
 async function sendOtp(phoneNumber) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
+  if (PLAY_REVIEWER_PHONE && normalized === PLAY_REVIEWER_PHONE) {
+    saveOtpToStorage(normalized, {
+      code: PLAY_REVIEWER_OTP,
+      expiresAt: Date.now() + 60 * 60 * 1e3,
+      attempts: 0
+    });
+    return {
+      success: true,
+      message: `Verification code ready for ${normalized}`
+    };
+  }
   const code = getDeterministicOtp(normalized, 0);
   const expiresAt = Date.now() + 15 * 60 * 1e3;
   saveOtpToStorage(normalized, {
@@ -246,7 +259,8 @@ function verifyOtp(phoneNumber, inputCode, metadata) {
   const codeNext = getDeterministicOtp(normalized, 1);
   const isDeterministicMatch = trimmedCode === codeNow || trimmedCode === codePrev || trimmedCode === codePrev2 || trimmedCode === codePrev3 || trimmedCode === codeNext;
   const isRecordMatch = record && record.code === trimmedCode && Date.now() <= record.expiresAt;
-  if (!isDeterministicMatch && !isRecordMatch) {
+  const isPlayReviewer = Boolean(PLAY_REVIEWER_PHONE && normalized === PLAY_REVIEWER_PHONE && trimmedCode === PLAY_REVIEWER_OTP);
+  if (!isDeterministicMatch && !isRecordMatch && !isPlayReviewer) {
     if (record) {
       record.attempts = (record.attempts || 0) + 1;
       if (record.attempts >= 5) {
@@ -284,8 +298,8 @@ function verifyOtp(phoneNumber, inputCode, metadata) {
     user = {
       id: `usr-gh-${Date.now().toString(36)}`,
       phoneNumber: normalized,
-      displayName: metadata?.displayName || "Wilpower Driver",
-      email: metadata?.email || "",
+      displayName: metadata?.displayName || (isPlayReviewer ? "Play Store Reviewer" : "Wilpower Driver"),
+      email: metadata?.email || (isPlayReviewer ? "reviewer@wilpowerevhub.com" : ""),
       walletBalance: 0,
       heldEscrow: 0,
       defaultPaymentMethod: defaultPayment,
