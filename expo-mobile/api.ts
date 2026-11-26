@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 // ============================================================================
 // BACKEND CONFIGURATION FOR UNIVERSAL INTERNET & APK CONNECTIVITY
 // ============================================================================
-export const CLOUD_BACKEND_URL = 'https://mossy-mistyrose-owl-18.hostingersite.com';
+export const CLOUD_BACKEND_URL = 'https://wilpowerevhub.com';
 
 export let BACKEND_URL = CLOUD_BACKEND_URL;
 
