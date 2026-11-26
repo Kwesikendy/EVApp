@@ -2069,3 +2069,15 @@ html[data-wp-theme='light'] .wp-choice strong {
     text-align: left;
   }
 }
+
+
+/* Keep floating mobile bottom navigation pill sleek & symmetrically padded on Android/iOS */
+@media (max-width: 720px) {
+  .wp-mobile-nav {
+    padding: 7px !important;
+    bottom: 10px !important;
+  }
+  .wp-main {
+    padding-bottom: 86px !important;
+  }
+}
