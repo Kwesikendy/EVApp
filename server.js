@@ -122,7 +122,7 @@ var PRODUCTION_MOOLRE_VAS_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ2YXNpZC
 var PRODUCTION_MOOLRE_SENDER_ID = "Wilpower";
 var PLAY_REVIEWER_PHONE = normalizeGhanaPhoneNumber(process.env.PLAY_REVIEWER_PHONE || "+233550000100");
 var PLAY_REVIEWER_OTP = (process.env.PLAY_REVIEWER_OTP || "246810").trim();
-async function sendOtp(phoneNumber) {
+async function sendOtp(phoneNumber, mode) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   if (PLAY_REVIEWER_PHONE && normalized === PLAY_REVIEWER_PHONE) {
     saveOtpToStorage(normalized, {
@@ -133,6 +133,13 @@ async function sendOtp(phoneNumber) {
     return {
       success: true,
       message: `Verification code ready for ${normalized}`
+    };
+  }
+  if (mode === "login" && !USERS_DB.has(normalized)) {
+    return {
+      success: false,
+      code: "ACCOUNT_NOT_FOUND",
+      error: "No Wilpower account found for this phone number. Please create a profile first."
     };
   }
   const code = getDeterministicOtp(normalized, 0);
@@ -214,7 +221,7 @@ async function sendOtp(phoneNumber) {
     error: "SMS gateway is not configured."
   };
 }
-function verifyOtp(phoneNumber, inputCode, metadata) {
+function verifyOtp(phoneNumber, inputCode, metadata, mode) {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const trimmedCode = (inputCode || "").trim();
   const record = getOtpFromStorage(normalized);
@@ -240,6 +247,20 @@ function verifyOtp(phoneNumber, inputCode, metadata) {
   OTP_STORE.delete(normalized);
   let user = USERS_DB.get(normalized);
   if (!user) {
+    if (mode === "login" && !isPlayReviewer) {
+      return {
+        success: false,
+        code: "ACCOUNT_NOT_FOUND",
+        error: "No Wilpower account found for this phone number. Please create a profile first."
+      };
+    }
+    if (!isPlayReviewer && !metadata?.displayName?.trim()) {
+      return {
+        success: false,
+        code: "PROFILE_REQUIRED",
+        error: "Please create a profile with your full name before signing in."
+      };
+    }
     let make = "BYD";
     let model = "Atto 3";
     let batteryCapacityKwh = 60.5;
@@ -3818,11 +3839,15 @@ app.post("/api/simulator/stop", (_req, res) => {
 });
 app.post("/api/auth/send-otp", async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, mode } = req.body;
     if (!phoneNumber) {
       return res.status(400).json({ success: false, error: "Phone number is required" });
     }
-    const result = await sendOtp(phoneNumber);
+    const authMode = mode === "login" || mode === "signup" ? mode : void 0;
+    const result = await sendOtp(phoneNumber, authMode);
+    if (!result.success && result.code === "ACCOUNT_NOT_FOUND") {
+      return res.status(404).json(result);
+    }
     res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -3830,11 +3855,12 @@ app.post("/api/auth/send-otp", async (req, res) => {
 });
 app.post("/api/auth/verify-otp", (req, res) => {
   try {
-    const { phoneNumber, code, metadata } = req.body;
+    const { phoneNumber, code, metadata, mode } = req.body;
     if (!phoneNumber || !code) {
       return res.status(400).json({ success: false, error: "Phone number and verification code are required" });
     }
-    const result = verifyOtp(phoneNumber, code, metadata);
+    const authMode = mode === "login" || mode === "signup" ? mode : void 0;
+    const result = verifyOtp(phoneNumber, code, metadata, authMode);
     if (!result.success) {
       return res.status(400).json(result);
     }

@@ -199,7 +199,10 @@ const PLAY_REVIEWER_OTP = (process.env.PLAY_REVIEWER_OTP || '246810').trim();
 /**
  * Send OTP via Moolre Ghana Messaging API (https://api.moolre.com/open/sms/send) or dev sandbox
  */
-export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; message?: string; error?: string; code?: string; devCode?: string }> {
+export async function sendOtp(
+  phoneNumber: string,
+  mode?: 'login' | 'signup'
+): Promise<{ success: boolean; message?: string; error?: string; code?: string; devCode?: string }> {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
 
   // Google Play reviewer test account skips external SMS delivery
@@ -212,6 +215,15 @@ export async function sendOtp(phoneNumber: string): Promise<{ success: boolean; 
     return {
       success: true,
       message: `Verification code ready for ${normalized}`,
+    };
+  }
+
+  // Enforce account creation before login (do not auto-register unregistered numbers on Sign in)
+  if (mode === 'login' && !USERS_DB.has(normalized)) {
+    return {
+      success: false,
+      code: 'ACCOUNT_NOT_FOUND',
+      error: 'No Wilpower account found for this phone number. Please create a profile first.',
     };
   }
   
@@ -322,8 +334,9 @@ export interface VerifyOtpMetadata {
 export function verifyOtp(
   phoneNumber: string,
   inputCode: string,
-  metadata?: VerifyOtpMetadata
-): { success: boolean; error?: string; user?: UserProfile } {
+  metadata?: VerifyOtpMetadata,
+  mode?: 'login' | 'signup'
+): { success: boolean; error?: string; code?: string; user?: UserProfile } {
   const normalized = normalizeGhanaPhoneNumber(phoneNumber);
   const trimmedCode = (inputCode || '').trim();
   const record = getOtpFromStorage(normalized);
@@ -366,6 +379,20 @@ export function verifyOtp(
   // Retrieve or create driver profile
   let user = USERS_DB.get(normalized);
   if (!user) {
+    if (mode === 'login' && !isPlayReviewer) {
+      return {
+        success: false,
+        code: 'ACCOUNT_NOT_FOUND',
+        error: 'No Wilpower account found for this phone number. Please create a profile first.',
+      };
+    }
+    if (!isPlayReviewer && !metadata?.displayName?.trim()) {
+      return {
+        success: false,
+        code: 'PROFILE_REQUIRED',
+        error: 'Please create a profile with your full name before signing in.',
+      };
+    }
     let make = 'BYD';
     let model = 'Atto 3';
     let batteryCapacityKwh = 60.5;

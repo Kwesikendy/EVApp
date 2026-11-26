@@ -1852,11 +1852,15 @@ app.post('/api/simulator/stop', (_req, res) => {
 
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, mode } = req.body;
     if (!phoneNumber) {
       return res.status(400).json({ success: false, error: 'Phone number is required' });
     }
-    const result = await sendOtp(phoneNumber);
+    const authMode = mode === 'login' || mode === 'signup' ? mode : undefined;
+    const result = await sendOtp(phoneNumber, authMode);
+    if (!result.success && result.code === 'ACCOUNT_NOT_FOUND') {
+      return res.status(404).json(result);
+    }
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -1865,13 +1869,14 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
 app.post('/api/auth/verify-otp', (req, res) => {
   try {
-    const { phoneNumber, code, metadata } = req.body;
+    const { phoneNumber, code, metadata, mode } = req.body;
     if (!phoneNumber || !code) {
       return res
         .status(400)
         .json({ success: false, error: 'Phone number and verification code are required' });
     }
-    const result = verifyOtp(phoneNumber, code, metadata);
+    const authMode = mode === 'login' || mode === 'signup' ? mode : undefined;
+    const result = verifyOtp(phoneNumber, code, metadata, authMode);
     if (!result.success) {
       return res.status(400).json(result);
     }

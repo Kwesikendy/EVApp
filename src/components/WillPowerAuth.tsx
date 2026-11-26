@@ -44,6 +44,7 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authFlow, setAuthFlow] = useState<'login' | 'signup'>('login');
 
   const normalizedPhone = normalizePhone(phone);
 
@@ -54,7 +55,8 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
       setError('Enter a Ghana mobile number to continue.');
       return;
     }
-    if (mode === 'signup' && !fullName.trim()) {
+    const activeFlow: 'login' | 'signup' = mode === 'signup' ? 'signup' : mode === 'login' ? 'login' : authFlow;
+    if (activeFlow === 'signup' && !fullName.trim()) {
       setError('Add your name so we can set up your driver profile.');
       return;
     }
@@ -63,14 +65,21 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: normalizedPhone }),
+        body: JSON.stringify({ phoneNumber: normalizedPhone, mode: activeFlow }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {
+        if (data.code === 'ACCOUNT_NOT_FOUND') {
+          setMode('signup');
+          setAuthFlow('signup');
+          setNotice('No account found for this number yet. Create your profile below to continue.');
+          return;
+        }
         setError(data.error || data.message || 'Could not send verification SMS. Please retry.');
         return;
       }
       if (data.message) setNotice(data.message);
+      setAuthFlow(activeFlow);
       setMode('otp');
     } catch {
       setError('Unable to reach the SMS gateway. Check your connection and try again.');
@@ -94,6 +103,7 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
         body: JSON.stringify({
           phoneNumber: normalizedPhone,
           code: submitted,
+          mode: authFlow,
           metadata: fullName.trim()
             ? {
                 displayName: fullName.trim(),
@@ -107,6 +117,13 @@ export const WillPowerAuth: React.FC<WillPowerAuthProps> = ({ onVerified }) => {
       const data = await response.json().catch(() => ({}));
       if (response.ok && data.success && data.user) {
         onVerified(data.user);
+        return;
+      }
+      if (data.code === 'ACCOUNT_NOT_FOUND' || data.code === 'PROFILE_REQUIRED') {
+        setMode('signup');
+        setAuthFlow('signup');
+        setCode('');
+        setNotice(data.error || 'Please create your driver profile first.');
         return;
       }
       setError(data.error || 'That code was not accepted. Request a new code and try again.');
